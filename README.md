@@ -1,15 +1,13 @@
 Kraftverk
 ===========================
 
-Kraftverk is a depency injection framework for Kotlin.
-
-It involves no reflection or code generation.
+Kraftverk is a depency injection framework for Kotlin, that involves no reflection or code generation.
 
 Sample code
 ---------
 Inspired by the "coffee example" from the [Dagger 2 Users guide](https://dagger.dev/users-guide.html)
 
-Given a module like this:
+Given a module:
 ```kotlin
 class DripCoffeeModule : Module() {
 
