@@ -30,10 +30,10 @@ class DripCoffeeModule : Module() {
 
 }
 ```
-You can start an App instance like this:
+Start an App instance:
 ```kotlin
 fun main() {
-    val app = App.start { DripCoffeeModule() }
+    val app = App.start(::DripCoffeeModule)
     val coffeeMaker = app.getBean { coffeeMaker }
     coffeeMaker.brew()
 }
