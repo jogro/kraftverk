@@ -5,16 +5,16 @@
 
 package io.kraftverk.internal
 
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
-internal sealed class Provider<T : Any> {
-    abstract val type: KClass<T>
+internal sealed class Provider<out T : Any> {
     abstract fun get(): T
     internal abstract fun destroy()
 }
 
 internal class PrototypeProvider<T : Any>(
-    override val type: KClass<T>,
+    val type: KClass<T>,
     private val onCreate: () -> T,
     private val onStart: (T) -> Unit
 ) : Provider<T>() {
@@ -28,11 +28,15 @@ internal class PrototypeProvider<T : Any>(
 }
 
 internal class SingletonProvider<T : Any>(
-    override val type: KClass<T>,
+    val type: KClass<T>,
     private val onCreate: () -> T,
     private val onStart: (T) -> Unit,
     private val onDestroy: (T) -> Unit
 ) : Provider<T>() {
+
+    @Volatile
+    var instanceId: Int? = null
+        private set
 
     @Volatile
     private var instance: T? = null
@@ -41,6 +45,7 @@ internal class SingletonProvider<T : Any>(
         return instance ?: synchronized(this) {
             instance ?: onCreate().also {
                 instance = it
+                instanceId = currentInstanceId.incrementAndGet()
                 onStart(it)
             }
         }
@@ -55,6 +60,10 @@ internal class SingletonProvider<T : Any>(
                 }
             }
         }
+    }
+
+    companion object {
+        val currentInstanceId = AtomicInteger(0)
     }
 
 }

@@ -6,15 +6,16 @@
 package io.kraftverk.internal
 
 import io.kraftverk.*
-import io.kraftverk.PropertyImpl
-import io.kraftverk.PrototypeBeanImpl
-import io.kraftverk.SingletonBeanImpl
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-private fun <T : Any> Bean<T>.toBinding(): Binding<T> = when (this) {
-    is SingletonBeanImpl<T> -> this.binding
-    is PrototypeBeanImpl<T> -> this.binding
+private fun <T : Any> Bean<T>.toBinding(): Binding<T, Provider<T>> = when (this) {
+    is SingletonBeanImpl<T> -> binding
+    is PrototypeBeanImpl<T> -> binding
+}
+
+internal fun <T : Any> SingletonBean<T>.instanceId(): Int? = when (this) {
+    is SingletonBeanImpl<T> -> this.binding.provider().instanceId
 }
 
 private fun Property.toBinding(): PropertyBinding = when (this) {
@@ -90,10 +91,10 @@ internal fun Bean<*>.destroy() {
     this.toBinding().destroy()
 }
 
-internal fun <T : Any> Bean<T>.provider(): Provider<T> {
+internal fun Property.provider(): Provider<String> {
     return this.toBinding().provider()
 }
 
-internal fun Property.provider(): Provider<String> {
+internal fun <T : Any> Bean<T>.provider(): Provider<T> {
     return this.toBinding().provider()
 }

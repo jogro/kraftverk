@@ -16,5 +16,7 @@ internal class DefiningBinding<T : Any>(
     var onStop: (T) -> Unit = {}
 }
 
-internal class InitializedBinding<T : Any>(val provider: Provider<T>, val lazy: Boolean) : BindingState<T>()
-internal object StoppedBinding : BindingState<Nothing>()
+internal class InitializedBinding<T : Any, P : Provider<T>>(val provider: P, val lazy: Boolean) :
+    BindingState<T>()
+
+internal object DestroyedBinding : BindingState<Nothing>()

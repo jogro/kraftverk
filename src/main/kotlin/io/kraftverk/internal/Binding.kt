@@ -9,7 +9,7 @@ import io.kraftverk.ConsumerDefinition
 import io.kraftverk.SupplierDefinition
 import kotlin.reflect.KClass
 
-internal sealed class Binding<T : Any>(
+internal sealed class Binding<T : Any, out P : Provider<T>>(
     internal val type: KClass<T>,
     initialState: DefiningBinding<T>
 ) {
@@ -58,21 +58,21 @@ internal sealed class Binding<T : Any>(
     }
 
     fun start() {
-        state.expect<InitializedBinding<T>> {
+        state.expect<InitializedBinding<T, P>> {
             if (!lazy) provider.get()
         }
     }
 
-    fun provider(): Provider<T> {
-        state.expect<InitializedBinding<T>> {
+    open fun provider(): P {
+        state.expect<InitializedBinding<T, P>> {
             return provider
         }
     }
 
     fun destroy() {
-        state.on<InitializedBinding<T>> {
+        state.on<InitializedBinding<T, P>> {
             provider.destroy()
-            state = StoppedBinding
+            state = DestroyedBinding
         }
     }
 
@@ -98,7 +98,7 @@ internal sealed class Binding<T : Any>(
 internal class SingletonBinding<T : Any>(
     type: KClass<T>,
     initialState: DefiningBinding<T>
-) : Binding<T>(type, initialState) {
+) : Binding<T, SingletonProvider<T>>(type, initialState) {
     override fun createProvider(state: DefiningBinding<T>): Provider<T> {
         with(state) {
             return SingletonProvider(type, onSupply, onStart, onStop)
@@ -106,20 +106,21 @@ internal class SingletonBinding<T : Any>(
     }
 }
 
-internal class ProtoTypeBinding<T : Any>(
+internal class PrototypeBinding<T : Any>(
     type: KClass<T>,
     initialState: DefiningBinding<T>
-) : Binding<T>(type, initialState) {
-    override fun createProvider(state: DefiningBinding<T>): Provider<T> {
+) : Binding<T, PrototypeProvider<T>>(type, initialState) {
+    override fun createProvider(state: DefiningBinding<T>): PrototypeProvider<T> {
         with(state) {
             return PrototypeProvider(type, onSupply, onStart)
         }
     }
 }
 
-internal class PropertyBinding(initialState: DefiningBinding<String>
-) : Binding<String>(String::class, initialState) {
-    override fun createProvider(state: DefiningBinding<String>): Provider<String> {
+internal class PropertyBinding(
+    initialState: DefiningBinding<String>
+) : Binding<String, SingletonProvider<String>>(String::class, initialState) {
+    override fun createProvider(state: DefiningBinding<String>): SingletonProvider<String> {
         with(state) {
             return SingletonProvider(type, onSupply, onStart, onStop)
         }
