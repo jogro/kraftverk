@@ -10,7 +10,7 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
-internal class ModuleContext() {
+internal class ModuleContext {
 
     val appContext: AppContext = ModuleContext.appContext
     private val namespace: String = ModuleContext.namespace

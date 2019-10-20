@@ -13,7 +13,7 @@ import kotlin.reflect.KProperty
 /**
  * Basic component to inherit from when creating a module.
  */
-abstract class Module() {
+abstract class Module {
 
     private val moduleContext = ModuleContext()
 

@@ -6,8 +6,6 @@
 package io.kraftverk.internal
 
 import io.kraftverk.*
-import io.kraftverk.PrototypeBeanImpl
-import io.kraftverk.SingletonBeanImpl
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -24,7 +22,7 @@ internal class BeanFactory(
         override fun provideDelegate(thisRef: Module, prop: KProperty<*>): ReadOnlyProperty<Module, PrototypeBean<T>> {
             val definition = PrototypeDefinition(moduleContext)
             return PrototypeBeanImpl(
-                binding = ProtoTypeBinding(
+                binding = PrototypeBinding(
                     type = type,
                     initialState = DefiningBinding(
                         lazy = true,
