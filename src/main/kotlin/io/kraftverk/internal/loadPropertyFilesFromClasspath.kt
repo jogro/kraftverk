@@ -16,20 +16,21 @@ internal fun loadPropertyFilesFromClasspath(defaultFileName: String, profiles: L
 }
 
 private fun loadFromClasspath(props: MutableMap<String, String>, filename: String, profiles: List<String>) {
-    val loaded = Properties()
-    loadFromClassPathFile(loaded, Paths.get("$filename.properties"))
-    profiles.forEach {
-        loadFromClassPathFile(loaded, Paths.get("$filename-$it.properties"))
-    }
-    loaded.forEach { e ->
-        props[e.key.toString()] = e.value.toString()
+    with(Properties()) {
+        loadFromClassPathFile(Paths.get("$filename.properties"))
+        profiles.forEach {
+            loadFromClassPathFile(Paths.get("$filename-$it.properties"))
+        }
+        forEach { e ->
+            props[e.key.toString()] = e.value.toString()
+        }
     }
 }
 
-private fun loadFromClassPathFile(props: Properties, path: Path) {
+private fun Properties.loadFromClassPathFile(path: Path) {
     path.let(Path::toString)
         .let(BindingState::class.java.classLoader::getResourceAsStream)
-        ?.let {
-            it.use { input -> props.load(input) }
+        ?.also {
+            it.use { input -> load(input) }
         }
 }
