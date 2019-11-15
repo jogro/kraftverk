@@ -28,7 +28,7 @@ import io.kraftverk.internal.provider
  * Call the [App.start] method to construct an App
  * instance.
  * ```kotlin
- * val app = App.start(::AppModule) {
+ * val app = App.start(::AppModule)
  * ```
  * To access the bean instance, use the [App.getBean]
  * method:
