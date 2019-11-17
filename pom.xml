@@ -5,11 +5,37 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.kraftverk</groupId>
-    <artifactId>kraftverk-core</artifactId>
+    <artifactId>kraftverk</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Kraftverk Core DI</name>
+    <name>Kraftverk DI</name>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:jogro/kraftverk.git</connection>
+        <developerConnection>scm:git:git@github.com:jogro/kraftverk.git</developerConnection>
+        <url>https://github.com/jogro/kraftverk.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Jonas Grönberg</name>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>GitHub Issue Tracker</system>
+        <url>https://github.com/jogro/kraftverk/issues</url>
+    </issueManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -28,6 +54,14 @@
             <url>https://jcenter.bintray.com/</url>
         </pluginRepository>
     </pluginRepositories>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub OWNER Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/jogro/kraftverk</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
