@@ -75,27 +75,27 @@ internal class ModuleContext {
 
     companion object {
 
-        private val contextualAppContext = Contextual<AppContext>()
-        private val contextualNamespace = Contextual<String>()
+        internal val contextualAppContext = Contextual<AppContext>()
+        internal val contextualNamespace = Contextual<String>()
         val appContext get() = contextualAppContext.get()
         val namespace get() = contextualNamespace.get()
 
-        fun <R> use(appContext: AppContext, namespace: String, block: () -> R): R {
-            return use(appContext) {
-                use(namespace) {
-                    block()
-                }
-            }
-        }
-
-        private fun <R> use(appContext: AppContext, block: () -> R): R {
-            return contextualAppContext.use(appContext, block)
-        }
-
-        fun <R> use(namespace: String, block: () -> R): R {
-            return contextualNamespace.use(namespace.toLowerCase(), block)
-        }
-
     }
 
+}
+
+internal fun <R> ModuleContext.Companion.use(appContext: AppContext, namespace: String, block: () -> R): R {
+    return use(appContext) {
+        use(namespace) {
+            block()
+        }
+    }
+}
+
+internal fun <R> ModuleContext.Companion.use(namespace: String, block: () -> R): R {
+    return contextualNamespace.use(namespace.toLowerCase(), block)
+}
+
+private fun <R> ModuleContext.Companion.use(appContext: AppContext, block: () -> R): R {
+    return contextualAppContext.use(appContext, block)
 }

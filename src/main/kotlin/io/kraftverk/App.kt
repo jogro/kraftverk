@@ -5,10 +5,13 @@
 
 package io.kraftverk
 
+import io.kraftverk.internal.*
 import io.kraftverk.internal.AppContext
 import io.kraftverk.internal.ModuleContext
 import io.kraftverk.internal.loadPropertyFilesFromClasspath
 import io.kraftverk.internal.provider
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Provides access to [Property] and [Bean] instances
@@ -30,15 +33,15 @@ import io.kraftverk.internal.provider
  * ```kotlin
  * val app = App.start(::AppModule)
  * ```
- * To access the bean instance, use the [App.getBean]
+ * To access the bean instance, call the [App.getBean]
  * method:
  * ```kotlin
  * val someService = app.getBean { someService }
  * ```
  */
-class App<M : Module> private constructor(
-    private val appContext: AppContext,
-    private val module: M
+class App<M : Module> internal constructor(
+    internal val appContext: AppContext,
+    internal val module: M
 ) {
 
     /**
@@ -56,130 +59,159 @@ class App<M : Module> private constructor(
      */
     val profiles: List<String> = appContext.profiles
 
-    /**
-     * Retrieves an instance [T] of the specified [bean].
-     * ```kotlin
-     * val someService = app.getBean { someService }
-     * ```
-     */
-    fun <T : Any> getBean(bean: M.() -> Bean<T>): T =
-        module.bean().provider().get()
-
-    /**
-     * Retrieves the value of the specified [property].
-     * ```kotlin
-     * val username = app.getProperty { username }
-     * ```
-     */
-    fun getProperty(property: M.() -> Property): String =
-        module.property().provider().get()
-
-    /**
-     * Destroys this App.
-     */
-    fun destroy() {
-        appContext.destroy()
-    }
-
-    companion object {
-
-        /**
-         * Constructs an App instance given an implementation [M]
-         * of [Module].
-         * ```kotlin
-         * val app = App.start(::AppModule)
-         * ```
-         * Detection of missing properties is fail fast.
-         * All beans are eagerly instantiated.
-         */
-        fun <M : Module> start(
-            module: () -> M
-        ): App<M> = startCustomized(
-            module = module
-        )
-
-        /**
-         * Constructs an App instance given an
-         * implementation [M] of [Module].
-         * ```kotlin
-         * val app = App.start(::AppModule) {
-         *     bind(username) with { "guest" }
-         * }
-         * ```
-         * Detection of missing properties is fail fast.
-         * All beans are eagerly instantiated.
-         */
-        fun <M : Module> start(
-            module: () -> M,
-            configure: M.() -> Unit
-        ): App<M> = startCustomized(
-            module = module,
-            configure = configure
-        )
-
-        /**
-         * Constructs an App instance given an implementation [M]
-         * of [Module].
-         * ```kotlin
-         * val app = App.startLazy(::AppModule)
-         * ```
-         * Detection of missing properties is fail fast.
-         * All beans are lazily instantiated.
-         */
-        fun <M : Module> startLazy(
-            module: () -> M
-        ): App<M> =
-            startCustomized(
-                module = module,
-                defaultLazyBeans = true
-            )
-
-        /**
-         * Constructs an App instance given an
-         * implementation [M] of [Module].
-         * ```kotlin
-         * val app = App.startLazy(::AppModule) {
-         *     bind(username) with { "guest" }
-         * }
-         * ```
-         * Detection of missing properties is fail fast.
-         * All beans are lazily instantiated.
-         */
-        fun <M : Module> startLazy(
-            module: () -> M,
-            configure: M.() -> Unit
-        ): App<M> =
-            startCustomized(
-                module = module,
-                defaultLazyBeans = true,
-                configure = configure
-            )
-
-
-        fun <M : Module> startCustomized(
-            module: () -> M,
-            namespace: String = "",
-            defaultLazyBeans: Boolean = false,
-            defaultLazyProps: Boolean = false,
-            propertyReader: (List<String>) -> (String) -> String? = Companion::defaultPropertyReader,
-            configure: M.() -> Unit = {}
-        ): App<M> {
-            val appContext = AppContext(defaultLazyBeans, defaultLazyProps, propertyReader)
-            val rootModule = ModuleContext.use(appContext, namespace) { module().apply(configure) }
-            with(appContext) {
-                initialize()
-                start()
-            }
-            return App(appContext, rootModule).also {
-                Runtime.getRuntime().addShutdownHook(Thread {
-                    it.destroy()
-                })
-            }
-        }
-
-        private fun defaultPropertyReader(profiles: List<String>): (String) -> String? =
-            loadPropertyFilesFromClasspath("application", profiles)::get
-
-    }
+    companion object
 
 }
+
+/**
+ * Retrieves an instance [T] of the specified [bean].
+ * ```kotlin
+ * val someService = app.getBean { someService }
+ * ```
+ */
+fun <M : Module, T : Any> App<M>.getBean(bean: M.() -> Bean<T>): T {
+    contract {
+        callsInPlace(bean, InvocationKind.EXACTLY_ONCE)
+    }
+    return module.bean().provider().get()
+}
+
+/**
+ * Retrieves the value of the specified [property].
+ * ```kotlin
+ * val username = app.getProperty { username }
+ * ```
+ */
+fun <M : Module> App<M>.getProperty(property: M.() -> Property): String {
+    contract {
+        callsInPlace(property, InvocationKind.EXACTLY_ONCE)
+    }
+    return module.property().provider().get()
+}
+
+/**
+ * Destroys this App.
+ */
+fun <M : Module> App<M>.destroy() {
+    appContext.destroy()
+}
+
+/**
+ * Constructs an App instance given an implementation [M]
+ * of [Module].
+ * ```kotlin
+ * val app = App.start(::AppModule)
+ * ```
+ * Detection of missing properties is fail fast.
+ * All beans are eagerly instantiated.
+ */
+fun <M : Module> App.Companion.start(
+    module: () -> M
+): App<M> {
+    contract {
+        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
+    }
+    return startCustom(
+        module = module
+    )
+}
+
+/**
+ * Constructs an App instance given an
+ * implementation [M] of [Module].
+ * ```kotlin
+ * val app = App.start(::AppModule) {
+ *     bind(username) to { "guest" }
+ * }
+ * ```
+ * Detection of missing properties is fail fast.
+ * All beans are eagerly instantiated.
+ */
+fun <M : Module> App.Companion.start(
+    module: () -> M,
+    configure: M.() -> Unit
+): App<M> {
+    contract {
+        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(configure, InvocationKind.EXACTLY_ONCE)
+    }
+    return startCustom(
+        module = module,
+        configure = configure
+    )
+}
+
+/**
+ * Constructs an App instance given an implementation [M]
+ * of [Module].
+ * ```kotlin
+ * val app = App.startLazy(::AppModule)
+ * ```
+ * Detection of missing properties is fail fast.
+ * All beans are lazily instantiated.
+ */
+fun <M : Module> App.Companion.startLazy(
+    module: () -> M
+): App<M> {
+    contract {
+        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
+    }
+    return startCustom(
+        module = module,
+        defaultLazyBeans = true
+    )
+}
+
+/**
+ * Constructs an App instance given an
+ * implementation [M] of [Module].
+ * ```kotlin
+ * val app = App.startLazy(::AppModule) {
+ *     bind(username) to { "guest" }
+ * }
+ * ```
+ * Detection of missing properties is fail fast.
+ * All beans are lazily instantiated.
+ */
+fun <M : Module> App.Companion.startLazy(
+    module: () -> M,
+    configure: M.() -> Unit
+): App<M> {
+    contract {
+        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(configure, InvocationKind.EXACTLY_ONCE)
+    }
+    return startCustom(
+        module = module,
+        defaultLazyBeans = true,
+        configure = configure
+    )
+}
+
+fun <M : Module> App.Companion.startCustom(
+    module: () -> M,
+    namespace: String = "",
+    defaultLazyBeans: Boolean = false,
+    defaultLazyProps: Boolean = false,
+    propertyReader: (List<String>) -> (String) -> String? = ::defaultPropertyReader,
+    configure: M.() -> Unit = {}
+): App<M> {
+    contract {
+        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(configure, InvocationKind.EXACTLY_ONCE)
+    }
+    val appContext = AppContext(defaultLazyBeans, defaultLazyProps, propertyReader)
+    val rootModule = ModuleContext.use(appContext, namespace) { module().apply(configure) }
+    with(appContext) {
+        initialize()
+        start()
+    }
+    return App(appContext, rootModule).also {
+        Runtime.getRuntime().addShutdownHook(Thread {
+            it.destroy()
+        })
+    }
+}
+
+private fun defaultPropertyReader(profiles: List<String>): (String) -> String? =
+    loadPropertyFilesFromClasspath("application", profiles)::get
