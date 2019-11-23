@@ -13,20 +13,6 @@ internal sealed class Provider<out T : Any> {
     internal abstract fun destroy()
 }
 
-internal class PrototypeProvider<T : Any>(
-    val type: KClass<T>,
-    private val onCreate: () -> T,
-    private val onStart: (T) -> Unit
-) : Provider<T>() {
-
-    override fun get() = onCreate().also {
-        onStart(it)
-    }
-
-    override fun destroy() {
-    }
-}
-
 internal class SingletonProvider<T : Any>(
     val type: KClass<T>,
     private val onCreate: () -> T,

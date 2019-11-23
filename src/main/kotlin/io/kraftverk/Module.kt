@@ -17,16 +17,11 @@ abstract class Module {
 
     private val moduleContext = ModuleContext()
 
-    protected inline fun <reified T : Any> singleton(
+    protected inline fun <reified T : Any> bean(
         lazy: Boolean? = null,
-        noinline create: SingletonDefinition.() -> T
-    ): DelegateProvider<Module, SingletonBean<T>> =
-        newSingleton(T::class, lazy, create)
-
-    protected inline fun <reified T : Any> prototype(
-        noinline create: PrototypeDefinition.() -> T
-    ): DelegateProvider<Module, PrototypeBean<T>> =
-        newPrototype(T::class, create)
+        noinline create: BeanDefinition.() -> T
+    ): DelegateProvider<Module, Bean<T>> =
+        newBean(T::class, lazy, create)
 
     protected fun property(
         name: String? = null,
@@ -68,43 +63,25 @@ abstract class Module {
 
     fun bind(property: Property) = BindProperty(property)
 
-    fun <T : Any> onStart(bean: Bean<T>) = OnStartBean(bean)
+    fun <T : Any> onStart(bean: Bean<T>, block: ConsumerDefinition<T>.(T) -> Unit) {
+        bean.onStart(moduleContext.appContext, block)
+    }
 
-    fun <T : Any> onStop(bean: SingletonBean<T>) = OnStopBean(bean)
+    fun <T : Any> onStop(bean: Bean<T>, block: ConsumerDefinition<T>.(T) -> Unit) {
+        bean.onStop(moduleContext.appContext, block)
+    }
 
     @PublishedApi
-    internal fun <T : Any> newSingleton(
+    internal fun <T : Any> newBean(
         type: KClass<T>,
         lazy: Boolean? = null,
-        create: SingletonDefinition.() -> T
-    ): DelegateProvider<Module, SingletonBean<T>> =
-        moduleContext.newSingleton(
+        create: BeanDefinition.() -> T
+    ): DelegateProvider<Module, Bean<T>> =
+        moduleContext.newBean(
             type,
             lazy,
             create
         )
-
-    @PublishedApi
-    internal fun <T : Any> newPrototype(
-        type: KClass<T>,
-        create: PrototypeDefinition.() -> T
-    ): DelegateProvider<Module, PrototypeBean<T>> =
-        moduleContext.newPrototype(
-            type,
-            create
-        )
-
-    inner class OnStartBean<T : Any>(val bean: Bean<T>) {
-        infix fun then(block: ConsumerDefinition<T>.(T) -> Unit) {
-            bean.onStart(moduleContext.appContext, block)
-        }
-    }
-
-    inner class OnStopBean<T : Any>(val bean: SingletonBean<T>) {
-        infix fun then(block: ConsumerDefinition<T>.(T) -> Unit) {
-            bean.onStop(moduleContext.appContext, block)
-        }
-    }
 
     inner class BindBean<T : Any>(private val bean: Bean<T>) {
         infix fun to(block: SupplierDefinition<T>.() -> T) {

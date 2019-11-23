@@ -14,14 +14,14 @@ class AppTest {
     val NEVER = 0
 
     @Nested
-    inner class `singleton instantiation` {
+    inner class `bean instantiation` {
 
         @Test
         fun `is eager by default`() {
             var instantiations = 0
             App.start {
                 object : Module() {
-                    val singleton0 by singleton {
+                    val bean0 by bean {
                         instantiations++
                         42
                     }
@@ -35,7 +35,7 @@ class AppTest {
             var instantiations = 0
             App.startLazy {
                 object : Module() {
-                    val singleton0 by singleton {
+                    val bean0 by bean {
                         instantiations++
                         42
                     }
@@ -49,7 +49,7 @@ class AppTest {
             var instantiations = 0
             App.start {
                 object : Module() {
-                    val singleton0 by singleton(lazy = true) {
+                    val bean0 by bean(lazy = true) {
                         instantiations++
                         42
                     }
@@ -63,7 +63,7 @@ class AppTest {
             var instantiations = 0
             App.start {
                 object : Module() {
-                    val singleton0 by singleton(lazy = false) {
+                    val bean0 by bean(lazy = false) {
                         instantiations++
                         42
                     }
@@ -77,7 +77,7 @@ class AppTest {
             var instantiations = 0
             App.startLazy {
                 object : Module() {
-                    val singleton0 by singleton(lazy = false) {
+                    val bean0 by bean(lazy = false) {
                         instantiations++
                         42
                     }
@@ -88,15 +88,15 @@ class AppTest {
     }
 
     @Nested
-    inner class `singleton get` {
+    inner class `bean get` {
         @Test
         fun `Returns expected value`() {
             val app = App.start {
                 object : Module() {
-                    val singleton0 by singleton { 42 }
+                    val bean0 by bean { 42 }
                 }
             }
-            app.getBean { singleton0 } shouldBe 42
+            app.getBean { bean0 } shouldBe 42
         }
 
         @Test
@@ -104,30 +104,30 @@ class AppTest {
             var instantiations = 0
             val app = App.start {
                 object : Module() {
-                    val singleton0 by singleton {
+                    val bean0 by bean {
                         println("Active profiles: $profiles")
                         instantiations++
                         42
                     }
                 }
             }
-            repeat(3) { app.getBean { singleton0 } }
+            repeat(3) { app.getBean { bean0 } }
             instantiations shouldBe ONCE
         }
 
     }
 
     @Nested
-    inner class `singleton on start` {
+    inner class `bean on start` {
         @Test
         fun `is invoked properly`() {
             var invoked = 0
             App.start {
                 object : Module() {
-                    val singleton0 by singleton { 42 }
+                    val bean0 by bean { 42 }
 
                     init {
-                        onStart(singleton0) then { invoked++ }
+                        onStart(bean0) { invoked++ }
                     }
                 }
             }
@@ -139,14 +139,14 @@ class AppTest {
             var invoked = 0
             val app = App.start {
                 object : Module() {
-                    val singleton0 by singleton { 42 }
+                    val bean0 by bean { 42 }
 
                     init {
-                        onStart(singleton0) then { invoked++ }
+                        onStart(bean0) { invoked++ }
                     }
                 }
             }
-            repeat(3) { app.getBean { singleton0 } }
+            repeat(3) { app.getBean { bean0 } }
             invoked shouldBe ONCE
         }
 
@@ -155,10 +155,10 @@ class AppTest {
             var value = 0
 
             open class RootModule() : Module() {
-                val singleton0 by singleton { 42 }
+                val bean0 by bean { 42 }
 
                 init {
-                    onStart(singleton0) then { value++ }
+                    onStart(bean0) { value++ }
                 }
             }
 
@@ -166,11 +166,11 @@ class AppTest {
                 object : RootModule() {
 
                     init {
-                        onStart(singleton0) then { next(); value++ }
+                        onStart(bean0) { next(); value++ }
                     }
                 }
             }
-            app.getBean { singleton0 }
+            app.getBean { bean0 }
             value shouldBe 2
         }
 
@@ -300,11 +300,11 @@ class AppTest {
         inner class MyModule : Module() {
             val db0 by module { DbModule() }
             val db1 by module(::DbModule) {
-                bind(url) to {"url1"}
+                bind(url) to { "url1" }
             }
             val db2 by module {
                 DbModule().apply {
-                    bind(url) to { "url2"}
+                    bind(url) to { "url2" }
                 }
             }
             val db3 by module("db3") { DbModule() }
@@ -341,4 +341,3 @@ class AppTest {
     }
 
 }
-

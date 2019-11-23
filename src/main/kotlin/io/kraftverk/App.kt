@@ -18,7 +18,7 @@ import io.kraftverk.internal.provider
  * ```kotlin
  * class AppModule : Module() {
  *     val username by property()
- *     val someService by singleton {
+ *     val someService by bean {
  *         SomeService(
  *             username()
  *         )
@@ -103,7 +103,7 @@ class App<M : Module> private constructor(
          * implementation [M] of [Module].
          * ```kotlin
          * val app = App.start(::AppModule) {
-         *     bind(username) to { "guest" }
+         *     bind(username) with { "guest" }
          * }
          * ```
          * Detection of missing properties is fail fast.

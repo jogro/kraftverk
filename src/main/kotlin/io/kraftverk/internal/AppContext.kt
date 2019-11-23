@@ -7,7 +7,6 @@ package io.kraftverk.internal
 
 import io.kraftverk.Bean
 import io.kraftverk.Property
-import io.kraftverk.SingletonBean
 
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
@@ -72,8 +71,7 @@ internal class AppContext(
 
     fun destroy() {
         state.on<InitializedAppContext> {
-            beans.filterIsInstance<SingletonBean<*>>()
-                .filter { it.instanceId() != null }
+            beans.filter { it.instanceId() != null }
                 .sortedByDescending { it.instanceId() }
                 .forEach { bean ->
                     runCatching {

@@ -11,17 +11,17 @@ Given a module:
 ```kotlin
 class DripCoffeeModule : Module() {
 
-    val heater by singleton<Heater>(lazy = true) {
+    val heater by bean<Heater>(lazy = true) {
         ElectricHeater()
     }
 
-    val pump by singleton<Pump> {
+    val pump by bean<Pump> {
         Thermosiphon(
             heater()
         )
     }
 
-    val coffeeMaker by singleton {
+    val coffeeMaker by bean {
         CoffeeMaker(
             { heater() },
             pump()

@@ -10,12 +10,11 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 private fun <T : Any> Bean<T>.toBinding(): Binding<T, Provider<T>> = when (this) {
-    is SingletonBeanImpl<T> -> binding
-    is PrototypeBeanImpl<T> -> binding
+    is BeanImpl<T> -> binding
 }
 
-internal fun <T : Any> SingletonBean<T>.instanceId(): Int? = when (this) {
-    is SingletonBeanImpl<T> -> this.binding.provider().instanceId
+internal fun <T : Any> Bean<T>.instanceId(): Int? = when (this) {
+    is BeanImpl<T> -> this.binding.provider().instanceId
 }
 
 private fun Property.toBinding(): PropertyBinding = when (this) {
@@ -56,7 +55,7 @@ internal fun <T : Any> Bean<T>.onStart(
     this.toBinding().onStart(appContext, block)
 }
 
-internal fun <T : Any> SingletonBean<T>.onStop(
+internal fun <T : Any> Bean<T>.onStop(
     appContext: AppContext,
     block: ConsumerDefinition<T>.(T) -> Unit
 ) {

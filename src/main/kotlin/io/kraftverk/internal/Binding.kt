@@ -106,17 +106,6 @@ internal class SingletonBinding<T : Any>(
     }
 }
 
-internal class PrototypeBinding<T : Any>(
-    type: KClass<T>,
-    initialState: DefiningBinding<T>
-) : Binding<T, PrototypeProvider<T>>(type, initialState) {
-    override fun createProvider(state: DefiningBinding<T>): PrototypeProvider<T> {
-        with(state) {
-            return PrototypeProvider(type, onSupply, onStart)
-        }
-    }
-}
-
 internal class PropertyBinding(
     initialState: DefiningBinding<String>
 ) : Binding<String, SingletonProvider<String>>(String::class, initialState) {

@@ -17,23 +17,14 @@ internal class ModuleContext {
     private val beanFactory = BeanFactory(appContext)
     private val propertyFactory = PropertyFactory(appContext, ::getProperty)
 
-    internal fun <T : Any> newSingleton(
+    internal fun <T : Any> newBean(
         type: KClass<T>,
         lazy: Boolean? = null,
-        create: SingletonDefinition.() -> T
-    ): DelegateProvider<Module, SingletonBean<T>> =
-        beanFactory.newSingleton(
+        create: BeanDefinition.() -> T
+    ): DelegateProvider<Module, Bean<T>> =
+        beanFactory.newBean(
             type,
             lazy,
-            create
-        )
-
-    internal fun <T : Any> newPrototype(
-        type: KClass<T>,
-        create: PrototypeDefinition.() -> T
-    ): DelegateProvider<Module, PrototypeBean<T>> =
-        beanFactory.newPrototype(
-            type,
             create
         )
 
