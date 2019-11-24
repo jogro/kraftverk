@@ -28,15 +28,19 @@ internal class ModuleContext {
             create
         )
 
-    fun newProperty(
+    fun <T : Any> newProperty(
+        type: KClass<T>,
         name: String? = null,
         defaultValue: String?,
-        lazy: Boolean?
-    ): DelegateProvider<Module, Property> =
+        lazy: Boolean?,
+        convert: (String) -> T
+    ): DelegateProvider<Module, Property<T>> =
         propertyFactory.newProperty(
+            type,
             name,
             defaultValue,
-            lazy
+            lazy,
+            convert
         )
 
     fun <M : Module> module(

@@ -6,6 +6,9 @@ import io.kotlintest.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AppTest {
@@ -287,6 +290,12 @@ class AppTest {
     @Nested
     inner class `including module` {
 
+        inner class SomeTypeProperties : Module() {
+            val date by property(defaultValue="2019-08-01") { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
+            val age: Property<Int> by property { it.toInt() }
+            val time: Property<Long> by property { it.toLong() }
+        }
+
         inner class AuthProperties : Module() {
             val user by property()
             val password by property()
@@ -311,9 +320,19 @@ class AppTest {
         }
 
         @Test
+        fun name() {
+            val app = App.startLazy(::SomeTypeProperties) {
+                bind(age) to { 12 }
+                bind(time) to { 167 }
+            }
+            app.getProperty { age } shouldBe 12
+            app.getProperty { time } shouldBe 167
+            app.getProperty { date } shouldBe LocalDate.of(2019,8,1)
+        }
+
+        @Test
         fun `some nested property paths`() {
             val app = App.startLazy(::MyModule) {
-                useProfiles("dev", "local")
                 bind(db0.url) to { "url0" }
                 bind(db0.auth.user) to { "user0" }
                 bind(db0.auth.password) to { "password0" }

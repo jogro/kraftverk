@@ -6,6 +6,7 @@
 package io.kraftverk
 
 import io.kraftverk.internal.*
+import java.util.*
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -23,8 +24,8 @@ abstract class Module {
         }
     }
 
-    inner class BindProperty(private val property: Property) {
-        infix fun to(block: () -> String) {
+    inner class BindProperty<T : Any>(private val property: Property<T>) {
+        infix fun to(block: () -> T) {
             property.onSupply(moduleContext.appContext, block)
         }
     }
@@ -41,8 +42,16 @@ fun Module.property(
     name: String? = null,
     defaultValue: String? = null,
     lazy: Boolean? = null
-): DelegateProvider<Module, Property> =
-    moduleContext.newProperty(name, defaultValue, lazy)
+): DelegateProvider<Module, Property<String>> =
+    property(name, defaultValue, lazy) { value -> value }
+
+inline fun <reified T : Any> Module.property(
+    name: String? = null,
+    defaultValue: String? = null,
+    lazy: Boolean? = null,
+    noinline convert: (String) -> T
+): DelegateProvider<Module, Property<T>> =
+    newProperty(T::class, name, defaultValue, lazy, convert)
 
 fun <M : Module> Module.module(
     module: () -> M
@@ -71,7 +80,7 @@ fun <M : Module> Module.module(
 
 fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(bean)
 
-fun Module.bind(property: Property) = BindProperty(property)
+fun <T : Any> Module.bind(property: Property<T>) = BindProperty(property)
 
 fun <T : Any> Module.onStart(bean: Bean<T>, block: ConsumerDefinition<T>.(T) -> Unit) {
     bean.onStart(moduleContext.appContext, block)
@@ -95,6 +104,22 @@ internal fun <T : Any> Module.newBean(
         type,
         lazy,
         create
+    )
+
+@PublishedApi
+internal fun <T : Any> Module.newProperty(
+    type: KClass<T>,
+    name: String? = null,
+    defaultValue: String?,
+    lazy: Boolean?,
+    convert: (String) -> T
+): DelegateProvider<Module, Property<T>> =
+    moduleContext.newProperty(
+        type,
+        name,
+        defaultValue,
+        lazy,
+        convert
     )
 
 interface DelegateProvider<in R, out T> {

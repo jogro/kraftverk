@@ -10,6 +10,7 @@ import io.kraftverk.Module
 import io.kraftverk.Property
 import io.kraftverk.PropertyImpl
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 internal class PropertyFactory(
@@ -17,29 +18,32 @@ internal class PropertyFactory(
     private val getProperty: (String, String?) -> String
 ) {
 
-    fun newProperty(
+    fun <T : Any> newProperty(
+        type: KClass<T>,
         name: String? = null,
         defaultValue: String?,
-        lazy: Boolean? = null
-    ): DelegateProvider<Module, Property> = object :
-        DelegateProvider<Module, Property> {
+        lazy: Boolean? = null,
+        convert: (String) -> T
+    ): DelegateProvider<Module, Property<T>> = object :
+        DelegateProvider<Module, Property<T>> {
         override operator fun provideDelegate(
             thisRef: Module,
             prop: KProperty<*>
-        ): ReadOnlyProperty<Module, Property> = PropertyImpl(
-            binding = PropertyBinding(
+        ): ReadOnlyProperty<Module, Property<T>> = PropertyImpl(
+            binding = SingletonBinding(
+                type = type,
                 initialState = DefiningBinding(
                     lazy = lazy ?: appContext.defaultLazyProps,
                     supply = {
-                        getProperty((name ?: prop.name).toLowerCase(), defaultValue)
+                        convert(getProperty((name ?: prop.name).toLowerCase(), defaultValue))
                     }
                 )
             )
         ).also {
             appContext.registerProperty(it)
         }.let {
-            object : ReadOnlyProperty<Module, Property> {
-                override fun getValue(thisRef: Module, property: KProperty<*>): Property {
+            object : ReadOnlyProperty<Module, Property<T>> {
+                override fun getValue(thisRef: Module, property: KProperty<*>): Property<T> {
                     return it
                 }
             }

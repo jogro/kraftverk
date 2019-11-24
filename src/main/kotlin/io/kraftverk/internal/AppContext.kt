@@ -32,7 +32,7 @@ internal class AppContext(
         }
     }
 
-    fun registerProperty(property: Property) {
+    fun registerProperty(property: Property<*>) {
         state.expect<DefiningAppContext> {
             properties.add(property)
         }

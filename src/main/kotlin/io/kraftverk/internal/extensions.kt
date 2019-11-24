@@ -17,7 +17,7 @@ internal fun <T : Any> Bean<T>.instanceId(): Int? = when (this) {
     is BeanImpl<T> -> this.binding.provider().instanceId
 }
 
-private fun Property.toBinding(): PropertyBinding = when (this) {
+private fun <T : Any> Property<T>.toBinding(): Binding<T, Provider<T>> = when (this) {
     is PropertyImpl -> this.binding
 }
 
@@ -70,19 +70,19 @@ internal fun Bean<*>.start() {
     this.toBinding().start()
 }
 
-internal fun Property.onSupply(
+internal fun <T : Any> Property<T>.onSupply(
     appContext: AppContext,
-    value: () -> String
+    value: () -> T
 ) {
-    val block: SupplierDefinition<String>.() -> String = { value() }
+    val block: SupplierDefinition<T>.() -> T = { value() }
     this.toBinding().onSupply(appContext, block)
 }
 
-internal fun Property.initialize() {
+internal fun <T : Any> Property<T>.initialize() {
     this.toBinding().initialize()
 }
 
-internal fun Property.start() {
+internal fun Property<*>.start() {
     this.toBinding().start()
 }
 
@@ -90,7 +90,7 @@ internal fun Bean<*>.destroy() {
     this.toBinding().destroy()
 }
 
-internal fun Property.provider(): Provider<String> {
+internal fun <T : Any> Property<T>.provider(): Provider<T> {
     return this.toBinding().provider()
 }
 

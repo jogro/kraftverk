@@ -14,7 +14,7 @@ open class BeanDefinition internal constructor(internal val moduleContext: AppCo
 
     operator fun <T : Any> Bean<T>.invoke(): T = provider().get()
 
-    operator fun Property.invoke(): String = provider().get()
+    operator fun <T : Any> Property<T>.invoke(): T = provider().get()
 
 }
 

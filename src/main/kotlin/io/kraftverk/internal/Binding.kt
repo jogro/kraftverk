@@ -105,13 +105,3 @@ internal class SingletonBinding<T : Any>(
         }
     }
 }
-
-internal class PropertyBinding(
-    initialState: DefiningBinding<String>
-) : Binding<String, SingletonProvider<String>>(String::class, initialState) {
-    override fun createProvider(state: DefiningBinding<String>): SingletonProvider<String> {
-        with(state) {
-            return SingletonProvider(type, onSupply, onStart, onStop)
-        }
-    }
-}

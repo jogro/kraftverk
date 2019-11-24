@@ -14,13 +14,13 @@ internal sealed class AppContextState
 
 internal class DefiningAppContext : AppContextState() {
     val customizedPropertyValues = mutableMapOf<String, String>()
-    val properties = mutableListOf<Property>()
+    val properties = mutableListOf<Property<*>>()
     val beans = mutableListOf<Bean<*>>()
 }
 
 internal class InitializedAppContext(
     val propertyValueResolver: PropertyValueResolver,
-    val properties: List<Property>,
+    val properties: List<Property<*>>,
     val beans: List<Bean<*>>
 ) : AppContextState()
 

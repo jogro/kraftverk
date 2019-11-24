@@ -82,7 +82,7 @@ fun <M : Module, T : Any> App<M>.getBean(bean: M.() -> Bean<T>): T {
  * val username = app.getProperty { username }
  * ```
  */
-fun <M : Module> App<M>.getProperty(property: M.() -> Property): String {
+fun <M : Module, T : Any> App<M>.getProperty(property: M.() -> Property<T>): T {
     contract {
         callsInPlace(property, InvocationKind.EXACTLY_ONCE)
     }
