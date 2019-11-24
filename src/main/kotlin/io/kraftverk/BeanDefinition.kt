@@ -8,9 +8,9 @@ package io.kraftverk
 import io.kraftverk.internal.AppContext
 import io.kraftverk.internal.provider
 
-open class BeanDefinition internal constructor(internal val moduleContext: AppContext) {
+open class BeanDefinition internal constructor(internal val appContext: AppContext) {
 
-    val profiles: List<String> by lazy { moduleContext.profiles }
+    val profiles: List<String> by lazy { appContext.profiles }
 
     operator fun <T : Any> Bean<T>.invoke(): T = provider().get()
 
@@ -33,4 +33,4 @@ class SupplierDefinition<T> internal constructor(
     fun next() = supply()
 }
 
-abstract class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.moduleContext)
+abstract class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.appContext)
