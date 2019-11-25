@@ -21,25 +21,25 @@ internal class AppContext(
     val profiles: List<String> by lazy { profiles() }
 
     fun setProperty(name: String, value: String) {
-        state.expect<DefiningAppContext> {
+        state.runAs<DefiningAppContext> {
             customizedPropertyValues[name] = value
         }
     }
 
     fun registerBean(bean: Bean<*>) {
-        state.expect<DefiningAppContext> {
+        state.runAs<DefiningAppContext> {
             beans.add(bean)
         }
     }
 
     fun registerProperty(property: Property<*>) {
-        state.expect<DefiningAppContext> {
+        state.runAs<DefiningAppContext> {
             properties.add(property)
         }
     }
 
     fun initialize() {
-        state.expect<DefiningAppContext> {
+        state.runAs<DefiningAppContext> {
             properties.forEach { it.initialize() }
             beans.forEach { it.initialize() }
             state = InitializedAppContext(
@@ -51,26 +51,26 @@ internal class AppContext(
     }
 
     fun start() {
-        state.expect<InitializedAppContext> {
+        state.runAs<InitializedAppContext> {
             properties.forEach { it.start() }
             beans.forEach { it.start() }
         }
     }
 
     operator fun get(name: String): String? {
-        state.expect<InitializedAppContext> {
+        state.runAs<InitializedAppContext> {
             return propertyValueResolver[name]
         }
     }
 
     private fun profiles(): List<String> {
-        state.expect<InitializedAppContext> {
+        state.runAs<InitializedAppContext> {
             return propertyValueResolver.profiles
         }
     }
 
     fun destroy() {
-        state.on<InitializedAppContext> {
+        state.runIf<InitializedAppContext> {
             beans.filter { it.provider().instanceId != null }
                 .sortedByDescending { it.provider().instanceId }
                 .forEach { bean ->

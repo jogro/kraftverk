@@ -24,7 +24,7 @@ internal class InitializedBinding<T : Any>(val provider: Provider<T>, val lazy: 
 
 internal object DestroyedBinding : BindingState<Nothing>()
 
-internal inline fun <reified T : BindingState<*>> BindingState<*>.expect(block: T.() -> Unit) {
+internal inline fun <reified T : BindingState<*>> BindingState<*>.runAs(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -35,7 +35,7 @@ internal inline fun <reified T : BindingState<*>> BindingState<*>.expect(block: 
     }
 }
 
-internal inline fun <reified T : BindingState<*>> BindingState<*>.on(block: T.() -> Unit) {
+internal inline fun <reified T : BindingState<*>> BindingState<*>.runIf(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }

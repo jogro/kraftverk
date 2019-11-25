@@ -26,7 +26,7 @@ internal class InitializedAppContext(
 
 internal object DestroyedAppContext : AppContextState()
 
-internal inline fun <reified T : AppContextState> AppContextState.on(block: T.() -> Unit) {
+internal inline fun <reified T : AppContextState> AppContextState.runIf(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
@@ -35,7 +35,7 @@ internal inline fun <reified T : AppContextState> AppContextState.on(block: T.()
     }
 }
 
-internal inline fun <reified T : AppContextState> AppContextState.expect(block: T.() -> Unit) {
+internal inline fun <reified T : AppContextState> AppContextState.runAs(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

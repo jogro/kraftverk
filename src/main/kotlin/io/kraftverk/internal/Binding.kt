@@ -16,7 +16,7 @@ internal class Binding<T : Any>(
     fun <T : Any> onSupply(
         block: (() -> T) -> T
     ) {
-        state.expect<DefiningBinding<T>> {
+        state.runAs<DefiningBinding<T>> {
             val supplier = onSupply
             onSupply = {
                 block(supplier)
@@ -27,7 +27,7 @@ internal class Binding<T : Any>(
     fun <T : Any> onStart(
         block: (T, (T) -> Unit) -> Unit
     ) {
-        state.expect<DefiningBinding<T>> {
+        state.runAs<DefiningBinding<T>> {
             val consumer = onStart
             onStart = { instance ->
                 block(instance, consumer)
@@ -38,7 +38,7 @@ internal class Binding<T : Any>(
     fun <T : Any> onStop(
         block: (T, (T) -> Unit) -> Unit
     ) {
-        state.expect<DefiningBinding<T>> {
+        state.runAs<DefiningBinding<T>> {
             val consumer = onStop
             onStop = { instance ->
                 block(instance, consumer)
@@ -47,25 +47,25 @@ internal class Binding<T : Any>(
     }
 
     fun initialize() {
-        state.expect<DefiningBinding<T>> {
+        state.runAs<DefiningBinding<T>> {
             state = InitializedBinding(createProvider(this), lazy)
         }
     }
 
     fun start() {
-        state.expect<InitializedBinding<T>> {
+        state.runAs<InitializedBinding<T>> {
             if (!lazy) provider.get()
         }
     }
 
     fun provider(): Provider<T> {
-        state.expect<InitializedBinding<T>> {
+        state.runAs<InitializedBinding<T>> {
             return provider
         }
     }
 
     fun destroy() {
-        state.on<InitializedBinding<T>> {
+        state.runIf<InitializedBinding<T>> {
             provider.destroy()
             state = DestroyedBinding
         }
@@ -74,6 +74,5 @@ internal class Binding<T : Any>(
     fun createProvider(state: DefiningBinding<T>): Provider<T> = with(state) {
         return Provider(type, onSupply, onStart, onStop)
     }
-
 
 }
