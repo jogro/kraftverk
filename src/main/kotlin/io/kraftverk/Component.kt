@@ -7,9 +7,9 @@ package io.kraftverk
 
 import io.kraftverk.internal.Binding
 
-sealed class Component
-sealed class Bean<out T : Any> : Component()
-sealed class Property<out T : Any> : Component()
+sealed class Component<out T : Any>
+sealed class Bean<out T : Any> : Component<T>()
+sealed class Property<out T : Any> : Component<T>()
 
 internal class BeanImpl<T : Any>(val binding: Binding<T>) : Bean<T>()
 internal class PropertyImpl<T : Any>(val binding: Binding<T>) : Property<T>()

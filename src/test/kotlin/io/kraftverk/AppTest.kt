@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
-import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -99,7 +98,7 @@ class AppTest {
                     val bean0 by bean { 42 }
                 }
             }
-            app.getBean { bean0 } shouldBe 42
+            app.get { bean0 } shouldBe 42
         }
 
         @Test
@@ -114,7 +113,7 @@ class AppTest {
                     }
                 }
             }
-            repeat(3) { app.getBean { bean0 } }
+            repeat(3) { app.get { bean0 } }
             instantiations shouldBe ONCE
         }
 
@@ -149,7 +148,7 @@ class AppTest {
                     }
                 }
             }
-            repeat(3) { app.getBean { bean0 } }
+            repeat(3) { app.get { bean0 } }
             invoked shouldBe ONCE
         }
 
@@ -173,7 +172,7 @@ class AppTest {
                     }
                 }
             }
-            app.getBean { bean0 }
+            app.get { bean0 }
             value shouldBe 2
         }
 
@@ -198,9 +197,9 @@ class AppTest {
         fun `no profile`() {
             val app = App.start(::MyModule)
             app.profiles.isEmpty() shouldBe true
-            app.getProperty { props.prop1 } shouldBe "F056"
-            app.getProperty { props.prop2 } shouldBe "F057"
-            app.getProperty { props.prop3 } shouldBe "F058"
+            app.get { props.prop1 } shouldBe "F056"
+            app.get { props.prop2 } shouldBe "F057"
+            app.get { props.prop3 } shouldBe "F058"
         }
 
         @Test
@@ -209,9 +208,9 @@ class AppTest {
                 bind(props.prop1) to { "SET" }
             }
             app.profiles.isEmpty() shouldBe true
-            app.getProperty { props.prop1 } shouldBe "SET"
-            app.getProperty { props.prop2 } shouldBe "F057"
-            app.getProperty { props.prop3 } shouldBe "F058"
+            app.get { props.prop1 } shouldBe "SET"
+            app.get { props.prop2 } shouldBe "F057"
+            app.get { props.prop3 } shouldBe "F058"
         }
 
         @Test
@@ -220,9 +219,9 @@ class AppTest {
                 useProfiles("prof1")
             }
             app.profiles should containExactly("prof1")
-            app.getProperty { props.prop1 } shouldBe "F056"
-            app.getProperty { props.prop2 } shouldBe "F157"
-            app.getProperty { props.prop3 } shouldBe "F158"
+            app.get { props.prop1 } shouldBe "F056"
+            app.get { props.prop2 } shouldBe "F157"
+            app.get { props.prop3 } shouldBe "F158"
         }
 
         @Test
@@ -231,9 +230,9 @@ class AppTest {
                 useProfiles("prof1", "prof2")
             }
             app.profiles should containExactly("prof1", "prof2")
-            app.getProperty { props.prop1 } shouldBe "F056"
-            app.getProperty { props.prop2 } shouldBe "F157"
-            app.getProperty { props.prop3 } shouldBe "F258"
+            app.get { props.prop1 } shouldBe "F056"
+            app.get { props.prop2 } shouldBe "F157"
+            app.get { props.prop3 } shouldBe "F258"
         }
 
         @Test
@@ -243,9 +242,9 @@ class AppTest {
                 bind(props.prop1) to { "SET" }
             }
             app.profiles should containExactly("prof1", "prof2")
-            app.getProperty { props.prop1 } shouldBe "SET"
-            app.getProperty { props.prop2 } shouldBe "F157"
-            app.getProperty { props.prop3 } shouldBe "F258"
+            app.get { props.prop1 } shouldBe "SET"
+            app.get { props.prop2 } shouldBe "F157"
+            app.get { props.prop3 } shouldBe "F258"
         }
 
         @Test
@@ -257,9 +256,9 @@ class AppTest {
                     useProfiles("prof1", "prof2")
                 }
                 app.profiles should containExactly("prof1", "prof2")
-                app.getProperty { props.prop1 } shouldBe "E056"
-                app.getProperty { props.prop2 } shouldBe "F157"
-                app.getProperty { props.prop3 } shouldBe "F258"
+                app.get { props.prop1 } shouldBe "E056"
+                app.get { props.prop2 } shouldBe "F157"
+                app.get { props.prop3 } shouldBe "F258"
 
             } finally {
                 TestUtils.removeEnv(env)
@@ -276,9 +275,9 @@ class AppTest {
                     module = ::MyModule
                 ) { useProfiles("prof1", "prof2") }
                 app.profiles should containExactly("prof1", "prof2")
-                app.getProperty { props.prop1 } shouldBe "S056"
-                app.getProperty { props.prop2 } shouldBe "F157"
-                app.getProperty { props.prop3 } shouldBe "F258"
+                app.get { props.prop1 } shouldBe "S056"
+                app.get { props.prop2 } shouldBe "F157"
+                app.get { props.prop3 } shouldBe "F258"
             } finally {
                 System.clearProperty("props.prop1")
                 TestUtils.removeEnv(env)
@@ -325,9 +324,9 @@ class AppTest {
                 bind(age) to { 12 }
                 bind(time) to { 167 }
             }
-            app.getProperty { age } shouldBe 12
-            app.getProperty { time } shouldBe 167
-            app.getProperty { date } shouldBe LocalDate.of(2019,8,1)
+            app.get { age } shouldBe 12
+            app.get { time } shouldBe 167
+            app.get { date } shouldBe LocalDate.of(2019,8,1)
         }
 
         @Test
@@ -344,18 +343,18 @@ class AppTest {
                 bind(db3.auth.user) to { "user3" }
                 bind(db3.auth.password) to { "password3" }
             }
-            app.getProperty { db0.url } shouldBe "url0"
-            app.getProperty { db0.auth.user } shouldBe "user0"
-            app.getProperty { db0.auth.password } shouldBe "password0"
-            app.getProperty { db1.url } shouldBe "url1"
-            app.getProperty { db1.auth.user } shouldBe "user1"
-            app.getProperty { db1.auth.password } shouldBe "password1"
-            app.getProperty { db2.url } shouldBe "url2"
-            app.getProperty { db2.auth.user } shouldBe "user2"
-            app.getProperty { db2.auth.password } shouldBe "password2"
-            app.getProperty { db3.url } shouldBe "url3"
-            app.getProperty { db3.auth.user } shouldBe "user3"
-            app.getProperty { db3.auth.password } shouldBe "password3"
+            app.get { db0.url } shouldBe "url0"
+            app.get { db0.auth.user } shouldBe "user0"
+            app.get { db0.auth.password } shouldBe "password0"
+            app.get { db1.url } shouldBe "url1"
+            app.get { db1.auth.user } shouldBe "user1"
+            app.get { db1.auth.password } shouldBe "password1"
+            app.get { db2.url } shouldBe "url2"
+            app.get { db2.auth.user } shouldBe "user2"
+            app.get { db2.auth.password } shouldBe "password2"
+            app.get { db3.url } shouldBe "url3"
+            app.get { db3.auth.user } shouldBe "user3"
+            app.get { db3.auth.password } shouldBe "password3"
         }
     }
 

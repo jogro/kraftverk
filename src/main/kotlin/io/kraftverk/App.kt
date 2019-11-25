@@ -86,6 +86,19 @@ fun <M : Module, T : Any> App<M>.getProperty(property: M.() -> Property<T>): T {
 }
 
 /**
+ * Retrieves the value of the specified [component].
+ * ```kotlin
+ * val username = app.get { username }
+ * ```
+ */
+fun <M : Module, T : Any> App<M>.get(component: M.() -> Component<T>): T {
+    contract {
+        callsInPlace(component, InvocationKind.EXACTLY_ONCE)
+    }
+    return module.component().provider().get()
+}
+
+/**
  * Destroys this App.
  */
 fun <M : Module> App<M>.destroy() {

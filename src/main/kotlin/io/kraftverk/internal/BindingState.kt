@@ -5,6 +5,9 @@
 
 package io.kraftverk.internal
 
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+
 internal sealed class BindingState<out T : Any>
 
 internal class DefiningBinding<T : Any>(
@@ -20,3 +23,23 @@ internal class InitializedBinding<T : Any>(val provider: Provider<T>, val lazy: 
     BindingState<T>()
 
 internal object DestroyedBinding : BindingState<Nothing>()
+
+internal inline fun <reified T : BindingState<*>> BindingState<*>.expect(block: T.() -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    if (this is T) {
+        this.block()
+    } else {
+        throw Exception("Expected state to be ${T::class} but was ${this::class}")
+    }
+}
+
+internal inline fun <reified T : BindingState<*>> BindingState<*>.on(block: T.() -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+    }
+    if (this is T) {
+        this.block()
+    }
+}
