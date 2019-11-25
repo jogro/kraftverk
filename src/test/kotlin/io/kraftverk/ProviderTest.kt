@@ -1,6 +1,6 @@
 package io.kraftverk
 
-import io.kraftverk.internal.SingletonProvider
+import io.kraftverk.internal.Provider
 import io.kotlintest.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
@@ -10,7 +10,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SingletonProviderTest {
+class ProviderTest {
 
     private companion object {
         private const val THREAD_COUNT = 20
@@ -163,10 +163,10 @@ class SingletonProviderTest {
         }
     }
 
-    private fun newProvider(lifeCycleSpy: LifeCycle): SingletonProvider<@ParameterName(
+    private fun newProvider(lifeCycleSpy: LifeCycle): Provider<@ParameterName(
         name = "t"
     ) Int> {
-        return SingletonProvider(
+        return Provider(
             Int::class,
             lifeCycleSpy::onCreate,
             lifeCycleSpy::onStart,

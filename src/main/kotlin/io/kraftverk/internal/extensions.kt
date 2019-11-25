@@ -5,19 +5,18 @@
 
 package io.kraftverk.internal
 
-import io.kraftverk.*
+import io.kraftverk.Bean
+import io.kraftverk.BeanImpl
+import io.kraftverk.Property
+import io.kraftverk.PropertyImpl
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-private fun <T : Any> Bean<T>.toBinding(): Binding<T, Provider<T>> = when (this) {
+private fun <T : Any> Bean<T>.toBinding(): Binding<T> = when (this) {
     is BeanImpl<T> -> binding
 }
 
-internal fun <T : Any> Bean<T>.instanceId(): Int? = when (this) {
-    is BeanImpl<T> -> this.binding.provider().instanceId
-}
-
-private fun <T : Any> Property<T>.toBinding(): Binding<T, Provider<T>> = when (this) {
+private fun <T : Any> Property<T>.toBinding(): Binding<T> = when (this) {
     is PropertyImpl -> this.binding
 }
 
@@ -41,25 +40,22 @@ internal inline fun <reified T : BindingState<*>> BindingState<*>.expect(block: 
     }
 }
 
-internal fun <T : Any> Bean<*>.onSupply(
-    appContext: AppContext,
-    block: SupplierDefinition<T>.() -> T
+internal fun <T : Any> Bean<T>.onSupply(
+    block: (() -> T) -> T
 ) {
-    this.toBinding().onSupply(appContext, block)
+    this.toBinding().onSupply(block)
 }
 
 internal fun <T : Any> Bean<T>.onStart(
-    appContext: AppContext,
-    block: ConsumerDefinition<T>.(T) -> Unit
+    block: (T, (T) -> Unit) -> Unit
 ) {
-    this.toBinding().onStart(appContext, block)
+    this.toBinding().onStart(block)
 }
 
 internal fun <T : Any> Bean<T>.onStop(
-    appContext: AppContext,
-    block: ConsumerDefinition<T>.(T) -> Unit
+    block: (T, (T) -> Unit) -> Unit
 ) {
-    this.toBinding().onStop(appContext, block)
+    this.toBinding().onStop(block)
 }
 
 internal fun Bean<*>.initialize() {
@@ -71,11 +67,9 @@ internal fun Bean<*>.start() {
 }
 
 internal fun <T : Any> Property<T>.onSupply(
-    appContext: AppContext,
-    value: () -> T
+    block: (() -> T) -> T
 ) {
-    val block: SupplierDefinition<T>.() -> T = { value() }
-    this.toBinding().onSupply(appContext, block)
+    this.toBinding().onSupply(block)
 }
 
 internal fun <T : Any> Property<T>.initialize() {

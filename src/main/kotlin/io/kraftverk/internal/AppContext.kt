@@ -71,8 +71,8 @@ internal class AppContext(
 
     fun destroy() {
         state.on<InitializedAppContext> {
-            beans.filter { it.instanceId() != null }
-                .sortedByDescending { it.instanceId() }
+            beans.filter { it.provider().instanceId != null }
+                .sortedByDescending { it.provider().instanceId }
                 .forEach { bean ->
                     runCatching {
                         bean.destroy()

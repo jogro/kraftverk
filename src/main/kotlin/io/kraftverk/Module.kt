@@ -6,7 +6,6 @@
 package io.kraftverk
 
 import io.kraftverk.internal.*
-import java.util.*
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -19,14 +18,18 @@ abstract class Module {
     internal val moduleContext = ModuleContext()
 
     inner class BindBean<T : Any>(private val bean: Bean<T>) {
-        infix fun to(block: SupplierDefinition<T>.() -> T) {
-            bean.onSupply(moduleContext.appContext, block)
+        infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
+            bean.onSupply { supplier ->
+                 BeanSupplierDefinition(moduleContext.appContext, supplier).block()
+            }
         }
     }
 
     inner class BindProperty<T : Any>(private val property: Property<T>) {
-        infix fun to(block: () -> T) {
-            property.onSupply(moduleContext.appContext, block)
+        infix fun to(block: PropertyDefinition.() -> T) {
+            property.onSupply { supplier ->
+                PropertySupplierDefinition(moduleContext.appContext, supplier).block()
+            }
         }
     }
 
@@ -34,9 +37,9 @@ abstract class Module {
 
 inline fun <reified T : Any> Module.bean(
     lazy: Boolean? = null,
-    noinline create: BeanDefinition.() -> T
+    noinline define: BeanDefinition.() -> T
 ): DelegateProvider<Module, Bean<T>> =
-    newBean(T::class, lazy, create)
+    newBean(T::class, lazy, define)
 
 fun Module.property(
     name: String? = null,
@@ -49,9 +52,9 @@ inline fun <reified T : Any> Module.property(
     name: String? = null,
     defaultValue: String? = null,
     lazy: Boolean? = null,
-    noinline convert: (String) -> T
+    noinline define: PropertyDefinition.(String) -> T
 ): DelegateProvider<Module, Property<T>> =
-    newProperty(T::class, name, defaultValue, lazy, convert)
+    newProperty(T::class, name, defaultValue, lazy, define)
 
 fun <M : Module> Module.module(
     module: () -> M
@@ -82,12 +85,16 @@ fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(bean)
 
 fun <T : Any> Module.bind(property: Property<T>) = BindProperty(property)
 
-fun <T : Any> Module.onStart(bean: Bean<T>, block: ConsumerDefinition<T>.(T) -> Unit) {
-    bean.onStart(moduleContext.appContext, block)
+fun <T : Any> Module.onStart(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
+    bean.onStart { instance, consumer ->
+        BeanConsumerDefinition(moduleContext.appContext, instance, consumer).block(instance)
+    }
 }
 
-fun <T : Any> Module.onStop(bean: Bean<T>, block: ConsumerDefinition<T>.(T) -> Unit) {
-    bean.onStop(moduleContext.appContext, block)
+fun <T : Any> Module.onStop(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
+    bean.onStop { instance, consumer ->
+        BeanConsumerDefinition(moduleContext.appContext, instance, consumer).block(instance)
+    }
 }
 
 fun Module.useProfiles(vararg profiles: String) {
@@ -98,12 +105,12 @@ fun Module.useProfiles(vararg profiles: String) {
 internal fun <T : Any> Module.newBean(
     type: KClass<T>,
     lazy: Boolean? = null,
-    create: BeanDefinition.() -> T
+    define: BeanDefinition.() -> T
 ): DelegateProvider<Module, Bean<T>> =
     moduleContext.newBean(
         type,
         lazy,
-        create
+        define
     )
 
 @PublishedApi
@@ -112,14 +119,14 @@ internal fun <T : Any> Module.newProperty(
     name: String? = null,
     defaultValue: String?,
     lazy: Boolean?,
-    convert: (String) -> T
+    define: PropertyDefinition.(String) -> T
 ): DelegateProvider<Module, Property<T>> =
     moduleContext.newProperty(
         type,
         name,
         defaultValue,
         lazy,
-        convert
+        define
     )
 
 interface DelegateProvider<in R, out T> {

@@ -5,10 +5,7 @@
 
 package io.kraftverk.internal
 
-import io.kraftverk.DelegateProvider
-import io.kraftverk.Module
-import io.kraftverk.Property
-import io.kraftverk.PropertyImpl
+import io.kraftverk.*
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -23,28 +20,30 @@ internal class PropertyFactory(
         name: String? = null,
         defaultValue: String?,
         lazy: Boolean? = null,
-        convert: (String) -> T
-    ): DelegateProvider<Module, Property<T>> = object :
-        DelegateProvider<Module, Property<T>> {
+        define: PropertyDefinition.(String) -> T
+    ): DelegateProvider<Module, Property<T>> = object : DelegateProvider<Module, Property<T>> {
         override operator fun provideDelegate(
             thisRef: Module,
             prop: KProperty<*>
-        ): ReadOnlyProperty<Module, Property<T>> = PropertyImpl(
-            binding = SingletonBinding(
-                type = type,
-                initialState = DefiningBinding(
-                    lazy = lazy ?: appContext.defaultLazyProps,
-                    supply = {
-                        convert(getProperty((name ?: prop.name).toLowerCase(), defaultValue))
-                    }
+        ): ReadOnlyProperty<Module, Property<T>> {
+            val definition = PropertyDefinition(appContext)
+            return PropertyImpl(
+                binding = Binding(
+                    type = type,
+                    initialState = DefiningBinding(
+                        lazy = lazy ?: appContext.defaultLazyProps,
+                        supply = {
+                            definition.define(getProperty((name ?: prop.name).toLowerCase(), defaultValue))
+                        }
+                    )
                 )
-            )
-        ).also {
-            appContext.registerProperty(it)
-        }.let {
-            object : ReadOnlyProperty<Module, Property<T>> {
-                override fun getValue(thisRef: Module, property: KProperty<*>): Property<T> {
-                    return it
+            ).also {
+                appContext.registerProperty(it)
+            }.let {
+                object : ReadOnlyProperty<Module, Property<T>> {
+                    override fun getValue(thisRef: Module, property: KProperty<*>): Property<T> {
+                        return it
+                    }
                 }
             }
         }

@@ -11,32 +11,31 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 internal class BeanFactory(
-    private val moduleContext: AppContext
+    private val appContext: AppContext
 ) {
 
     fun <T : Any> newBean(
         type: KClass<T>,
         lazy: Boolean? = null,
-        createInstance: BeanDefinition.() -> T
-    ): DelegateProvider<Module, Bean<T>> = object :
-        DelegateProvider<Module, Bean<T>> {
+        define: BeanDefinition.() -> T
+    ): DelegateProvider<Module, Bean<T>> = object : DelegateProvider<Module, Bean<T>> {
         override fun provideDelegate(
             thisRef: Module,
             prop: KProperty<*>
         ): ReadOnlyProperty<Module, Bean<T>> {
-            val definition = BeanDefinition(moduleContext)
+            val definition = BeanDefinition(appContext)
             return BeanImpl(
-                binding = SingletonBinding(
+                binding = Binding(
                     type = type,
                     initialState = DefiningBinding(
-                        lazy = lazy ?: moduleContext.defaultLazyBeans,
+                        lazy = lazy ?: appContext.defaultLazyBeans,
                         supply = {
-                            definition.createInstance()
+                            definition.define()
                         }
                     )
                 )
             ).also {
-                moduleContext.registerBean(it)
+                appContext.registerBean(it)
             }.let {
                 object : ReadOnlyProperty<Module, Bean<T>> {
                     override fun getValue(thisRef: Module, property: KProperty<*>): Bean<T> {

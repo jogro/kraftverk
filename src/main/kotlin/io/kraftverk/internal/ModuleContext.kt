@@ -20,12 +20,12 @@ internal class ModuleContext {
     internal fun <T : Any> newBean(
         type: KClass<T>,
         lazy: Boolean? = null,
-        create: BeanDefinition.() -> T
+        define: BeanDefinition.() -> T
     ): DelegateProvider<Module, Bean<T>> =
         beanFactory.newBean(
             type,
             lazy,
-            create
+            define
         )
 
     fun <T : Any> newProperty(
@@ -33,14 +33,14 @@ internal class ModuleContext {
         name: String? = null,
         defaultValue: String?,
         lazy: Boolean?,
-        convert: (String) -> T
+        define: PropertyDefinition.(String) -> T
     ): DelegateProvider<Module, Property<T>> =
         propertyFactory.newProperty(
             type,
             name,
             defaultValue,
             lazy,
-            convert
+            define
         )
 
     fun <M : Module> module(
