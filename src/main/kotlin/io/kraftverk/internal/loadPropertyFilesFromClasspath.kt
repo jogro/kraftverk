@@ -9,20 +9,19 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
-internal fun loadPropertyFilesFromClasspath(defaultFileName: String, profiles: List<String>): Map<String, String> {
-    val props = mutableMapOf<String, String>()
+internal fun loadPropertyFilesFromClasspath(defaultFileName: String, profiles: List<String>): PropertySource {
+    val props = PropertySource()
     loadFromClasspath(props, defaultFileName, profiles)
     return props
 }
 
-private fun loadFromClasspath(props: MutableMap<String, String>, filename: String, profiles: List<String>) {
-    with(Properties()) {
-        loadFromClassPathFile(Paths.get("$filename.properties"))
-        profiles.forEach {
-            loadFromClassPathFile(Paths.get("$filename-$it.properties"))
-        }
-        forEach { e ->
-            props[e.key.toString()] = e.value.toString()
+private fun loadFromClasspath(props: PropertySource, filename: String, profiles: List<String>) {
+    (listOf("$filename.properties") + profiles.map { "$filename-$it.properties" }).forEach {
+        with(Properties()) {
+            loadFromClassPathFile(Paths.get(it))
+            forEach { e ->
+                props[e.key.toString()] = e.value.toString()
+            }
         }
     }
 }

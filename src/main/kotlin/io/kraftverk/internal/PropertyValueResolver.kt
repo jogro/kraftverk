@@ -1,8 +1,10 @@
 package io.kraftverk.internal
 
+import io.kraftverk.PropertyNameException
+
 internal class PropertyValueResolver(
     val profiles: List<String>,
-    private val properties: Map<String, String>,
+    private val properties: PropertySource,
     private val readProperty: (String) -> String?
 ) {
     operator fun get(name: String) = properties[name] ?: readProperty(name)
@@ -12,10 +14,10 @@ internal fun newPropertyValueResolver(
     customizedProperties: Map<String, String> = emptyMap(),
     propertyReader: (List<String>) -> (String) -> String?
 ): PropertyValueResolver {
-    val properties = mutableMapOf<String, String>()
+    val properties = PropertySource()
     loadFromEnvironmentVariables(properties)
     loadFromSystemProperties(properties)
-    properties.putAll(customizedProperties)
+    customizedProperties.forEach { (k, v) -> properties[k] = v }
     val profiles = activeProfiles(properties)
     return PropertyValueResolver(
         profiles,
@@ -24,35 +26,27 @@ internal fun newPropertyValueResolver(
     )
 }
 
-private fun activeProfiles(props: Map<String, String>): List<String> {
+private fun activeProfiles(props: PropertySource): List<String> {
     return props[ACTIVE_PROFILES]
         ?.split(",")
         ?.map { it.trim() }
-        ?.filterNot { it.isEmpty() }
+        ?.filter { it.isNotEmpty() }
         ?: emptyList()
 }
 
-private fun loadFromEnvironmentVariables(props: MutableMap<String, String>) {
+private fun loadFromEnvironmentVariables(props: PropertySource) {
     val env = System.getenv()
-    props.keys.forEach { k ->
-        env[k.toEnvName()]?.let {
-            props[k] = it
+    env.keys.forEach { key ->
+        try {
+            props[key] = env[key].toString()
+        } catch (ignore: PropertyNameException) {
         }
-    }
-    env.keys.forEach { k ->
-        props[k.toPropertyName()] = env[k].toString()
     }
 }
 
-private fun loadFromSystemProperties(props: MutableMap<String, String>) {
+private fun loadFromSystemProperties(props: PropertySource) {
     System.getProperties().forEach { e ->
         props[e.key.toString()] = e.value.toString()
     }
 }
 
-private fun String.toEnvName() = replace(".", "_")
-    .replace("-", "")
-    .toUpperCase()
-
-private fun String.toPropertyName() = replace("_", ".")
-    .toLowerCase()

@@ -31,8 +31,8 @@ internal fun Component<*>.initialize() {
     this.toBinding().initialize()
 }
 
-internal fun Component<*>.start() {
-    this.toBinding().start()
+internal fun Component<*>.bind() {
+    this.toBinding().bind()
 }
 
 internal fun Component<*>.destroy() {

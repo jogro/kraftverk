@@ -52,8 +52,8 @@ internal class AppContext(
 
     fun start() {
         state.runAs<InitializedAppContext> {
-            properties.forEach { it.start() }
-            beans.forEach { it.start() }
+            properties.forEach { it.bind() }
+            beans.forEach { it.bind() }
         }
     }
 

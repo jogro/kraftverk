@@ -19,16 +19,16 @@ abstract class Module {
 
     inner class BindBean<T : Any>(private val bean: Bean<T>) {
         infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
-            bean.onSupply { supplier ->
-                 BeanSupplierDefinition(moduleContext.appContext, supplier).block()
+            bean.onSupply { next ->
+                 BeanSupplierDefinition(moduleContext.appContext, next).block()
             }
         }
     }
 
     inner class BindProperty<T : Any>(private val property: Property<T>) {
-        infix fun to(block: PropertyDefinition.() -> T) {
-            property.onSupply { supplier ->
-                PropertySupplierDefinition(moduleContext.appContext, supplier).block()
+        infix fun to(block: PropertySupplierDefinition<T>.() -> T) {
+            property.onSupply { next ->
+                PropertySupplierDefinition(moduleContext.appContext, next).block()
             }
         }
     }
@@ -44,17 +44,19 @@ inline fun <reified T : Any> Module.bean(
 fun Module.property(
     name: String? = null,
     defaultValue: String? = null,
-    lazy: Boolean? = null
+    lazy: Boolean? = null,
+    secret: Boolean = false
 ): DelegateProvider<Module, Property<String>> =
-    property(name, defaultValue, lazy) { value -> value }
+    property(name, defaultValue, lazy, secret) { value -> value }
 
 inline fun <reified T : Any> Module.property(
     name: String? = null,
     defaultValue: String? = null,
     lazy: Boolean? = null,
+    secret: Boolean = false,
     noinline define: PropertyDefinition.(String) -> T
 ): DelegateProvider<Module, Property<T>> =
-    newProperty(T::class, name, defaultValue, lazy, define)
+    newProperty(T::class, name, defaultValue, lazy, secret, define)
 
 fun <M : Module> Module.module(
     module: () -> M
@@ -119,14 +121,16 @@ internal fun <T : Any> Module.newProperty(
     name: String? = null,
     defaultValue: String?,
     lazy: Boolean?,
+    secret: Boolean,
     define: PropertyDefinition.(String) -> T
 ): DelegateProvider<Module, Property<T>> =
     moduleContext.newProperty(
-        type,
-        name,
-        defaultValue,
-        lazy,
-        define
+        type = type,
+        name = name,
+        defaultValue = defaultValue,
+        lazy = lazy,
+        secret = secret,
+        define = define
     )
 
 interface DelegateProvider<in R, out T> {

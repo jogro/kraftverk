@@ -5,13 +5,16 @@
 
 package io.kraftverk.internal
 
+import mu.KotlinLogging
 import kotlin.reflect.KClass
 
-internal class Binding<T : Any>(
-    internal val type: KClass<T>,
+private val logger = KotlinLogging.logger {}
+
+internal sealed class Binding<T : Any>(
+    protected val type: KClass<T>,
     initialState: DefiningBinding<T>
 ) {
-    private var state: BindingState<T> = initialState
+    protected var state: BindingState<T> = initialState
 
     fun <T : Any> onSupply(
         block: (() -> T) -> T
@@ -52,7 +55,7 @@ internal class Binding<T : Any>(
         }
     }
 
-    fun start() {
+    fun bind() {
         state.runAs<InitializedBinding<T>> {
             if (!lazy) provider.get()
         }
@@ -71,8 +74,48 @@ internal class Binding<T : Any>(
         }
     }
 
-    fun createProvider(state: DefiningBinding<T>): Provider<T> = with(state) {
-        return Provider(type, onSupply, onStart, onStop)
-    }
+    abstract fun createProvider(state: DefiningBinding<T>): Provider<T>
+}
 
+internal class BeanBinding<T : Any>(
+    private val name: String,
+    type: KClass<T>,
+    initialState: DefiningBinding<T>
+) : Binding<T>(type, initialState) {
+    override fun createProvider(state: DefiningBinding<T>) = with(state) {
+        Provider(
+            type = type,
+            onCreate = {
+                onSupply().also {
+                    logger.info("Bean '$name' is bound to $type")
+                }
+            },
+            onStart = onStart,
+            onDestroy = onStop
+        )
+    }
+}
+
+internal class PropertyBinding<T : Any>(
+    private val name: String,
+    private val secret: Boolean,
+    type: KClass<T>,
+    initialState: DefiningBinding<T>
+) : Binding<T>(type, initialState) {
+    override fun createProvider(state: DefiningBinding<T>) = with(state) {
+        Provider(
+            type = type,
+            onCreate = {
+                onSupply().also {
+                    if (secret) {
+                        logger.info("Property '$name' is bound to '********'")
+                    } else {
+                        logger.info("Property '$name' is bound to '$it'")
+                    }
+                }
+            },
+            onStart = onStart,
+            onDestroy = onStop
+        )
+    }
 }

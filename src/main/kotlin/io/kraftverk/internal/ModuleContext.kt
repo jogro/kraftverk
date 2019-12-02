@@ -14,8 +14,8 @@ internal class ModuleContext {
 
     val appContext: AppContext = ModuleContext.appContext
     private val namespace: String = ModuleContext.namespace
-    private val beanFactory = BeanFactory(appContext)
-    private val propertyFactory = PropertyFactory(appContext, ::getProperty)
+    private val beanFactory = BeanFactory(appContext, namespace)
+    private val propertyFactory = PropertyFactory(appContext, namespace)
 
     internal fun <T : Any> newBean(
         type: KClass<T>,
@@ -33,6 +33,7 @@ internal class ModuleContext {
         name: String? = null,
         defaultValue: String?,
         lazy: Boolean?,
+        secret: Boolean,
         define: PropertyDefinition.(String) -> T
     ): DelegateProvider<Module, Property<T>> =
         propertyFactory.newProperty(
@@ -40,6 +41,7 @@ internal class ModuleContext {
             name,
             defaultValue,
             lazy,
+            secret,
             define
         )
 
@@ -66,24 +68,11 @@ internal class ModuleContext {
         }
     }
 
-    private fun getProperty(name: String, defaultValue: String?): String = if (namespace.isEmpty())
-        appContext[name]
-            ?: defaultValue
-            ?: throw Exception("Property '$name' was not found!")
-    else
-        appContext[namespaced(name)]
-            ?: defaultValue
-            ?: throw Exception("Property '${namespaced(name)}' was not found!")
-
-    private fun namespaced(name: String) = "${namespace}.$name"
-
     companion object {
-
         internal val contextualAppContext = Contextual<AppContext>()
         internal val contextualNamespace = Contextual<String>()
         val appContext get() = contextualAppContext.get()
         val namespace get() = contextualNamespace.get()
-
     }
 
 }
@@ -97,7 +86,7 @@ internal fun <R> ModuleContext.Companion.use(appContext: AppContext, namespace: 
 }
 
 internal fun <R> ModuleContext.Companion.use(namespace: String, block: () -> R): R {
-    return contextualNamespace.use(namespace.toLowerCase(), block)
+    return contextualNamespace.use(namespace, block)
 }
 
 private fun <R> ModuleContext.Companion.use(appContext: AppContext, block: () -> R): R {

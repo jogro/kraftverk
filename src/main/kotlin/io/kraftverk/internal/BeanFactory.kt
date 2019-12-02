@@ -11,7 +11,8 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 internal class BeanFactory(
-    private val appContext: AppContext
+    private val appContext: AppContext,
+    private val namespace: String
 ) {
 
     fun <T : Any> newBean(
@@ -25,7 +26,8 @@ internal class BeanFactory(
         ): ReadOnlyProperty<Module, Bean<T>> {
             val definition = BeanDefinition(appContext)
             return BeanImpl(
-                binding = Binding(
+                binding = BeanBinding(
+                    name = beanName(prop.name),
                     type = type,
                     initialState = DefiningBinding(
                         lazy = lazy ?: appContext.defaultLazyBeans,
@@ -45,6 +47,9 @@ internal class BeanFactory(
             }
         }
     }
+
+    private fun beanName(name: String) =
+        (if (namespace.isEmpty()) name else "${namespace}.$name")
 
 }
 

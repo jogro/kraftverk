@@ -42,6 +42,6 @@ internal inline fun <reified T : AppContextState> AppContextState.runAs(block: T
     if (this is T) {
         this.block()
     } else {
-        throw Exception("Expected state to be ${T::class} but was ${this::class}")
+        throw IllegalStateException("Expected state to be ${T::class} but was ${this::class}")
     }
 }

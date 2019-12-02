@@ -12,7 +12,7 @@ import kotlin.reflect.KProperty
 
 internal class PropertyFactory(
     private val appContext: AppContext,
-    private val getProperty: (String, String?) -> String
+    private val namespace: String
 ) {
 
     fun <T : Any> newProperty(
@@ -20,6 +20,7 @@ internal class PropertyFactory(
         name: String? = null,
         defaultValue: String?,
         lazy: Boolean? = null,
+        secret: Boolean,
         define: PropertyDefinition.(String) -> T
     ): DelegateProvider<Module, Property<T>> = object : DelegateProvider<Module, Property<T>> {
         override operator fun provideDelegate(
@@ -27,13 +28,16 @@ internal class PropertyFactory(
             prop: KProperty<*>
         ): ReadOnlyProperty<Module, Property<T>> {
             val definition = PropertyDefinition(appContext)
+            val propertyName = propertyName(name ?: prop.name)
             return PropertyImpl(
-                binding = Binding(
+                binding = PropertyBinding(
+                    name = propertyName,
+                    secret = secret,
                     type = type,
                     initialState = DefiningBinding(
                         lazy = lazy ?: appContext.defaultLazyProps,
                         supply = {
-                            definition.define(getProperty((name ?: prop.name).toLowerCase(), defaultValue))
+                            definition.define(getProperty(propertyName, defaultValue))
                         }
                     )
                 )
@@ -48,12 +52,19 @@ internal class PropertyFactory(
             }
         }
     }
+
+    private fun getProperty(name: String, defaultValue: String?) = name.let {
+        appContext[it] ?: defaultValue ?: throw PropertyNotFoundException("Property '$it' was not found!")
+    }
+
+    private fun propertyName(name: String) =
+        (if (namespace.isEmpty()) name else "${namespace}.$name").spinalCase()
+
+    companion object {
+        private val spinalRegex = "([A-Z]+)".toRegex()
+
+        private fun String.spinalCase(): String {
+            return replace(spinalRegex, "\\-$1").toLowerCase()
+        }
+    }
 }
-
-
-
-
-
-
-
-

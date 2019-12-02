@@ -6,6 +6,7 @@
 package io.kraftverk
 
 import io.kraftverk.internal.*
+import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -24,15 +25,15 @@ import kotlin.contracts.contract
  *     }
  * }
  * ```
- * Call the [App.start] method to construct an App
+ * Call the [App.Companion.start] method to construct an App
  * instance.
  * ```kotlin
  * val app = App.start(::AppModule)
  * ```
- * To access the bean instance, call the [App.getBean]
+ * To access the bean instance, call the [App.get]
  * method:
  * ```kotlin
- * val someService = app.getBean { someService }
+ * val someService = app.get { someService }
  * ```
  */
 class App<M : Module> internal constructor(
@@ -57,32 +58,6 @@ class App<M : Module> internal constructor(
 
     companion object
 
-}
-
-/**
- * Retrieves an instance [T] of the specified [bean].
- * ```kotlin
- * val someService = app.getBean { someService }
- * ```
- */
-fun <M : Module, T : Any> App<M>.getBean(bean: M.() -> Bean<T>): T {
-    contract {
-        callsInPlace(bean, InvocationKind.EXACTLY_ONCE)
-    }
-    return module.bean().provider().get()
-}
-
-/**
- * Retrieves the value of the specified [property].
- * ```kotlin
- * val username = app.getProperty { username }
- * ```
- */
-fun <M : Module, T : Any> App<M>.getProperty(property: M.() -> Property<T>): T {
-    contract {
-        callsInPlace(property, InvocationKind.EXACTLY_ONCE)
-    }
-    return module.property().provider().get()
 }
 
 /**
@@ -197,6 +172,8 @@ fun <M : Module> App.Companion.startLazy(
     )
 }
 
+private val logger = KotlinLogging.logger {}
+
 fun <M : Module> App.Companion.startCustom(
     module: () -> M,
     namespace: String = "",
@@ -209,6 +186,8 @@ fun <M : Module> App.Companion.startCustom(
         callsInPlace(module, InvocationKind.EXACTLY_ONCE)
         callsInPlace(configure, InvocationKind.EXACTLY_ONCE)
     }
+    val started = System.currentTimeMillis()
+    logger.info("Starting app")
     val appContext = AppContext(defaultLazyBeans, defaultLazyProps, propertyReader)
     val rootModule = ModuleContext.use(appContext, namespace) { module().apply(configure) }
     with(appContext) {
@@ -219,6 +198,7 @@ fun <M : Module> App.Companion.startCustom(
         Runtime.getRuntime().addShutdownHook(Thread {
             it.destroy()
         })
+        logger.info("Started app in ${System.currentTimeMillis() - started}ms ")
     }
 }
 

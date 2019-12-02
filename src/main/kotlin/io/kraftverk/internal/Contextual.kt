@@ -12,7 +12,7 @@ class Contextual<T> {
 
     private val threadLocal = ThreadLocal<T>()
 
-    fun get(): T = threadLocal.get() ?: throw AssertionError()
+    fun get(): T = threadLocal.get() ?: throw IllegalStateException()
 
     fun <R> use(value: T, block: () -> R): R {
         val previous: T? = threadLocal.get()
