@@ -34,10 +34,10 @@ Start an App instance:
 ```kotlin
 fun main() {
     val app = App.start(::DripCoffeeModule)
-    val coffeeMaker = app.getBean { coffeeMaker }
+    val coffeeMaker = app.get { coffeeMaker }
     coffeeMaker.brew()
 }
 ```
- 
+
 
 
