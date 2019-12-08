@@ -17,11 +17,11 @@ internal class PropertyFactory(
 
     fun <T : Any> newProperty(
         type: KClass<T>,
-        name: String? = null,
+        name: String?,
         defaultValue: String?,
-        lazy: Boolean? = null,
+        lazy: Boolean?,
         secret: Boolean,
-        define: PropertyDefinition.(String) -> T
+        instance: PropertyDefinition.(String) -> T
     ): DelegateProvider<Module, Property<T>> = object : DelegateProvider<Module, Property<T>> {
         override operator fun provideDelegate(
             thisRef: Module,
@@ -34,10 +34,10 @@ internal class PropertyFactory(
                     name = propertyName,
                     secret = secret,
                     type = type,
-                    initialState = DefiningBinding(
-                        lazy = lazy ?: appContext.defaultLazyProps,
-                        supply = {
-                            definition.define(getProperty(propertyName, defaultValue))
+                    initialState = BindingConfiguration(
+                        lazy = lazy ?: appContext.lazyProps,
+                        instance = {
+                            definition.instance(getProperty(propertyName, defaultValue))
                         }
                     )
                 )

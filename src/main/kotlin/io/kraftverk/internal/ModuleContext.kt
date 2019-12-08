@@ -46,9 +46,8 @@ internal class ModuleContext {
         )
 
     fun <M : Module> module(
-        name: String? = null,
-        module: () -> M,
-        configure: M.() -> Unit
+        name: String?,
+        module: () -> M
     ): DelegateProvider<Module, M> = object :
         DelegateProvider<Module, M> {
         override fun provideDelegate(thisRef: Module, prop: KProperty<*>): ReadOnlyProperty<Module, M> {
@@ -59,7 +58,7 @@ internal class ModuleContext {
                 use(newNamespace) {
                     module()
                 }
-            }.apply(configure)
+            }
             return object : ReadOnlyProperty<Module, M> {
                 override fun getValue(thisRef: Module, property: KProperty<*>): M {
                     return subModule

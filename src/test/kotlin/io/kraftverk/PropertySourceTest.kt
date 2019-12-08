@@ -71,7 +71,7 @@ class PropertySourceTest : WordSpec() {
                     row("_")
 
                 ) { name ->
-                    shouldThrowUnit<Exception> {
+                    shouldThrowUnit<PropertyNameException> {
                         propertySource[name] = "ABC"
                     }
                 }

@@ -9,30 +9,30 @@ import io.kraftverk.BeanImpl
 import io.kraftverk.Component
 import io.kraftverk.PropertyImpl
 
-internal fun <T : Any> Component<T>.onSupply(
+internal fun <T : Any> Component<T>.onBind(
     block: (() -> T) -> T
 ) {
-    this.toBinding().onSupply(block)
+    this.toBinding().onBind(block)
 }
 
-internal fun <T : Any> Component<T>.onStart(
+internal fun <T : Any> Component<T>.onCreate(
     block: (T, (T) -> Unit) -> Unit
 ) {
-    this.toBinding().onStart(block)
+    this.toBinding().onCreate(block)
 }
 
-internal fun <T : Any> Component<T>.onStop(
+internal fun <T : Any> Component<T>.onDestroy(
     block: (T, (T) -> Unit) -> Unit
 ) {
-    this.toBinding().onStop(block)
+    this.toBinding().onDestroy(block)
 }
 
-internal fun Component<*>.initialize() {
-    this.toBinding().initialize()
+internal fun Component<*>.prepare() {
+    this.toBinding().prepare()
 }
 
-internal fun Component<*>.bind() {
-    this.toBinding().bind()
+internal fun Component<*>.evaluate() {
+    this.toBinding().evaluate()
 }
 
 internal fun Component<*>.destroy() {

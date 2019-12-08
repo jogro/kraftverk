@@ -30,8 +30,8 @@ class AppPropertyTest : StringSpec() {
     private val password = "Kuno123"
 
     private class UserModule(lazy: Boolean? = null) : Module() {
-        val userName by property(lazy = lazy)
-        val password by property(lazy = lazy, secret = true)
+        val userName by stringProperty(lazy = lazy)
+        val password by stringProperty(lazy = lazy, secret = true)
     }
 
     private inner class PropertyModule(private val lazy: Boolean? = null) : Module() {
@@ -52,7 +52,7 @@ class AppPropertyTest : StringSpec() {
             propertyObjectFactory.newValue(it)
         }
 
-        val prop5 by property(lazy = this.lazy, name="xyz.prop5") {
+        val prop5 by property(lazy = this.lazy, name = "xyz.prop5") {
             propertyObjectFactory.newValue(it)
         }
 
@@ -61,7 +61,7 @@ class AppPropertyTest : StringSpec() {
     }
 
     private inner class TestModule(private val lazy: Boolean? = null) : Module() {
-        val principal by property(lazy = lazy)
+        val principal by stringProperty(lazy = lazy)
         val props by module { PropertyModule(lazy) }
     }
 
@@ -77,12 +77,12 @@ class AppPropertyTest : StringSpec() {
         }
 
         "Property instantiation is still eager when using App.startLazy" {
-            App.startLazy { TestModule() }
+            App.start(lazy = true) { TestModule() }
             verifyThatAllPropertiesAreInstantiated()
         }
 
         "Property instantiation is eager when specified for the properties" {
-            App.startLazyProps { TestModule(lazy = false) }
+            App.start { TestModule(lazy = false) }
             verifyThatAllPropertiesAreInstantiated()
         }
 
@@ -106,7 +106,7 @@ class AppPropertyTest : StringSpec() {
         }
 
         "Getting a property does not trigger creation of other properties if not necessary" {
-            val app = App.startLazyProps { TestModule() }
+            val app = App.start { TestModule(lazy = true) }
             app.get { props.prop1 }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
@@ -114,7 +114,7 @@ class AppPropertyTest : StringSpec() {
         }
 
         "Getting a property propagates to other properties if necessary" {
-            val app = App.startLazyProps { TestModule() }
+            val app = App.start { TestModule(lazy = true) }
             app.get { props.prop2 }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
@@ -123,7 +123,7 @@ class AppPropertyTest : StringSpec() {
         }
 
         "Getting a property results in one instantiation even if many invocations" {
-            val app = App.startLazyProps { TestModule() }
+            val app = App.start { TestModule(lazy = true) }
             repeat(3) { app.get { props.prop1 } }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
@@ -133,9 +133,7 @@ class AppPropertyTest : StringSpec() {
         "Binding a property does a proper replace" {
             val app = App.start {
                 TestModule().apply {
-                    bind(props.prop1) to {
-                        propertyObjectFactory.newValue("Kalle", next())
-                    }
+                    bind(props.prop1) to { propertyObjectFactory.newValue("Kalle", next()) }
                 }
             }
             app.get { props.prop1 } shouldBe PropertyObject("Kalle", propertyObject1)
@@ -187,10 +185,6 @@ class AppPropertyTest : StringSpec() {
     private class PropertyObjectFactory() {
         fun newValue(value: String) = PropertyObject(value)
         fun newValue(value: String, parent: PropertyObject) = PropertyObject(value, parent)
-    }
-
-    private fun <M : Module> App.Companion.startLazyProps(module: () -> M): App<M> {
-        return App.startCustom(defaultLazyProps = true, module = module)
     }
 
 }

@@ -10,7 +10,7 @@ import io.kraftverk.internal.provider
 
 open class PropertyDefinition internal constructor(internal val appContext: AppContext) {
     val profiles: List<String> by lazy { appContext.profiles }
-    operator fun <T : Any> Property<T>.invoke(): T = provider().get()
+    operator fun <T : Any> Property<T>.invoke(): T = provider().instance()
 }
 
 class PropertySupplierDefinition<T> internal constructor(
@@ -21,7 +21,7 @@ class PropertySupplierDefinition<T> internal constructor(
 }
 
 open class BeanDefinition internal constructor(appContext: AppContext) : PropertyDefinition(appContext) {
-    operator fun <T : Any> Bean<T>.invoke(): T = provider().get()
+    operator fun <T : Any> Component<T>.invoke(): T = provider().instance()
 }
 
 class BeanSupplierDefinition<T> internal constructor(
@@ -39,4 +39,5 @@ class BeanConsumerDefinition<T> internal constructor(
     fun next() = consume(instance)
 }
 
-abstract class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.appContext)
+open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.appContext)
+open class CustomPropertyDefinition(parent: PropertyDefinition) : PropertyDefinition(parent.appContext)

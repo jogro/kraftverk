@@ -17,7 +17,7 @@ class DripCoffeeModule : Module() {
 
     val pump by bean<Pump> {
         Thermosiphon(
-            heater()
+            { heater() }
         )
     }
 
@@ -33,7 +33,7 @@ class DripCoffeeModule : Module() {
 Start an App instance:
 ```kotlin
 fun main() {
-    val app = App.start(::DripCoffeeModule)
+    val app = App.start{ DripCoffeeModule() }
     val coffeeMaker = app.get { coffeeMaker }
     coffeeMaker.brew()
 }

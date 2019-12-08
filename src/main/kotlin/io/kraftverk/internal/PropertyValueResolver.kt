@@ -1,52 +1,56 @@
 package io.kraftverk.internal
 
 import io.kraftverk.PropertyNameException
+import mu.KotlinLogging
+
+private val logger = KotlinLogging.logger {  }
 
 internal class PropertyValueResolver(
     val profiles: List<String>,
-    private val properties: PropertySource,
+    private val propertySource: PropertySource,
     private val readProperty: (String) -> String?
 ) {
-    operator fun get(name: String) = properties[name] ?: readProperty(name)
+    operator fun get(name: String) = propertySource[name] ?: readProperty(name)
 }
 
 internal fun newPropertyValueResolver(
     customizedProperties: Map<String, String> = emptyMap(),
     propertyReader: (List<String>) -> (String) -> String?
 ): PropertyValueResolver {
-    val properties = PropertySource()
-    loadFromEnvironmentVariables(properties)
-    loadFromSystemProperties(properties)
-    customizedProperties.forEach { (k, v) -> properties[k] = v }
-    val profiles = activeProfiles(properties)
+    val propertySource = PropertySource()
+    loadFromEnvironmentVariables(propertySource)
+    loadFromSystemProperties(propertySource)
+    customizedProperties.forEach { (k, v) -> propertySource[k] = v }
+    val profiles = activeProfiles(propertySource)
     return PropertyValueResolver(
         profiles,
-        properties,
+        propertySource,
         propertyReader(profiles)
     )
 }
 
-private fun activeProfiles(props: PropertySource): List<String> {
-    return props[ACTIVE_PROFILES]
+private fun activeProfiles(propertySource: PropertySource): List<String> {
+    return propertySource[ACTIVE_PROFILES]
         ?.split(",")
         ?.map { it.trim() }
         ?.filter { it.isNotEmpty() }
         ?: emptyList()
 }
 
-private fun loadFromEnvironmentVariables(props: PropertySource) {
+private fun loadFromEnvironmentVariables(propertySource: PropertySource) {
     val env = System.getenv()
     env.keys.forEach { key ->
         try {
-            props[key] = env[key].toString()
+            propertySource[key] = env[key].toString()
         } catch (ignore: PropertyNameException) {
+            logger.warn { "Skipping malformed environment variable name: '$key'" }
         }
     }
 }
 
-private fun loadFromSystemProperties(props: PropertySource) {
+private fun loadFromSystemProperties(propertySource: PropertySource) {
     System.getProperties().forEach { e ->
-        props[e.key.toString()] = e.value.toString()
+        propertySource[e.key.toString()] = e.value.toString()
     }
 }
 

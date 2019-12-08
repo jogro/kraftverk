@@ -18,7 +18,7 @@ internal class BeanFactory(
     fun <T : Any> newBean(
         type: KClass<T>,
         lazy: Boolean? = null,
-        define: BeanDefinition.() -> T
+        instance: BeanDefinition.() -> T
     ): DelegateProvider<Module, Bean<T>> = object : DelegateProvider<Module, Bean<T>> {
         override fun provideDelegate(
             thisRef: Module,
@@ -29,10 +29,10 @@ internal class BeanFactory(
                 binding = BeanBinding(
                     name = beanName(prop.name),
                     type = type,
-                    initialState = DefiningBinding(
-                        lazy = lazy ?: appContext.defaultLazyBeans,
-                        supply = {
-                            definition.define()
+                    initialState = BindingConfiguration(
+                        lazy = lazy ?: appContext.lazyBeans,
+                        instance = {
+                            definition.instance()
                         }
                     )
                 )

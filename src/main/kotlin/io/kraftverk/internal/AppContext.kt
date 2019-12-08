@@ -11,38 +11,38 @@ import io.kraftverk.Property
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
 internal class AppContext(
-    internal val defaultLazyBeans: Boolean,
-    internal val defaultLazyProps: Boolean,
+    internal val lazyBeans: Boolean,
+    internal val lazyProps: Boolean,
     private val propertyReader: (List<String>) -> (String) -> String?
 ) {
 
-    private var state: AppContextState = DefiningAppContext()
+    private var state: AppContextState = AppContextConfiguration()
 
     val profiles: List<String> by lazy { profiles() }
 
     fun setProperty(name: String, value: String) {
-        state.runAs<DefiningAppContext> {
+        state.runAs<AppContextConfiguration> {
             customizedPropertyValues[name] = value
         }
     }
 
     fun registerBean(bean: Bean<*>) {
-        state.runAs<DefiningAppContext> {
+        state.runAs<AppContextConfiguration> {
             beans.add(bean)
         }
     }
 
     fun registerProperty(property: Property<*>) {
-        state.runAs<DefiningAppContext> {
+        state.runAs<AppContextConfiguration> {
             properties.add(property)
         }
     }
 
-    fun initialize() {
-        state.runAs<DefiningAppContext> {
-            properties.forEach { it.initialize() }
-            beans.forEach { it.initialize() }
-            state = InitializedAppContext(
+    fun prepare() {
+        state.runAs<AppContextConfiguration> {
+            properties.forEach { it.prepare() }
+            beans.forEach { it.prepare() }
+            state = PreparedAppContext(
                 newPropertyValueResolver(customizedPropertyValues, propertyReader),
                 properties,
                 beans
@@ -51,26 +51,26 @@ internal class AppContext(
     }
 
     fun start() {
-        state.runAs<InitializedAppContext> {
-            properties.forEach { it.bind() }
-            beans.forEach { it.bind() }
+        state.runAs<PreparedAppContext> {
+            properties.forEach { it.evaluate() }
+            beans.forEach { it.evaluate() }
         }
     }
 
     operator fun get(name: String): String? {
-        state.runAs<InitializedAppContext> {
+        state.runAs<PreparedAppContext> {
             return propertyValueResolver[name]
         }
     }
 
     private fun profiles(): List<String> {
-        state.runAs<InitializedAppContext> {
+        state.runAs<PreparedAppContext> {
             return propertyValueResolver.profiles
         }
     }
 
     fun destroy() {
-        state.runIf<InitializedAppContext> {
+        state.runIf<PreparedAppContext> {
             beans.filter { it.provider().instanceId != null }
                 .sortedByDescending { it.provider().instanceId }
                 .forEach { bean ->

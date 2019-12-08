@@ -12,13 +12,13 @@ import kotlin.contracts.contract
 
 internal sealed class AppContextState
 
-internal class DefiningAppContext : AppContextState() {
+internal class AppContextConfiguration : AppContextState() {
     val customizedPropertyValues = mutableMapOf<String, String>()
     val properties = mutableListOf<Property<*>>()
     val beans = mutableListOf<Bean<*>>()
 }
 
-internal class InitializedAppContext(
+internal class PreparedAppContext(
     val propertyValueResolver: PropertyValueResolver,
     val properties: List<Property<*>>,
     val beans: List<Bean<*>>

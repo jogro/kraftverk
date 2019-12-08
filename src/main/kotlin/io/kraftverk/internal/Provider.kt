@@ -10,41 +10,36 @@ import kotlin.reflect.KClass
 
 internal class Provider<T : Any>(
     val type: KClass<T>,
-    private val onCreate: () -> T,
-    private val onStart: (T) -> Unit,
+    private val create: () -> T,
+    private val onCreate: (T) -> Unit,
     private val onDestroy: (T) -> Unit
 ) {
 
-    @Volatile
-    var instanceId: Int? = null
-        private set
-
-    @Volatile
-    private var instance: T? = null
-
-    fun get(): T {
-        return instance ?: synchronized(this) {
-            instance ?: onCreate().also {
-                instance = it
-                instanceId = currentInstanceId.incrementAndGet()
-                onStart(it)
+    private val holder: Lazy<InstanceHolder> = lazy {
+        create().let {
+            InstanceHolder(currentInstanceId.incrementAndGet(), it).apply {
+                onCreate(it)
             }
         }
     }
 
+    val instanceId: Int?
+        get() = if (holder.isInitialized()) holder.value.id else null
+
+    fun instance(): T = holder.value.instance
+
     fun destroy() {
-        instance?.also {
-            synchronized(this) {
-                instance?.also {
-                    onDestroy(it)
-                    instance = null
-                }
-            }
-        }
+        if (holder.isInitialized()) destroyOnce
+    }
+
+    private val destroyOnce: Unit by lazy {
+        onDestroy(holder.value.instance)
     }
 
     companion object {
         val currentInstanceId = AtomicInteger(0)
     }
+
+    private inner class InstanceHolder(val id: Int, val instance: T)
 
 }
