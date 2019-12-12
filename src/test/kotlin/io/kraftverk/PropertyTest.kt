@@ -9,7 +9,7 @@ import io.kotlintest.specs.StringSpec
 import io.mockk.*
 
 
-class AppPropertyTest : StringSpec() {
+class PropertyTest : StringSpec() {
 
     private val principal = "ergo"
 
@@ -34,7 +34,7 @@ class AppPropertyTest : StringSpec() {
         val password by stringProperty(lazy = lazy, secret = true)
     }
 
-    private inner class PropertyModule(private val lazy: Boolean? = null) : Module() {
+    private inner class PropertiesModule(private val lazy: Boolean? = null) : Module() {
 
         val prop1 by property(lazy = this.lazy) {
             propertyObjectFactory.newValue(it)
@@ -60,9 +60,9 @@ class AppPropertyTest : StringSpec() {
 
     }
 
-    private inner class TestModule(private val lazy: Boolean? = null) : Module() {
+    private inner class AppModule(private val lazy: Boolean? = null) : Module() {
         val principal by stringProperty(lazy = lazy)
-        val props by module { PropertyModule(lazy) }
+        val props by module { PropertiesModule(lazy) }
     }
 
     override fun beforeTest(testCase: TestCase) {
@@ -72,29 +72,27 @@ class AppPropertyTest : StringSpec() {
     init {
 
         "Property instantiation is eager by default" {
-            App.start { TestModule() }
+            Container.start { AppModule() }
             verifyThatAllPropertiesAreInstantiated()
         }
 
-        "Property instantiation is still eager when using App.startLazy" {
-            App.start(lazy = true) { TestModule() }
-            verifyThatAllPropertiesAreInstantiated()
+        "Property instantiation is lazy when using App.startLazy" {
+            Container.start(lazy = true) { AppModule() }
+            verifyThatNoPropertiesAreInstantiated()
         }
 
         "Property instantiation is eager when specified for the properties" {
-            App.start { TestModule(lazy = false) }
+            Container.start { AppModule(lazy = false) }
             verifyThatAllPropertiesAreInstantiated()
         }
 
         "Property instantiation is lazy when specified for the properties" {
-            App.start { TestModule(lazy = true) }
-            verify {
-                propertyObjectFactory wasNot Called
-            }
+            Container.start { AppModule(lazy = true) }
+            verifyThatNoPropertiesAreInstantiated()
         }
 
         "Getting a property returns expected value" {
-            val app = App.start { TestModule() }
+            val app = Container.start { AppModule() }
             app.get { principal } shouldBe principal
             app.get { props.prop1 } shouldBe propertyObject1
             app.get { props.prop2 } shouldBe propertyObject2
@@ -106,7 +104,7 @@ class AppPropertyTest : StringSpec() {
         }
 
         "Getting a property does not trigger creation of other properties if not necessary" {
-            val app = App.start { TestModule(lazy = true) }
+            val app = Container.start { AppModule(lazy = true) }
             app.get { props.prop1 }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
@@ -114,7 +112,7 @@ class AppPropertyTest : StringSpec() {
         }
 
         "Getting a property propagates to other properties if necessary" {
-            val app = App.start { TestModule(lazy = true) }
+            val app = Container.start { AppModule(lazy = true) }
             app.get { props.prop2 }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
@@ -123,7 +121,7 @@ class AppPropertyTest : StringSpec() {
         }
 
         "Getting a property results in one instantiation even if many invocations" {
-            val app = App.start { TestModule(lazy = true) }
+            val app = Container.start { AppModule(lazy = true) }
             repeat(3) { app.get { props.prop1 } }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
@@ -131,8 +129,8 @@ class AppPropertyTest : StringSpec() {
         }
 
         "Binding a property does a proper replace" {
-            val app = App.start {
-                TestModule().apply {
+            val app = Container.start {
+                AppModule().apply {
                     bind(props.prop1) to { propertyObjectFactory.newValue("Kalle", next()) }
                 }
             }
@@ -141,8 +139,8 @@ class AppPropertyTest : StringSpec() {
 
 
         "Properties should be overridden when using profiles" {
-            val app = App.start {
-                TestModule().apply {
+            val app = Container.start {
+                AppModule().apply {
                     useProfiles("prof1", "prof2")
                 }
             }
@@ -161,13 +159,19 @@ class AppPropertyTest : StringSpec() {
             val po2 = PropertyObject("SET2", po1)
             withEnvironment("PROPS_PROP1" to po1.value) {
                 withSystemProperties("props.prop2" to po2.value) {
-                    val app = App.start { TestModule() }
+                    val app = Container.start { AppModule() }
                     app.get { props.prop1 } shouldBe po1
                     app.get { props.prop2 } shouldBe po2
                 }
             }
         }
 
+    }
+
+    private fun verifyThatNoPropertiesAreInstantiated() {
+        verify {
+            propertyObjectFactory wasNot Called
+        }
     }
 
     private fun verifyThatAllPropertiesAreInstantiated() {

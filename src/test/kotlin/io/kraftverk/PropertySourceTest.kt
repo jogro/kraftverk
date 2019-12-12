@@ -6,6 +6,7 @@ import io.kotlintest.shouldThrowUnit
 import io.kotlintest.specs.WordSpec
 import io.kotlintest.tables.row
 import io.kraftverk.internal.PropertySource
+import kotlinx.coroutines.launch
 
 class PropertySourceTest : WordSpec() {
 
@@ -52,6 +53,7 @@ class PropertySourceTest : WordSpec() {
                         propertySource[getterName] shouldBe "ABC"
                     }
                 }
+
             }
             "throw exception when an invalid property name is encountered" {
                 forall(

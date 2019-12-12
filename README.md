@@ -30,11 +30,11 @@ class DripCoffeeModule : Module() {
 
 }
 ```
-Start an App instance:
+Start a Container instance:
 ```kotlin
 fun main() {
-    val app = App.start{ DripCoffeeModule() }
-    val coffeeMaker = app.get { coffeeMaker }
+    val container = Container.start { DripCoffeeModule() }
+    val coffeeMaker = container.get { coffeeMaker }
     coffeeMaker.brew()
 }
 ```

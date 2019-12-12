@@ -5,7 +5,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.mockk.*
 
-class AppBeanTest : StringSpec() {
+class BeanTest : StringSpec() {
 
     private val widget = mockk<Widget>(relaxed = true)
 
@@ -13,7 +13,7 @@ class AppBeanTest : StringSpec() {
 
     private val widgetFactory = mockk<WidgetFactory>()
 
-    inner class TestModule(private val lazy: Boolean? = null) : Module() {
+    inner class AppModule(private val lazy: Boolean? = null) : Module() {
 
         val widget by bean(lazy = this.lazy) {
             widgetFactory.newWidget()
@@ -32,7 +32,7 @@ class AppBeanTest : StringSpec() {
     }
 
     override fun beforeTest(testCase: TestCase) {
-        clearMocks(widgetFactory, widget, childWidget)
+        clearAllMocks()
         every { widgetFactory.newWidget() } returns widget
         every { widgetFactory.newWidget(widget) } returns childWidget
     }
@@ -40,33 +40,33 @@ class AppBeanTest : StringSpec() {
     init {
 
         "Bean instantiation is eager by default" {
-            App.start { TestModule() }
+            Container.start { AppModule() }
             verifyThatAllBeansAreInstantiated()
         }
 
         "Bean instantiation is eager when specified for the beans" {
-            App.start(lazy = true) { TestModule(lazy = false) }
+            Container.start(lazy = true) { AppModule(lazy = false) }
             verifyThatAllBeansAreInstantiated()
         }
 
         "Bean instantiation is lazy when started lazily" {
-            App.start(lazy = true) { TestModule() }
+            Container.start(lazy = true) { AppModule() }
             verifyThatNoBeansAreInstantiated()
         }
 
         "Bean instantiation is lazy when specified for the beans" {
-            App.start { TestModule(lazy = true) }
+            Container.start { AppModule(lazy = true) }
             verifyThatNoBeansAreInstantiated()
         }
 
         "Getting a bean returns expected value" {
-            val app = App.start { TestModule() }
+            val app = Container.start { AppModule() }
             app.get { widget } shouldBe widget
             app.get { childWidget } shouldBe childWidget
         }
 
         "Getting a bean does not trigger creation of other beans if not necessary" {
-            val app = App.start(lazy = true) { TestModule() }
+            val app = Container.start(lazy = true) { AppModule() }
             app.get { widget }
             verifySequence {
                 widgetFactory.newWidget()
@@ -75,7 +75,7 @@ class AppBeanTest : StringSpec() {
         }
 
         "Getting a bean propagates to other beans if necessary" {
-            val app = App.start(lazy = true) { TestModule() }
+            val app = Container.start(lazy = true) { AppModule() }
             app.get { childWidget }
             verifySequence {
                 widgetFactory.newWidget()
@@ -86,7 +86,7 @@ class AppBeanTest : StringSpec() {
         }
 
         "Getting a bean results in one instantiation even if many invocations" {
-            val app = App.start(lazy = true) { TestModule() }
+            val app = Container.start(lazy = true) { AppModule() }
             repeat(3) { app.get { widget } }
             verifySequence {
                 widgetFactory.newWidget()
@@ -95,8 +95,8 @@ class AppBeanTest : StringSpec() {
         }
 
         "Bean on create invokes next properly" {
-            App.start {
-                TestModule().apply {
+            Container.start {
+                AppModule().apply {
                     onCreate(widget) { next() }
                 }
             }
@@ -106,8 +106,8 @@ class AppBeanTest : StringSpec() {
         }
 
         "Bean on create inhibits next properly" {
-            App.start {
-                TestModule().apply {
+            Container.start {
+                AppModule().apply {
                     onCreate(widget) { }
                 }
             }
@@ -117,9 +117,9 @@ class AppBeanTest : StringSpec() {
             }
         }
 
-        "Bean on release invokes next properly" {
-            val app = App.start {
-                TestModule().apply {
+        "Bean on destroy invokes next properly" {
+            val app = Container.start {
+                AppModule().apply {
                     onDestroy(widget) { next() }
                     onDestroy(childWidget) { next() }
                 }
@@ -136,8 +136,8 @@ class AppBeanTest : StringSpec() {
             val replacement = mockk<Widget>(relaxed = true)
             every { widgetFactory.newWidget(widget) } returns replacement
             every { widgetFactory.newWidget(replacement) } returns childWidget
-            val app = App.start {
-                TestModule().apply {
+            val app = Container.start {
+                AppModule().apply {
                     bind(widget) to { widgetFactory.newWidget(next()) }
                 }
             }

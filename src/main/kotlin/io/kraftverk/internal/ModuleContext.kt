@@ -12,10 +12,10 @@ import kotlin.reflect.KProperty
 
 internal class ModuleContext {
 
-    val appContext: AppContext = ModuleContext.appContext
+    val runtime: Runtime = ModuleContext.runtime
     private val namespace: String = ModuleContext.namespace
-    private val beanFactory = BeanFactory(appContext, namespace)
-    private val propertyFactory = PropertyFactory(appContext, namespace)
+    private val beanFactory = BeanFactory(runtime, namespace)
+    private val propertyFactory = PropertyFactory(runtime, namespace)
 
     internal fun <T : Any> newBean(
         type: KClass<T>,
@@ -68,16 +68,16 @@ internal class ModuleContext {
     }
 
     companion object {
-        internal val contextualAppContext = Contextual<AppContext>()
+        internal val contextualRuntime = Contextual<Runtime>()
         internal val contextualNamespace = Contextual<String>()
-        val appContext get() = contextualAppContext.get()
+        val runtime get() = contextualRuntime.get()
         val namespace get() = contextualNamespace.get()
     }
 
 }
 
-internal fun <R> ModuleContext.Companion.use(appContext: AppContext, namespace: String, block: () -> R): R {
-    return use(appContext) {
+internal fun <R> ModuleContext.Companion.use(runtime: Runtime, namespace: String, block: () -> R): R {
+    return use(runtime) {
         use(namespace) {
             block()
         }
@@ -88,6 +88,6 @@ internal fun <R> ModuleContext.Companion.use(namespace: String, block: () -> R):
     return contextualNamespace.use(namespace, block)
 }
 
-private fun <R> ModuleContext.Companion.use(appContext: AppContext, block: () -> R): R {
-    return contextualAppContext.use(appContext, block)
+private fun <R> ModuleContext.Companion.use(runtime: Runtime, block: () -> R): R {
+    return contextualRuntime.use(runtime, block)
 }

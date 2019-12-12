@@ -10,23 +10,23 @@ import io.kraftverk.Property
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-internal sealed class AppContextState
+internal sealed class RuntimeState
 
-internal class AppContextConfiguration : AppContextState() {
+internal class RuntimeConfiguration : RuntimeState() {
     val customizedPropertyValues = mutableMapOf<String, String>()
     val properties = mutableListOf<Property<*>>()
     val beans = mutableListOf<Bean<*>>()
 }
 
-internal class PreparedAppContext(
+internal class PreparedRuntime(
     val propertyValueResolver: PropertyValueResolver,
     val properties: List<Property<*>>,
     val beans: List<Bean<*>>
-) : AppContextState()
+) : RuntimeState()
 
-internal object DestroyedAppContext : AppContextState()
+internal object DestroyedRuntime : RuntimeState()
 
-internal inline fun <reified T : AppContextState> AppContextState.runIf(block: T.() -> Unit) {
+internal inline fun <reified T : RuntimeState> RuntimeState.runIf(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
@@ -35,7 +35,7 @@ internal inline fun <reified T : AppContextState> AppContextState.runIf(block: T
     }
 }
 
-internal inline fun <reified T : AppContextState> AppContextState.runAs(block: T.() -> Unit) {
+internal inline fun <reified T : RuntimeState> RuntimeState.runAs(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

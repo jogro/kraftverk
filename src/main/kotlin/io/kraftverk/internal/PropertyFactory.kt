@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 internal class PropertyFactory(
-    private val appContext: AppContext,
+    private val runtime: Runtime,
     private val namespace: String
 ) {
 
@@ -27,7 +27,7 @@ internal class PropertyFactory(
             thisRef: Module,
             prop: KProperty<*>
         ): ReadOnlyProperty<Module, Property<T>> {
-            val definition = PropertyDefinition(appContext)
+            val definition = PropertyDefinition(runtime)
             val propertyName = propertyName(name ?: prop.name)
             return PropertyImpl(
                 binding = PropertyBinding(
@@ -35,14 +35,14 @@ internal class PropertyFactory(
                     secret = secret,
                     type = type,
                     initialState = BindingConfiguration(
-                        lazy = lazy ?: appContext.lazyProps,
+                        lazy = lazy ?: runtime.lazyProps,
                         instance = {
                             definition.instance(getProperty(propertyName, defaultValue))
                         }
                     )
                 )
             ).also {
-                appContext.registerProperty(it)
+                runtime.registerProperty(it)
             }.let {
                 object : ReadOnlyProperty<Module, Property<T>> {
                     override fun getValue(thisRef: Module, property: KProperty<*>): Property<T> {
@@ -54,7 +54,7 @@ internal class PropertyFactory(
     }
 
     private fun getProperty(name: String, defaultValue: String?) = name.let {
-        appContext[it] ?: defaultValue ?: throw PropertyNotFoundException("Property '$it' was not found!")
+        runtime[it] ?: defaultValue ?: throw PropertyNotFoundException("Property '$it' was not found!")
     }
 
     private fun propertyName(name: String) =

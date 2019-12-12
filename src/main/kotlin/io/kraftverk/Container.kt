@@ -10,9 +10,11 @@ import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+private val logger = KotlinLogging.logger {}
+
 /**
- * Provides access to [Property] and [Bean] instances
- * in a specified implementation [M] of [Module].
+ * Provides access to [Property] and [Bean] instances in a specified
+ * implementation [M] of [Module].
  *
  * Given a module:
  * ```kotlin
@@ -25,27 +27,26 @@ import kotlin.contracts.contract
  *     }
  * }
  * ```
- * Call the [App.Companion.start] method to construct an App
+ * Call the [Container.Companion.start] method to start a Container
  * instance.
  * ```kotlin
- * val app = App.start { AppModule() }
+ * val container = Container.start { AppModule() }
  * ```
- * To access the bean instance, call the [App.get]
+ * To access the bean instance, call the [Container.get]
  * method:
  * ```kotlin
- * val someService = app.get { someService }
+ * val someService = container.get { someService }
  * ```
  */
-class App<M : Module> internal constructor(
-    internal val appContext: AppContext,
+class Container<M : Module> internal constructor(
+    internal val runtime: Runtime,
     internal val module: M
 ) {
     companion object
 }
 
 /**
- * Contains the names of the active profiles set at
- * application startup.
+ * Contains the active profiles set at startup.
  *
  * To set the active profiles, you can use
  * - an environment variable named 'KRAFTVERK_ACTIVE_PROFILES'
@@ -57,15 +58,41 @@ class App<M : Module> internal constructor(
  * You can also call [Module.useProfiles].
  *
  */
-val App<*>.profiles: List<String> get() = appContext.profiles
+val Container<*>.profiles: List<String> get() = runtime.profiles
+
+fun <M : Module> Container.Companion.start(
+    namespace: String = "",
+    propertyFilename: String = "application",
+    lazy: Boolean = false,
+    propertyReader: (List<String>) -> (String) -> String? = defaultPropertyReader(propertyFilename),
+    module: () -> M
+): Container<M> {
+    contract {
+        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
+    }
+    val started = System.currentTimeMillis()
+    logger.info("Starting container")
+    val runtime = Runtime(lazyBeans = lazy, lazyProps = lazy, propertyReader = propertyReader)
+    val rootModule = ModuleContext.use(runtime, namespace) { module() }
+    with(runtime) {
+        prepare()
+        start()
+    }
+    return Container(runtime, rootModule).also {
+        java.lang.Runtime.getRuntime().addShutdownHook(Thread {
+            it.destroy()
+        })
+        logger.info("Started container in ${System.currentTimeMillis() - started}ms ")
+    }
+}
 
 /**
  * Retrieves the value of the specified [component].
  * ```kotlin
- * val username = app.get { username }
+ * val username = container.get { username }
  * ```
  */
-fun <M : Module, T : Any> App<M>.get(component: M.() -> Component<T>): T {
+fun <M : Module, T : Any> Container<M>.get(component: M.() -> Component<T>): T {
     contract {
         callsInPlace(component, InvocationKind.EXACTLY_ONCE)
     }
@@ -73,38 +100,10 @@ fun <M : Module, T : Any> App<M>.get(component: M.() -> Component<T>): T {
 }
 
 /**
- * Destroys this App.
+ * Destroys this Container.
  */
-fun <M : Module> App<M>.destroy() {
-    appContext.destroy()
-}
-
-private val logger = KotlinLogging.logger {}
-
-fun <M : Module> App.Companion.start(
-    namespace: String = "",
-    propertyFilename: String = "application",
-    lazy: Boolean = false,
-    propertyReader: (List<String>) -> (String) -> String? = defaultPropertyReader(propertyFilename),
-    module: () -> M
-): App<M> {
-    contract {
-        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
-    }
-    val started = System.currentTimeMillis()
-    logger.info("Starting app")
-    val appContext = AppContext(lazyBeans = lazy, lazyProps = false, propertyReader = propertyReader)
-    val rootModule = ModuleContext.use(appContext, namespace) { module() }
-    with(appContext) {
-        prepare()
-        start()
-    }
-    return App(appContext, rootModule).also {
-        Runtime.getRuntime().addShutdownHook(Thread {
-            it.destroy()
-        })
-        logger.info("Started app in ${System.currentTimeMillis() - started}ms ")
-    }
+fun <M : Module> Container<M>.destroy() {
+    runtime.destroy()
 }
 
 private fun defaultPropertyReader(propertyFilename: String): (List<String>) -> (String) -> String? =

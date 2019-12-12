@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 internal class BeanFactory(
-    private val appContext: AppContext,
+    private val runtime: Runtime,
     private val namespace: String
 ) {
 
@@ -24,20 +24,20 @@ internal class BeanFactory(
             thisRef: Module,
             prop: KProperty<*>
         ): ReadOnlyProperty<Module, Bean<T>> {
-            val definition = BeanDefinition(appContext)
+            val definition = BeanDefinition(runtime)
             return BeanImpl(
                 binding = BeanBinding(
                     name = beanName(prop.name),
                     type = type,
                     initialState = BindingConfiguration(
-                        lazy = lazy ?: appContext.lazyBeans,
+                        lazy = lazy ?: runtime.lazyBeans,
                         instance = {
                             definition.instance()
                         }
                     )
                 )
             ).also {
-                appContext.registerBean(it)
+                runtime.registerBean(it)
             }.let {
                 object : ReadOnlyProperty<Module, Bean<T>> {
                     override fun getValue(thisRef: Module, property: KProperty<*>): Bean<T> {

@@ -5,39 +5,39 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.AppContext
+import io.kraftverk.internal.Runtime
 import io.kraftverk.internal.provider
 
-open class PropertyDefinition internal constructor(internal val appContext: AppContext) {
-    val profiles: List<String> by lazy { appContext.profiles }
+open class PropertyDefinition internal constructor(internal val runtime: Runtime) {
+    val profiles: List<String> by lazy { runtime.profiles }
     operator fun <T : Any> Property<T>.invoke(): T = provider().instance()
 }
 
 class PropertySupplierDefinition<T> internal constructor(
-    moduleContext: AppContext,
+    runtime: Runtime,
     private val supply: () -> T
-) : PropertyDefinition(moduleContext) {
+) : PropertyDefinition(runtime) {
     fun next() = supply()
 }
 
-open class BeanDefinition internal constructor(appContext: AppContext) : PropertyDefinition(appContext) {
+open class BeanDefinition internal constructor(runtime: Runtime) : PropertyDefinition(runtime) {
     operator fun <T : Any> Component<T>.invoke(): T = provider().instance()
 }
 
 class BeanSupplierDefinition<T> internal constructor(
-    moduleContext: AppContext,
+    runtime: Runtime,
     private val supply: () -> T
-) : BeanDefinition(moduleContext) {
+) : BeanDefinition(runtime) {
     fun next() = supply()
 }
 
 class BeanConsumerDefinition<T> internal constructor(
-    moduleContext: AppContext,
+    runtime: Runtime,
     private val instance: T,
     private val consume: (T) -> Unit
-) : BeanDefinition(moduleContext) {
+) : BeanDefinition(runtime) {
     fun next() = consume(instance)
 }
 
-open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.appContext)
-open class CustomPropertyDefinition(parent: PropertyDefinition) : PropertyDefinition(parent.appContext)
+open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.runtime)
+open class CustomPropertyDefinition(parent: PropertyDefinition) : PropertyDefinition(parent.runtime)
