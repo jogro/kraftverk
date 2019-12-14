@@ -79,14 +79,14 @@ fun <M : Module> Container.Companion.start(
         Runtime.getRuntime().addShutdownHook(Thread {
             destroy()
         })
-        logger.info("Started container in ${System.currentTimeMillis() - startedMs}ms ")
+        logger.info("Started container in ${System.currentTimeMillis() - startedMs}ms")
     }
 }
 
 /**
- * Retrieves the value of the specified [binding].
+ * Retrieves instance [T] of the specified [binding].
  * ```kotlin
- * val username = container.get { username }
+ * val someService = container.get { someService }
  * ```
  */
 fun <M : Module, T : Any> Container<M>.get(binding: M.() -> Binding<T>): T {
