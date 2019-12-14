@@ -137,23 +137,6 @@ class PropertyTest : StringSpec() {
             app.get { props.prop1 } shouldBe PropertyObject("Kalle", propertyObject1)
         }
 
-
-        "Properties should be overridden when using profiles" {
-            val app = Container.start {
-                AppModule().apply {
-                    useProfiles("prof1", "prof2")
-                }
-            }
-            verifySequence {
-                propertyObjectFactory.newValue(propertyObject1.value)
-                propertyObjectFactory.newValue("152", propertyObject1)
-                propertyObjectFactory.newValue("253")
-                propertyObjectFactory.newValue(propertyObject4.value)
-                propertyObjectFactory.newValue(propertyObject5.value)
-            }
-            app.profiles.shouldContainExactly("prof1", "prof2")
-        }
-
         "Properties can be overridden by environment vars and system properties" {
             val po1 = PropertyObject("SET1")
             val po2 = PropertyObject("SET2", po1)
@@ -163,6 +146,20 @@ class PropertyTest : StringSpec() {
                     app.get { props.prop1 } shouldBe po1
                     app.get { props.prop2 } shouldBe po2
                 }
+            }
+        }
+
+        "Properties should be overridden when using profiles" {
+            withSystemProperties("kraftverk.active.profiles" to "prof1,prof2") {
+                val app = Container.start { AppModule() }
+                verifySequence {
+                    propertyObjectFactory.newValue(propertyObject1.value)
+                    propertyObjectFactory.newValue("152", propertyObject1)
+                    propertyObjectFactory.newValue("253")
+                    propertyObjectFactory.newValue(propertyObject4.value)
+                    propertyObjectFactory.newValue(propertyObject5.value)
+                }
+                app.profiles.shouldContainExactly("prof1", "prof2")
             }
         }
 

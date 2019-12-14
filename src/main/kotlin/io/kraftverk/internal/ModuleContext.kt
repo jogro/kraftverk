@@ -12,10 +12,10 @@ import kotlin.reflect.KProperty
 
 internal class ModuleContext {
 
-    val runtime: Runtime = ModuleContext.runtime
+    val registry: Registry = ModuleContext.registry
     private val namespace: String = ModuleContext.namespace
-    private val beanFactory = BeanFactory(runtime, namespace)
-    private val propertyFactory = PropertyFactory(runtime, namespace)
+    private val beanFactory = BeanFactory(registry, namespace)
+    private val propertyFactory = PropertyFactory(registry, namespace)
 
     internal fun <T : Any> newBean(
         type: KClass<T>,
@@ -68,16 +68,16 @@ internal class ModuleContext {
     }
 
     companion object {
-        internal val contextualRuntime = Contextual<Runtime>()
+        internal val contextualContainerContext = Contextual<Registry>()
         internal val contextualNamespace = Contextual<String>()
-        val runtime get() = contextualRuntime.get()
+        val registry get() = contextualContainerContext.get()
         val namespace get() = contextualNamespace.get()
     }
 
 }
 
-internal fun <R> ModuleContext.Companion.use(runtime: Runtime, namespace: String, block: () -> R): R {
-    return use(runtime) {
+internal fun <R> ModuleContext.Companion.use(registry: Registry, namespace: String, block: () -> R): R {
+    return use(registry) {
         use(namespace) {
             block()
         }
@@ -88,6 +88,6 @@ internal fun <R> ModuleContext.Companion.use(namespace: String, block: () -> R):
     return contextualNamespace.use(namespace, block)
 }
 
-private fun <R> ModuleContext.Companion.use(runtime: Runtime, block: () -> R): R {
-    return contextualRuntime.use(runtime, block)
+private fun <R> ModuleContext.Companion.use(registry: Registry, block: () -> R): R {
+    return contextualContainerContext.use(registry, block)
 }

@@ -5,7 +5,7 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {  }
 
-internal class PropertyValueResolver(
+internal class PropertyValues(
     val profiles: List<String>,
     private val propertySource: PropertySource,
     private val readProperty: (String) -> String?
@@ -13,16 +13,14 @@ internal class PropertyValueResolver(
     operator fun get(name: String) = propertySource[name] ?: readProperty(name)
 }
 
-internal fun newPropertyValueResolver(
-    customizedProperties: Map<String, String> = emptyMap(),
+internal fun newPropertyValues(
     propertyReader: (List<String>) -> (String) -> String?
-): PropertyValueResolver {
+): PropertyValues {
     val propertySource = PropertySource()
     loadFromEnvironmentVariables(propertySource)
     loadFromSystemProperties(propertySource)
-    customizedProperties.forEach { (k, v) -> propertySource[k] = v }
     val profiles = activeProfiles(propertySource)
-    return PropertyValueResolver(
+    return PropertyValues(
         profiles,
         propertySource,
         propertyReader(profiles)

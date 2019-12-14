@@ -28,7 +28,7 @@ private fun loadFromClasspath(propertySource: PropertySource, filename: String, 
 
 private fun Properties.loadFromClassPathFile(path: Path) {
     path.let(Path::toString)
-        .let(BindingState::class.java.classLoader::getResourceAsStream)
+        .let(Binding::class.java.classLoader::getResourceAsStream)
         ?.also {
             it.use { input -> load(input) }
         }

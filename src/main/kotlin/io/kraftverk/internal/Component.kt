@@ -27,12 +27,8 @@ internal fun <T : Any> Component<T>.onDestroy(
     this.toBinding().onDestroy(block)
 }
 
-internal fun Component<*>.prepare() {
-    this.toBinding().prepare()
-}
-
-internal fun Component<*>.evaluate() {
-    this.toBinding().evaluate()
+internal fun Component<*>.start() {
+    this.toBinding().start()
 }
 
 internal fun Component<*>.destroy() {

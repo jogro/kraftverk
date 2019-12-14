@@ -20,7 +20,7 @@ abstract class Module {
     inner class BindBean<T : Any>(private val bean: Bean<T>) {
         infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
             bean.onBind { next ->
-                BeanSupplierDefinition(moduleContext.runtime, next).block()
+                BeanSupplierDefinition(moduleContext.registry, next).block()
             }
         }
     }
@@ -28,7 +28,7 @@ abstract class Module {
     inner class BindProperty<T : Any>(private val property: Property<T>) {
         infix fun to(block: PropertySupplierDefinition<T>.() -> T) {
             property.onBind { next ->
-                PropertySupplierDefinition(moduleContext.runtime, next).block()
+                PropertySupplierDefinition(moduleContext.registry, next).block()
             }
         }
     }
@@ -142,18 +142,14 @@ fun <T : Any> Module.bind(property: Property<T>) = BindProperty(property)
 
 fun <T : Any> Module.onCreate(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onCreate { instance, consumer ->
-        BeanConsumerDefinition(moduleContext.runtime, instance, consumer).block(instance)
+        BeanConsumerDefinition(moduleContext.registry, instance, consumer).block(instance)
     }
 }
 
 fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onDestroy { instance, consumer ->
-        BeanConsumerDefinition(moduleContext.runtime, instance, consumer).block(instance)
+        BeanConsumerDefinition(moduleContext.registry, instance, consumer).block(instance)
     }
-}
-
-fun Module.useProfiles(vararg profiles: String) {
-    moduleContext.runtime.setProperty(ACTIVE_PROFILES, profiles.joinToString())
 }
 
 @PublishedApi

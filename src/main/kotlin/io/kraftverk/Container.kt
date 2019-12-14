@@ -39,7 +39,7 @@ private val logger = KotlinLogging.logger {}
  * ```
  */
 class Container<M : Module> internal constructor(
-    internal val runtime: Runtime,
+    internal val registry: Registry,
     internal val module: M
 ) {
     companion object
@@ -55,10 +55,8 @@ class Container<M : Module> internal constructor(
  * The value provided should be a comma delimited string
  * containing the names of the profiles.
  *
- * You can also call [Module.useProfiles].
- *
  */
-val Container<*>.profiles: List<String> get() = runtime.profiles
+val Container<*>.profiles: List<String> get() = registry.profiles
 
 fun <M : Module> Container.Companion.start(
     namespace: String = "",
@@ -72,14 +70,11 @@ fun <M : Module> Container.Companion.start(
     }
     val started = System.currentTimeMillis()
     logger.info("Starting container")
-    val runtime = Runtime(lazyBeans = lazy, lazyProps = lazy, propertyReader = propertyReader)
-    val rootModule = ModuleContext.use(runtime, namespace) { module() }
-    with(runtime) {
-        prepare()
-        start()
-    }
-    return Container(runtime, rootModule).also {
-        java.lang.Runtime.getRuntime().addShutdownHook(Thread {
+    val registry = Registry(lazyBeans = lazy, lazyProps = lazy, propertyReader = propertyReader)
+    val rootModule = ModuleContext.use(registry, namespace) { module() }
+    registry.start()
+    return Container(registry, rootModule).also {
+        Runtime.getRuntime().addShutdownHook(Thread {
             it.destroy()
         })
         logger.info("Started container in ${System.currentTimeMillis() - started}ms ")
@@ -103,7 +98,7 @@ fun <M : Module, T : Any> Container<M>.get(component: M.() -> Component<T>): T {
  * Destroys this Container.
  */
 fun <M : Module> Container<M>.destroy() {
-    runtime.destroy()
+    registry.destroy()
 }
 
 private fun defaultPropertyReader(propertyFilename: String): (List<String>) -> (String) -> String? =
