@@ -75,9 +75,9 @@ fun <M : Module> Container.Companion.start(
     val registry = Registry(lazyBeans = lazy, lazyProps = lazy, propertyReader = propertyReader)
     val rootModule = Module.create(registry, namespace, module)
     registry.start()
-    return Container(registry, rootModule).also {
+    return Container(registry, rootModule).apply {
         Runtime.getRuntime().addShutdownHook(Thread {
-            it.destroy()
+            destroy()
         })
         logger.info("Started container in ${System.currentTimeMillis() - startedMs}ms ")
     }
