@@ -16,8 +16,9 @@ import kotlin.reflect.KProperty
  */
 abstract class Module {
 
-    internal val registry: Registry = Module.registry
-    internal val namespace: String = Module.namespace
+    internal val registry: Registry = threadBoundRegistry.get()
+    private val namespace: String = threadBoundNamespace.get()
+
     internal val beanFactory = BeanFactory(registry, namespace)
     internal val propertyFactory = PropertyFactory(registry, namespace)
 
@@ -38,11 +39,10 @@ abstract class Module {
     }
 
     companion object {
-        internal val contextualRegistry = Contextual<Registry>()
-        internal val contextualNamespace = Contextual<String>()
-        internal val registry get() = contextualRegistry.get()
-        internal val namespace get() = contextualNamespace.get()
+        internal val threadBoundRegistry = ThreadBound<Registry>()
+        internal val threadBoundNamespace = ThreadBound<String>()
     }
+
 }
 
 inline fun <reified T : Any> Module.bean(
@@ -148,7 +148,7 @@ fun <M : Module> Module.Companion.module(
         override fun provideDelegate(thisRef: Module, prop: KProperty<*>): ReadOnlyProperty<Module, M> {
             val namespace = name ?: prop.name
             val subModule = if (namespace.isEmpty()) module() else {
-                val currentNamespace = Module.namespace
+                val currentNamespace = threadBoundNamespace.get()
                 val newNamespace = if (currentNamespace.isEmpty()) namespace else "$currentNamespace.$namespace"
                 use(newNamespace) {
                     module()
@@ -217,18 +217,18 @@ internal fun <R> Module.Companion.use(registry: Registry, namespace: String, blo
 }
 
 internal fun <R> Module.Companion.use(namespace: String, block: () -> R): R {
-    return contextualNamespace.use(namespace, block)
+    return threadBoundNamespace.use(namespace, block)
 }
 
 private fun <R> Module.Companion.use(registry: Registry, block: () -> R): R {
-    return contextualRegistry.use(registry, block)
+    return threadBoundRegistry.use(registry, block)
 }
 
 interface DelegateProvider<in R, out T> {
     operator fun provideDelegate(thisRef: R, prop: KProperty<*>): ReadOnlyProperty<R, T>
 }
 
-internal class Contextual<T> {
+internal class ThreadBound<T> {
 
     private val threadLocal = ThreadLocal<T>()
 
