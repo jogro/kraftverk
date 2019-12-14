@@ -7,6 +7,8 @@ package io.kraftverk
 
 import io.kraftverk.internal.*
 import java.net.ServerSocket
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -208,7 +210,10 @@ internal fun <T : Any> Module.newProperty(
         instance
     )
 
-internal fun <R> Module.Companion.use(registry: Registry, namespace: String, block: () -> R): R {
+internal fun <R> Module.Companion.create(registry: Registry, namespace: String, block: () -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     return use(registry) {
         use(namespace) {
             block()
