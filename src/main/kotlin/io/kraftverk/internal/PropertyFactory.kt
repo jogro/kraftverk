@@ -30,7 +30,7 @@ internal class PropertyFactory(
             val definition = PropertyDefinition(registry)
             val propertyName = propertyName(name ?: prop.name)
             return PropertyImpl(
-                binding = PropertyBinding(
+                delegate = PropertyDelegate(
                     name = propertyName,
                     secret = secret,
                     type = type,

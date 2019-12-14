@@ -21,7 +21,7 @@ class PropertySupplierDefinition<T> internal constructor(
 }
 
 open class BeanDefinition internal constructor(registry: Registry) : PropertyDefinition(registry) {
-    operator fun <T : Any> Component<T>.invoke(): T = provider().instance()
+    operator fun <T : Any> Binding<T>.invoke(): T = provider().instance()
 }
 
 class BeanSupplierDefinition<T> internal constructor(

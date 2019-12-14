@@ -12,17 +12,17 @@ import kotlin.reflect.KClass
 
 private val logger = KotlinLogging.logger {}
 
-internal sealed class Binding<T : Any>(
+internal sealed class BindingDelegate<T : Any>(
     protected val type: KClass<T>,
     lazy: Boolean,
     instance: () -> T
 ) {
-    private var state: BindingState<T> = BindingState.Configuring(lazy, instance)
+    private var state: BindingDelegateState<T> = BindingDelegateState.Configuring(lazy, instance)
 
     fun <T : Any> onBind(
         block: (() -> T) -> T
     ) {
-        state.runAs<BindingState.Configuring<T>> {
+        state.runAs<BindingDelegateState.Configuring<T>> {
             val supplier = createInstance
             createInstance = {
                 block(supplier)
@@ -33,7 +33,7 @@ internal sealed class Binding<T : Any>(
     fun <T : Any> onCreate(
         block: (T, (T) -> Unit) -> Unit
     ) {
-        state.runAs<BindingState.Configuring<T>> {
+        state.runAs<BindingDelegateState.Configuring<T>> {
             val consumer = onCreate
             onCreate = { instance ->
                 block(instance, consumer)
@@ -44,7 +44,7 @@ internal sealed class Binding<T : Any>(
     fun <T : Any> onDestroy(
         block: (T, (T) -> Unit) -> Unit
     ) {
-        state.runAs<BindingState.Configuring<T>> {
+        state.runAs<BindingDelegateState.Configuring<T>> {
             val consumer = onDestroy
             onDestroy = { instance ->
                 block(instance, consumer)
@@ -53,27 +53,27 @@ internal sealed class Binding<T : Any>(
     }
 
     fun start() {
-        state.runAs<BindingState.Configuring<T>> {
+        state.runAs<BindingDelegateState.Configuring<T>> {
             val provider = createProvider(
                 createInstance,
                 onCreate,
                 onDestroy
             )
-            state = BindingState.Running(provider)
+            state = BindingDelegateState.Running(provider)
             if (!lazy) provider.instance()
         }
     }
 
     fun provider(): Provider<T> {
-        state.runAs<BindingState.Running<T>> {
+        state.runAs<BindingDelegateState.Running<T>> {
             return provider
         }
     }
 
     fun destroy() {
-        state.runIf<BindingState.Running<T>> {
+        state.runIf<BindingDelegateState.Running<T>> {
             provider.destroy()
-            state = BindingState.Destroyed
+            state = BindingDelegateState.Destroyed
         }
     }
 
@@ -85,12 +85,12 @@ internal sealed class Binding<T : Any>(
 
 }
 
-internal class BeanBinding<T : Any>(
+internal class BeanDelegate<T : Any>(
     private val name: String,
     type: KClass<T>,
     lazy: Boolean,
     instance: () -> T
-) : Binding<T>(type, lazy, instance) {
+) : BindingDelegate<T>(type, lazy, instance) {
 
     override fun createProvider(
         createInstance: () -> T,
@@ -112,13 +112,13 @@ internal class BeanBinding<T : Any>(
 
 }
 
-internal class PropertyBinding<T : Any>(
+internal class PropertyDelegate<T : Any>(
     private val name: String,
     private val secret: Boolean,
     type: KClass<T>,
     lazy: Boolean,
     instance: () -> T
-) : Binding<T>(type, lazy, instance) {
+) : BindingDelegate<T>(type, lazy, instance) {
 
     override fun createProvider(
         createInstance: () -> T,
@@ -142,23 +142,23 @@ internal class PropertyBinding<T : Any>(
 }
 
 
-private sealed class BindingState<out T : Any> {
+private sealed class BindingDelegateState<out T : Any> {
 
     class Configuring<T : Any>(
         internal val lazy: Boolean,
         instance: () -> T
-    ) : BindingState<T>() {
+    ) : BindingDelegateState<T>() {
         var createInstance: () -> T = instance
         var onCreate: (T) -> Unit = {}
         var onDestroy: (T) -> Unit = {}
     }
 
-    class Running<T : Any>(val provider: Provider<T>) : BindingState<T>()
+    class Running<T : Any>(val provider: Provider<T>) : BindingDelegateState<T>()
 
-    object Destroyed : BindingState<Nothing>()
+    object Destroyed : BindingDelegateState<Nothing>()
 }
 
-private inline fun <reified T : BindingState<*>> BindingState<*>.runAs(block: T.() -> Unit) {
+private inline fun <reified T : BindingDelegateState<*>> BindingDelegateState<*>.runAs(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -169,7 +169,7 @@ private inline fun <reified T : BindingState<*>> BindingState<*>.runAs(block: T.
     }
 }
 
-private inline fun <reified T : BindingState<*>> BindingState<*>.runIf(block: T.() -> Unit) {
+private inline fun <reified T : BindingDelegateState<*>> BindingDelegateState<*>.runIf(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }

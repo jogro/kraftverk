@@ -26,7 +26,7 @@ internal class BeanFactory(
         ): ReadOnlyProperty<Module, Bean<T>> {
             val definition = BeanDefinition(registry)
             return BeanImpl(
-                binding = BeanBinding(
+                delegate = BeanDelegate(
                     name = beanName(prop.name),
                     type = type,
                     lazy = lazy ?: registry.lazyBeans,

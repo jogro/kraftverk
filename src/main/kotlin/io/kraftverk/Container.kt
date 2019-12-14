@@ -70,7 +70,7 @@ fun <M : Module> Container.Companion.start(
     contract {
         callsInPlace(module, InvocationKind.EXACTLY_ONCE)
     }
-    val started = System.currentTimeMillis()
+    val startedMs = System.currentTimeMillis()
     logger.info("Starting container")
     val registry = Registry(lazyBeans = lazy, lazyProps = lazy, propertyReader = propertyReader)
     val rootModule = Module.create(registry, namespace, module)
@@ -79,21 +79,21 @@ fun <M : Module> Container.Companion.start(
         Runtime.getRuntime().addShutdownHook(Thread {
             it.destroy()
         })
-        logger.info("Started container in ${System.currentTimeMillis() - started}ms ")
+        logger.info("Started container in ${System.currentTimeMillis() - startedMs}ms ")
     }
 }
 
 /**
- * Retrieves the value of the specified [component].
+ * Retrieves the value of the specified [binding].
  * ```kotlin
  * val username = container.get { username }
  * ```
  */
-fun <M : Module, T : Any> Container<M>.get(component: M.() -> Component<T>): T {
+fun <M : Module, T : Any> Container<M>.get(binding: M.() -> Binding<T>): T {
     contract {
-        callsInPlace(component, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(binding, InvocationKind.EXACTLY_ONCE)
     }
-    return module.component().provider().instance()
+    return module.binding().provider().instance()
 }
 
 /**
