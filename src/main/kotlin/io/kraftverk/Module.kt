@@ -59,64 +59,64 @@ inline fun <reified T : Any> Module.bean(
 
 fun Module.stringProperty(
     name: String? = null,
-    defaultValue: String? = null,
+    default: String? = null,
     lazy: Boolean? = null,
     secret: Boolean = false
 ): DelegateProvider<Module, Property<String>> =
     property(
         name,
-        defaultValue,
+        default,
         lazy,
         secret
     ) { it }
 
 fun Module.intProperty(
     name: String? = null,
-    defaultValue: String? = null,
+    default: String? = null,
     lazy: Boolean? = null,
     secret: Boolean = false
 ): DelegateProvider<Module, Property<Int>> =
     property(
         name,
-        defaultValue,
+        default,
         lazy,
         secret
     ) { it.toInt() }
 
 fun Module.longProperty(
     name: String? = null,
-    defaultValue: String? = null,
+    default: String? = null,
     lazy: Boolean? = null,
     secret: Boolean = false
 ): DelegateProvider<Module, Property<Long>> =
     property(
         name,
-        defaultValue,
+        default,
         lazy,
         secret
     ) { it.toLong() }
 
 fun Module.booleanProperty(
     name: String? = null,
-    defaultValue: String? = null,
+    default: String? = null,
     lazy: Boolean? = null,
     secret: Boolean = false
 ): DelegateProvider<Module, Property<Boolean>> =
     property(
         name,
-        defaultValue,
+        default,
         lazy,
         secret
     ) { it.toBoolean() }
 
 fun Module.portProperty(
     name: String? = null,
-    defaultValue: String? = null,
+    default: String? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: PropertyDefinition.(Int) -> Int = { it }
 ) =
-    property(name, defaultValue, lazy, secret) { value ->
+    property(name, default, lazy, secret) { value ->
         block(
             when (val port = value.toInt()) {
                 0 -> ServerSocket(0).use { it.localPort }
@@ -127,7 +127,7 @@ fun Module.portProperty(
 
 inline fun <reified T : Any> Module.property(
     name: String? = null,
-    defaultValue: String? = null,
+    default: String? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
     noinline instance: PropertyDefinition.(String) -> T
@@ -135,7 +135,7 @@ inline fun <reified T : Any> Module.property(
     newProperty(
         T::class,
         name,
-        defaultValue,
+        default,
         lazy,
         secret,
         instance
@@ -196,7 +196,7 @@ internal fun <T : Any> Module.newBean(
 internal fun <T : Any> Module.newProperty(
     type: KClass<T>,
     name: String?,
-    defaultValue: String?,
+    default: String?,
     lazy: Boolean?,
     secret: Boolean,
     instance: PropertyDefinition.(String) -> T
@@ -204,19 +204,19 @@ internal fun <T : Any> Module.newProperty(
     propertyFactory.newProperty(
         type,
         name,
-        defaultValue,
+        default,
         lazy,
         secret,
         instance
     )
 
-internal fun <R> Module.Companion.create(registry: Registry, namespace: String, block: () -> R): R {
+internal fun <M : Module> Module.Companion.create(registry: Registry, namespace: String, moduleFun: () -> M): M {
     contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(moduleFun, InvocationKind.EXACTLY_ONCE)
     }
     return use(registry) {
         use(namespace) {
-            block()
+            moduleFun()
         }
     }
 }

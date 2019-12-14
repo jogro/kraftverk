@@ -18,7 +18,7 @@ internal class PropertyFactory(
     fun <T : Any> newProperty(
         type: KClass<T>,
         name: String?,
-        defaultValue: String?,
+        default: String?,
         lazy: Boolean?,
         secret: Boolean,
         instance: PropertyDefinition.(String) -> T
@@ -36,7 +36,7 @@ internal class PropertyFactory(
                     type = type,
                     lazy = lazy ?: registry.lazyProps,
                     instance = {
-                        definition.instance(getProperty(propertyName, defaultValue))
+                        definition.instance(getProperty(propertyName, default))
                     }
                 )
             ).also {
