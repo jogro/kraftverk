@@ -1,3 +1,8 @@
+/*
+ * Copyright 2019 Jonas Grönberg
+ * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
+ */
+
 package io.kraftverk
 
 import io.kotlintest.TestCase
@@ -48,7 +53,7 @@ class PropertyTest : StringSpec() {
             propertyObjectFactory.newValue(it)
         }
 
-        val prop4 by property(lazy = this.lazy, defaultValue = propertyObject4.value) {
+        val prop4 by property(lazy = this.lazy, default = propertyObject4.value) {
             propertyObjectFactory.newValue(it)
         }
 
@@ -76,7 +81,7 @@ class PropertyTest : StringSpec() {
             verifyThatAllPropertiesAreInstantiated()
         }
 
-        "Property instantiation is lazy when using App.startLazy" {
+        "Property instantiation is lazy when specified for the container" {
             Container.start(lazy = true) { AppModule() }
             verifyThatNoPropertiesAreInstantiated()
         }
@@ -103,7 +108,7 @@ class PropertyTest : StringSpec() {
             app.get { props.userModule.password } shouldBe password
         }
 
-        "Getting a property does not trigger creation of other properties if not necessary" {
+        "Getting a property does not propagate to other properties if not necessary" {
             val app = Container.start { AppModule(lazy = true) }
             app.get { props.prop1 }
             verifySequence {
