@@ -5,7 +5,9 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.*
+import io.kraftverk.internal.Registry
+import io.kraftverk.internal.loadPropertyFilesFromClasspath
+import io.kraftverk.internal.provider
 import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -71,7 +73,7 @@ fun <M : Module> Container.Companion.start(
     val started = System.currentTimeMillis()
     logger.info("Starting container")
     val registry = Registry(lazyBeans = lazy, lazyProps = lazy, propertyReader = propertyReader)
-    val rootModule = ModuleContext.use(registry, namespace) { module() }
+    val rootModule = Module.use(registry, namespace) { module() }
     registry.start()
     return Container(registry, rootModule).also {
         Runtime.getRuntime().addShutdownHook(Thread {

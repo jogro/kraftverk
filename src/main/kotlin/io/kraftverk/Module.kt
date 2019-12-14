@@ -15,12 +15,16 @@ import kotlin.reflect.KProperty
  * Basic component to inherit from when creating a module.
  */
 abstract class Module {
-    internal val moduleContext = ModuleContext()
+
+    internal val registry: Registry = Module.registry
+    internal val namespace: String = Module.namespace
+    internal val beanFactory = BeanFactory(registry, namespace)
+    internal val propertyFactory = PropertyFactory(registry, namespace)
 
     inner class BindBean<T : Any>(private val bean: Bean<T>) {
         infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
             bean.onBind { next ->
-                BeanSupplierDefinition(moduleContext.registry, next).block()
+                BeanSupplierDefinition(registry, next).block()
             }
         }
     }
@@ -28,12 +32,17 @@ abstract class Module {
     inner class BindProperty<T : Any>(private val property: Property<T>) {
         infix fun to(block: PropertySupplierDefinition<T>.() -> T) {
             property.onBind { next ->
-                PropertySupplierDefinition(moduleContext.registry, next).block()
+                PropertySupplierDefinition(registry, next).block()
             }
         }
     }
 
-    companion object
+    companion object {
+        internal val contextualRegistry = Contextual<Registry>()
+        internal val contextualNamespace = Contextual<String>()
+        internal val registry get() = contextualRegistry.get()
+        internal val namespace get() = contextualNamespace.get()
+    }
 }
 
 inline fun <reified T : Any> Module.bean(
@@ -130,11 +139,28 @@ inline fun <reified T : Any> Module.property(
         instance
     )
 
-fun <M : Module> Module.module(
+fun <M : Module> Module.Companion.module(
     name: String? = null,
     module: () -> M
 ): DelegateProvider<Module, M> =
-    moduleContext.module(name, module)
+    object :
+        DelegateProvider<Module, M> {
+        override fun provideDelegate(thisRef: Module, prop: KProperty<*>): ReadOnlyProperty<Module, M> {
+            val namespace = name ?: prop.name
+            val subModule = if (namespace.isEmpty()) module() else {
+                val currentNamespace = Module.namespace
+                val newNamespace = if (currentNamespace.isEmpty()) namespace else "$currentNamespace.$namespace"
+                use(newNamespace) {
+                    module()
+                }
+            }
+            return object : ReadOnlyProperty<Module, M> {
+                override fun getValue(thisRef: Module, property: KProperty<*>): M {
+                    return subModule
+                }
+            }
+        }
+    }
 
 fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(bean)
 
@@ -142,13 +168,13 @@ fun <T : Any> Module.bind(property: Property<T>) = BindProperty(property)
 
 fun <T : Any> Module.onCreate(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onCreate { instance, consumer ->
-        BeanConsumerDefinition(moduleContext.registry, instance, consumer).block(instance)
+        BeanConsumerDefinition(registry, instance, consumer).block(instance)
     }
 }
 
 fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onDestroy { instance, consumer ->
-        BeanConsumerDefinition(moduleContext.registry, instance, consumer).block(instance)
+        BeanConsumerDefinition(registry, instance, consumer).block(instance)
     }
 }
 
@@ -158,7 +184,7 @@ internal fun <T : Any> Module.newBean(
     lazy: Boolean? = null,
     instance: BeanDefinition.() -> T
 ): DelegateProvider<Module, Bean<T>> =
-    moduleContext.newBean(
+    beanFactory.newBean(
         type,
         lazy,
         instance
@@ -173,7 +199,7 @@ internal fun <T : Any> Module.newProperty(
     secret: Boolean,
     instance: PropertyDefinition.(String) -> T
 ): DelegateProvider<Module, Property<T>> =
-    moduleContext.newProperty(
+    propertyFactory.newProperty(
         type,
         name,
         defaultValue,
@@ -182,6 +208,44 @@ internal fun <T : Any> Module.newProperty(
         instance
     )
 
+internal fun <R> Module.Companion.use(registry: Registry, namespace: String, block: () -> R): R {
+    return use(registry) {
+        use(namespace) {
+            block()
+        }
+    }
+}
+
+internal fun <R> Module.Companion.use(namespace: String, block: () -> R): R {
+    return contextualNamespace.use(namespace, block)
+}
+
+private fun <R> Module.Companion.use(registry: Registry, block: () -> R): R {
+    return contextualRegistry.use(registry, block)
+}
+
 interface DelegateProvider<in R, out T> {
     operator fun provideDelegate(thisRef: R, prop: KProperty<*>): ReadOnlyProperty<R, T>
+}
+
+internal class Contextual<T> {
+
+    private val threadLocal = ThreadLocal<T>()
+
+    fun get(): T = threadLocal.get() ?: throw IllegalStateException()
+
+    fun <R> use(value: T, block: () -> R): R {
+        val previous: T? = threadLocal.get()
+        threadLocal.set(value)
+        try {
+            return block()
+        } finally {
+            if (previous == null) {
+                threadLocal.remove()
+            } else {
+                threadLocal.set(previous)
+            }
+        }
+    }
+
 }
