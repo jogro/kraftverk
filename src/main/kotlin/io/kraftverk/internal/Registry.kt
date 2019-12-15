@@ -7,8 +7,6 @@ package io.kraftverk.internal
 
 import io.kraftverk.Bean
 import io.kraftverk.Property
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
@@ -23,19 +21,19 @@ internal class Registry(
     val profiles: List<String> by lazy { profiles() }
 
     fun registerBean(bean: Bean<*>) {
-        state.runAs<RegistryState.Configuring> {
+        state.applyAs<RegistryState.Configuring> {
             beans.add(bean)
         }
     }
 
     fun registerProperty(property: Property<*>) {
-        state.runAs<RegistryState.Configuring> {
+        state.applyAs<RegistryState.Configuring> {
             properties.add(property)
         }
     }
 
     fun start() {
-        state.runAs<RegistryState.Configuring> {
+        state.applyAs<RegistryState.Configuring> {
             state = RegistryState.Running(
                 newPropertyValues(propertyReader),
                 properties.toList(),
@@ -47,19 +45,19 @@ internal class Registry(
     }
 
     operator fun get(name: String): String? {
-        state.runAs<RegistryState.Running> {
+        state.applyAs<RegistryState.Running> {
             return propertyValues[name]
         }
     }
 
     private fun profiles(): List<String> {
-        state.runAs<RegistryState.Running> {
+        state.applyAs<RegistryState.Running> {
             return propertyValues.profiles
         }
     }
 
     fun destroy() {
-        state.runIf<RegistryState.Running> {
+        state.applyWhen<RegistryState.Running> {
             beans.filter { it.provider().instanceId != null }
                 .sortedByDescending { it.provider().instanceId }
                 .forEach { bean ->
@@ -90,24 +88,4 @@ private sealed class RegistryState {
     ) : RegistryState()
 
     object Destroyed : RegistryState()
-}
-
-private inline fun <reified T : RegistryState> RegistryState.runIf(block: T.() -> Unit) {
-    contract {
-        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
-    }
-    if (this is T) {
-        this.block()
-    }
-}
-
-private inline fun <reified T : RegistryState> RegistryState.runAs(block: T.() -> Unit) {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-    }
-    if (this is T) {
-        this.block()
-    } else {
-        throw IllegalStateException("Expected state to be ${T::class} but was ${this::class}")
-    }
 }

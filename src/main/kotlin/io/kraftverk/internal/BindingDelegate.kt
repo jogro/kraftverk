@@ -6,8 +6,6 @@
 package io.kraftverk.internal
 
 import mu.KotlinLogging
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 import kotlin.reflect.KClass
 
 private val logger = KotlinLogging.logger {}
@@ -22,7 +20,7 @@ internal sealed class BindingDelegate<T : Any>(
     fun <T : Any> onBind(
         block: (() -> T) -> T
     ) {
-        state.runAs<BindingDelegateState.Configuring<T>> {
+        state.applyAs<BindingDelegateState.Configuring<T>> {
             val supplier = createInstance
             createInstance = {
                 block(supplier)
@@ -33,7 +31,7 @@ internal sealed class BindingDelegate<T : Any>(
     fun <T : Any> onCreate(
         block: (T, (T) -> Unit) -> Unit
     ) {
-        state.runAs<BindingDelegateState.Configuring<T>> {
+        state.applyAs<BindingDelegateState.Configuring<T>> {
             val consumer = onCreate
             onCreate = { instance ->
                 block(instance, consumer)
@@ -44,7 +42,7 @@ internal sealed class BindingDelegate<T : Any>(
     fun <T : Any> onDestroy(
         block: (T, (T) -> Unit) -> Unit
     ) {
-        state.runAs<BindingDelegateState.Configuring<T>> {
+        state.applyAs<BindingDelegateState.Configuring<T>> {
             val consumer = onDestroy
             onDestroy = { instance ->
                 block(instance, consumer)
@@ -53,7 +51,7 @@ internal sealed class BindingDelegate<T : Any>(
     }
 
     fun start() {
-        state.runAs<BindingDelegateState.Configuring<T>> {
+        state.applyAs<BindingDelegateState.Configuring<T>> {
             val provider = createProvider(
                 createInstance,
                 onCreate,
@@ -65,13 +63,13 @@ internal sealed class BindingDelegate<T : Any>(
     }
 
     fun provider(): Provider<T> {
-        state.runAs<BindingDelegateState.Running<T>> {
+        state.applyAs<BindingDelegateState.Running<T>> {
             return provider
         }
     }
 
     fun destroy() {
-        state.runIf<BindingDelegateState.Running<T>> {
+        state.applyWhen<BindingDelegateState.Running<T>> {
             provider.destroy()
             state = BindingDelegateState.Destroyed
         }
@@ -156,24 +154,4 @@ private sealed class BindingDelegateState<out T : Any> {
     class Running<T : Any>(val provider: Provider<T>) : BindingDelegateState<T>()
 
     object Destroyed : BindingDelegateState<Nothing>()
-}
-
-private inline fun <reified T : BindingDelegateState<*>> BindingDelegateState<*>.runAs(block: T.() -> Unit) {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-    }
-    if (this is T) {
-        this.block()
-    } else {
-        throw IllegalStateException("Expected state to be ${T::class} but was ${this::class}")
-    }
-}
-
-private inline fun <reified T : BindingDelegateState<*>> BindingDelegateState<*>.runIf(block: T.() -> Unit) {
-    contract {
-        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
-    }
-    if (this is T) {
-        this.block()
-    }
 }
