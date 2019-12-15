@@ -12,10 +12,8 @@ import java.util.*
 
 internal object PropertyFiles {
 
-    fun loadFromClasspath(defaultFileName: String, profiles: List<String>): PropertySource {
-        val propertySource = PropertySource()
-        loadFromClasspath(propertySource, defaultFileName, profiles)
-        return propertySource
+    fun loadFromClasspath(defaultFileName: String, profiles: List<String>) = PropertySource().apply {
+        loadFromClasspath(this, defaultFileName, profiles)
     }
 
     private fun loadFromClasspath(propertySource: PropertySource, filename: String, profiles: List<String>) {
