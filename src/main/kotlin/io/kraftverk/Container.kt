@@ -7,7 +7,6 @@ package io.kraftverk
 
 import io.kraftverk.internal.ContainerContext
 import io.kraftverk.internal.loadPropertyFilesFromClasspath
-import io.kraftverk.internal.newPropertyValues
 import io.kraftverk.internal.provider
 import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
@@ -65,7 +64,7 @@ fun <M : Module> Container.Companion.start(
     namespace: String = "",
     propertyFilename: String = "application",
     lazy: Boolean = false,
-    propertyReader: (List<String>) -> (String) -> String? = defaultPropertyReader(propertyFilename),
+    propertySource: (List<String>) -> PropertySource = defaultPropertySource(propertyFilename),
     module: () -> M
 ): Container<M> {
     contract {
@@ -73,7 +72,7 @@ fun <M : Module> Container.Companion.start(
     }
     val startedMs = System.currentTimeMillis()
     logger.info("Starting container")
-    val context = ContainerContext.create(lazy, propertyReader)
+    val context = ContainerContext.create(lazy, propertySource)
     val rootModule = Module.create(context, namespace, module)
     context.start()
     return Container(context, rootModule).apply {
@@ -104,5 +103,5 @@ fun <M : Module> Container<M>.destroy() {
     containerContext.destroy()
 }
 
-private fun defaultPropertyReader(propertyFilename: String): (List<String>) -> (String) -> String? =
-    { profiles -> loadPropertyFilesFromClasspath(propertyFilename, profiles)::get }
+fun defaultPropertySource(propertyFilename: String): (List<String>) -> PropertySource =
+    { profiles -> loadPropertyFilesFromClasspath(propertyFilename, profiles) }

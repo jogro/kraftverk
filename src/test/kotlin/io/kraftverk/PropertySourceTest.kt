@@ -10,8 +10,6 @@ import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrowUnit
 import io.kotlintest.specs.WordSpec
 import io.kotlintest.tables.row
-import io.kraftverk.internal.PropertySource
-import kotlinx.coroutines.launch
 
 class PropertySourceTest : WordSpec() {
 

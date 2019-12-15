@@ -95,8 +95,8 @@ internal class ContainerContext private constructor(lazy: Boolean, propertyValue
     }
 
     companion object {
-        fun create(lazy: Boolean, propertyReader: (List<String>) -> (String) -> String?): ContainerContext {
-            val propertyValues = newPropertyValues(propertyReader)
+        fun create(lazy: Boolean, propertySource: (List<String>) -> PropertySource): ContainerContext {
+            val propertyValues = PropertyValues.create(propertySource)
             return ContainerContext(lazy, propertyValues)
         }
     }

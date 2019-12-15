@@ -5,6 +5,7 @@
 
 package io.kraftverk.internal
 
+import io.kraftverk.PropertySource
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
