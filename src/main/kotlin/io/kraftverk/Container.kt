@@ -6,7 +6,7 @@
 package io.kraftverk
 
 import io.kraftverk.internal.ContainerContext
-import io.kraftverk.internal.loadPropertyFilesFromClasspath
+import io.kraftverk.internal.PropertyFiles
 import io.kraftverk.internal.provider
 import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
@@ -104,4 +104,4 @@ fun <M : Module> Container<M>.destroy() {
 }
 
 fun defaultPropertySource(propertyFilename: String): (List<String>) -> PropertySource =
-    { profiles -> loadPropertyFilesFromClasspath(propertyFilename, profiles) }
+    { profiles -> PropertyFiles.loadFromClasspath(propertyFilename, profiles) }
