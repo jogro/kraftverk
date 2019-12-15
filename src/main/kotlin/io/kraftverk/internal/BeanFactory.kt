@@ -10,32 +10,34 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
-internal class BeanFactory(
-    private val registry: Registry,
-    private val namespace: String
-) {
+internal class BeanFactory(val profiles: List<String>, val defaultLazy: Boolean) {
+
+    private val _beans = mutableListOf<Bean<*>>()
+
+    val beans get(): List<Bean<*>> = _beans
 
     fun <T : Any> newBean(
         type: KClass<T>,
         lazy: Boolean? = null,
+        namespace: String,
         instance: BeanDefinition.() -> T
     ): DelegateProvider<Module, Bean<T>> = object : DelegateProvider<Module, Bean<T>> {
         override fun provideDelegate(
             thisRef: Module,
             prop: KProperty<*>
         ): ReadOnlyProperty<Module, Bean<T>> {
-            val definition = BeanDefinition(registry)
+            val definition = BeanDefinition(profiles)
             return BeanImpl(
                 delegate = BeanDelegate(
-                    name = beanName(prop.name),
+                    name = beanName(prop.name, namespace),
                     type = type,
-                    lazy = lazy ?: registry.lazyBeans,
+                    lazy = lazy ?: defaultLazy,
                     instance = {
                         definition.instance()
                     }
                 )
             ).also {
-                registry.registerBean(it)
+                _beans.add(it)
             }.let {
                 object : ReadOnlyProperty<Module, Bean<T>> {
                     override fun getValue(thisRef: Module, property: KProperty<*>): Bean<T> {
@@ -46,7 +48,7 @@ internal class BeanFactory(
         }
     }
 
-    private fun beanName(name: String) =
+    private fun beanName(name: String, namespace: String) =
         (if (namespace.isEmpty()) name else "${namespace}.$name")
 
 }

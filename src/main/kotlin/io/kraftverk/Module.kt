@@ -18,16 +18,13 @@ import kotlin.reflect.KProperty
  */
 abstract class Module {
 
-    internal val registry: Registry = threadBoundRegistry.get()
-    private val namespace: String = threadBoundNamespace.get()
-
-    internal val beanFactory = BeanFactory(registry, namespace)
-    internal val propertyFactory = PropertyFactory(registry, namespace)
+    internal val containerContext: ContainerContext = threadBoundContainerContext.get()
+    internal val namespace: String = threadBoundNamespace.get()
 
     inner class BindBean<T : Any>(private val bean: Bean<T>) {
         infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
             bean.onBind { next ->
-                BeanSupplierDefinition(registry, next).block()
+                BeanSupplierDefinition(containerContext.profiles, next).block()
             }
         }
     }
@@ -35,13 +32,13 @@ abstract class Module {
     inner class BindProperty<T : Any>(private val property: Property<T>) {
         infix fun to(block: PropertySupplierDefinition<T>.() -> T) {
             property.onBind { next ->
-                PropertySupplierDefinition(registry, next).block()
+                PropertySupplierDefinition(containerContext.profiles, next).block()
             }
         }
     }
 
     companion object {
-        internal val threadBoundRegistry = ThreadBound<Registry>()
+        internal val threadBoundContainerContext = ThreadBound<ContainerContext>()
         internal val threadBoundNamespace = ThreadBound<String>()
     }
 
@@ -170,13 +167,13 @@ fun <T : Any> Module.bind(property: Property<T>) = BindProperty(property)
 
 fun <T : Any> Module.onCreate(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onCreate { instance, consumer ->
-        BeanConsumerDefinition(registry, instance, consumer).block(instance)
+        BeanConsumerDefinition(containerContext.profiles, instance, consumer).block(instance)
     }
 }
 
 fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onDestroy { instance, consumer ->
-        BeanConsumerDefinition(registry, instance, consumer).block(instance)
+        BeanConsumerDefinition(containerContext.profiles, instance, consumer).block(instance)
     }
 }
 
@@ -186,9 +183,10 @@ internal fun <T : Any> Module.newBean(
     lazy: Boolean? = null,
     instance: BeanDefinition.() -> T
 ): DelegateProvider<Module, Bean<T>> =
-    beanFactory.newBean(
+    containerContext.newBean(
         type,
         lazy,
+        namespace,
         instance
     )
 
@@ -201,20 +199,21 @@ internal fun <T : Any> Module.newProperty(
     secret: Boolean,
     instance: PropertyDefinition.(String) -> T
 ): DelegateProvider<Module, Property<T>> =
-    propertyFactory.newProperty(
+    containerContext.newProperty(
         type,
         name,
         default,
         lazy,
         secret,
+        namespace,
         instance
     )
 
-internal fun <M : Module> Module.Companion.create(registry: Registry, namespace: String, moduleFun: () -> M): M {
+internal fun <M : Module> Module.Companion.create(containerContext: ContainerContext, namespace: String, moduleFun: () -> M): M {
     contract {
         callsInPlace(moduleFun, InvocationKind.EXACTLY_ONCE)
     }
-    return use(registry) {
+    return use(containerContext) {
         use(namespace) {
             moduleFun()
         }
@@ -225,8 +224,8 @@ internal fun <R> Module.Companion.use(namespace: String, block: () -> R): R {
     return threadBoundNamespace.use(namespace, block)
 }
 
-private fun <R> Module.Companion.use(registry: Registry, block: () -> R): R {
-    return threadBoundRegistry.use(registry, block)
+private fun <R> Module.Companion.use(containerContext: ContainerContext, block: () -> R): R {
+    return threadBoundContainerContext.use(containerContext, block)
 }
 
 interface DelegateProvider<in R, out T> {

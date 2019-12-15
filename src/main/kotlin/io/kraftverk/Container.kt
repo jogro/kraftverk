@@ -5,8 +5,9 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.Registry
+import io.kraftverk.internal.ContainerContext
 import io.kraftverk.internal.loadPropertyFilesFromClasspath
+import io.kraftverk.internal.newPropertyValues
 import io.kraftverk.internal.provider
 import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
@@ -41,7 +42,7 @@ private val logger = KotlinLogging.logger {}
  * ```
  */
 class Container<M : Module> internal constructor(
-    internal val registry: Registry,
+    internal val containerContext: ContainerContext,
     internal val module: M
 ) {
     companion object
@@ -58,7 +59,7 @@ class Container<M : Module> internal constructor(
  * containing the names of the profiles.
  *
  */
-val Container<*>.profiles: List<String> get() = registry.profiles
+val Container<*>.profiles: List<String> get() = containerContext.profiles
 
 fun <M : Module> Container.Companion.start(
     namespace: String = "",
@@ -72,10 +73,10 @@ fun <M : Module> Container.Companion.start(
     }
     val startedMs = System.currentTimeMillis()
     logger.info("Starting container")
-    val registry = Registry(lazyBeans = lazy, lazyProps = lazy, propertyReader = propertyReader)
-    val rootModule = Module.create(registry, namespace, module)
-    registry.start()
-    return Container(registry, rootModule).apply {
+    val context = ContainerContext.create(lazy, propertyReader)
+    val rootModule = Module.create(context, namespace, module)
+    context.start()
+    return Container(context, rootModule).apply {
         Runtime.getRuntime().addShutdownHook(Thread {
             destroy()
         })
@@ -100,7 +101,7 @@ fun <M : Module, T : Any> Container<M>.get(binding: M.() -> Binding<T>): T {
  * Destroys this Container.
  */
 fun <M : Module> Container<M>.destroy() {
-    registry.destroy()
+    containerContext.destroy()
 }
 
 private fun defaultPropertyReader(propertyFilename: String): (List<String>) -> (String) -> String? =

@@ -5,39 +5,37 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.Registry
 import io.kraftverk.internal.provider
 
-open class PropertyDefinition internal constructor(internal val registry: Registry) {
-    val profiles: List<String> by lazy { registry.profiles }
+open class PropertyDefinition internal constructor(val profiles: List<String>) {
     operator fun <T : Any> Property<T>.invoke(): T = provider().instance()
 }
 
 class PropertySupplierDefinition<T> internal constructor(
-    registry: Registry,
+    profiles: List<String>,
     private val supply: () -> T
-) : PropertyDefinition(registry) {
+) : PropertyDefinition(profiles) {
     fun next() = supply()
 }
 
-open class BeanDefinition internal constructor(registry: Registry) : PropertyDefinition(registry) {
+open class BeanDefinition internal constructor(profiles: List<String>) : PropertyDefinition(profiles) {
     operator fun <T : Any> Binding<T>.invoke(): T = provider().instance()
 }
 
 class BeanSupplierDefinition<T> internal constructor(
-    registry: Registry,
+    profiles: List<String>,
     private val supply: () -> T
-) : BeanDefinition(registry) {
+) : BeanDefinition(profiles) {
     fun next() = supply()
 }
 
 class BeanConsumerDefinition<T> internal constructor(
-    registry: Registry,
+    profiles: List<String>,
     private val instance: T,
     private val consume: (T) -> Unit
-) : BeanDefinition(registry) {
+) : BeanDefinition(profiles) {
     fun next() = consume(instance)
 }
 
-open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.registry)
-open class CustomPropertyDefinition(parent: PropertyDefinition) : PropertyDefinition(parent.registry)
+open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.profiles)
+open class CustomPropertyDefinition(parent: PropertyDefinition) : PropertyDefinition(parent.profiles)

@@ -11,9 +11,13 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 internal class PropertyFactory(
-    private val registry: Registry,
-    private val namespace: String
+    private val propertyValues: PropertyValues,
+    private val defaultLazy: Boolean
 ) {
+
+    private val _properties = mutableListOf<Property<*>>()
+
+    val properties get(): List<Property<*>> = _properties
 
     fun <T : Any> newProperty(
         type: KClass<T>,
@@ -21,26 +25,27 @@ internal class PropertyFactory(
         default: String?,
         lazy: Boolean?,
         secret: Boolean,
+        namespace: String,
         instance: PropertyDefinition.(String) -> T
     ): DelegateProvider<Module, Property<T>> = object : DelegateProvider<Module, Property<T>> {
         override operator fun provideDelegate(
             thisRef: Module,
             prop: KProperty<*>
         ): ReadOnlyProperty<Module, Property<T>> {
-            val definition = PropertyDefinition(registry)
-            val propertyName = propertyName(name ?: prop.name)
+            val definition = PropertyDefinition(propertyValues.profiles)
+            val propertyName = propertyName(name ?: prop.name, namespace)
             return PropertyImpl(
                 delegate = PropertyDelegate(
                     name = propertyName,
                     secret = secret,
                     type = type,
-                    lazy = lazy ?: registry.lazyProps,
+                    lazy = lazy ?: defaultLazy,
                     instance = {
                         definition.instance(getProperty(propertyName, default))
                     }
                 )
             ).also {
-                registry.registerProperty(it)
+                _properties.add(it)
             }.let {
                 object : ReadOnlyProperty<Module, Property<T>> {
                     override fun getValue(thisRef: Module, property: KProperty<*>): Property<T> {
@@ -52,10 +57,10 @@ internal class PropertyFactory(
     }
 
     private fun getProperty(name: String, defaultValue: String?) = name.let {
-        registry[it] ?: defaultValue ?: throw PropertyNotFoundException("Property '$it' was not found!")
+        propertyValues[it] ?: defaultValue ?: throw PropertyNotFoundException("Property '$it' was not found!")
     }
 
-    private fun propertyName(name: String) =
+    private fun propertyName(name: String, namespace: String) =
         (if (namespace.isEmpty()) name else "${namespace}.$name").spinalCase()
 
     companion object {
