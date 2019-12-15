@@ -9,12 +9,11 @@ class PropertySource {
 
     private val map = mutableMapOf<String, String>()
 
-    operator fun get(name: String): String? = map[name.trim().normalize()]
+    operator fun get(name: String): String? = map[name.normalize()]
 
     operator fun set(name: String, value: String) {
-        val trimmed = name.trim()
         when {
-            trimmed.isValidPropertyName() -> map[trimmed.normalize()] = value
+            name.trim().isValidPropertyName() -> map[name.normalize()] = value
             else -> throw PropertyNameException("Invalid property name: '$name'")
         }
     }
