@@ -27,8 +27,12 @@ internal fun <T : Any> Binding<T>.onDestroy(
     this.toDelegate().onDestroy(block)
 }
 
-internal fun Binding<*>.start() {
-    this.toDelegate().start()
+internal fun Binding<*>.initialize() {
+    this.toDelegate().initialize()
+}
+
+internal fun Binding<*>.evaluate() {
+    this.toDelegate().evaluate()
 }
 
 internal fun Binding<*>.destroy() {

@@ -63,8 +63,10 @@ internal class ContainerContext private constructor(lazy: Boolean, propertyValue
                 propertyFactory.properties.toList(),
                 beanFactory.beans.toList()
             ).apply {
-                properties.forEach { it.start() }
-                beans.forEach { it.start() }
+                properties.forEach { it.initialize() }
+                beans.forEach { it.initialize() }
+                properties.forEach { it.evaluate() }
+                beans.forEach { it.evaluate() }
             }
         }
     }

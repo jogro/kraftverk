@@ -41,12 +41,12 @@ class PropertyTest : StringSpec() {
 
     private inner class PropertiesModule(private val lazy: Boolean? = null) : Module() {
 
-        val prop1 by property(lazy = this.lazy) {
-            propertyObjectFactory.newValue(it)
-        }
-
         val prop2 by property(lazy = this.lazy) {
             propertyObjectFactory.newValue(it, prop1())
+        }
+
+        val prop1 by property(lazy = this.lazy) {
+            propertyObjectFactory.newValue(it)
         }
 
         val prop3 by property(lazy = this.lazy) {

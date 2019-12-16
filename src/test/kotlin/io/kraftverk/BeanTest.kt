@@ -20,12 +20,12 @@ class BeanTest : StringSpec() {
 
     inner class AppModule(private val lazy: Boolean? = null) : Module() {
 
-        val widget by bean(lazy = this.lazy) {
-            widgetFactory.newWidget()
-        }
-
         val childWidget by bean(lazy = this.lazy) {
             widgetFactory.newWidget(widget())
+        }
+
+        val widget by bean(lazy = this.lazy) {
+            widgetFactory.newWidget()
         }
 
         init {

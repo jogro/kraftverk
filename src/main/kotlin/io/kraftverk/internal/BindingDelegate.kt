@@ -50,16 +50,20 @@ internal sealed class BindingDelegate<T : Any>(
         }
     }
 
-    fun start() {
+    fun initialize() {
         state.applyAs<State.Defining<T>> {
             val provider = createProvider(
                 createInstance,
                 onCreate,
                 onDestroy
             )
-            state = State.Running(provider).apply {
-                if (!lazy) provider.instance()
-            }
+            state = State.Running(provider, lazy)
+        }
+    }
+
+    fun evaluate() {
+        state.applyAs<State.Running<T>> {
+            if (!lazy) provider.instance()
         }
     }
 
@@ -93,7 +97,7 @@ internal sealed class BindingDelegate<T : Any>(
             var onDestroy: (T) -> Unit = {}
         }
 
-        class Running<T : Any>(val provider: Provider<T>) : State<T>()
+        class Running<T : Any>(val provider: Provider<T>, val lazy: Boolean) : State<T>()
 
         object Destroyed : State<Nothing>()
     }
