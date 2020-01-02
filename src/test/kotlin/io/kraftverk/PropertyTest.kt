@@ -77,27 +77,27 @@ class PropertyTest : StringSpec() {
     init {
 
         "Property instantiation is eager by default" {
-            Container.start { AppModule() }
+            Kraftverk.manage { AppModule() }
             verifyThatAllPropertiesAreInstantiated()
         }
 
         "Property instantiation is lazy when specified for the container" {
-            Container.start(lazy = true) { AppModule() }
+            Kraftverk.manage(lazy = true) { AppModule() }
             verifyThatNoPropertiesAreInstantiated()
         }
 
         "Property instantiation is eager when specified for the properties" {
-            Container.start { AppModule(lazy = false) }
+            Kraftverk.manage { AppModule(lazy = false) }
             verifyThatAllPropertiesAreInstantiated()
         }
 
         "Property instantiation is lazy when specified for the properties" {
-            Container.start { AppModule(lazy = true) }
+            Kraftverk.manage { AppModule(lazy = true) }
             verifyThatNoPropertiesAreInstantiated()
         }
 
-        "Getting a property returns expected value" {
-            val app = Container.start { AppModule() }
+        "Extracting a property returns expected value" {
+            val app = Kraftverk.manage { AppModule() }
             app.get { principal } shouldBe principal
             app.get { props.prop1 } shouldBe propertyObject1
             app.get { props.prop2 } shouldBe propertyObject2
@@ -108,16 +108,16 @@ class PropertyTest : StringSpec() {
             app.get { props.userModule.password } shouldBe password
         }
 
-        "Getting a property does not propagate to other properties if not necessary" {
-            val app = Container.start { AppModule(lazy = true) }
+        "Extracting a property does not propagate to other properties if not necessary" {
+            val app = Kraftverk.manage { AppModule(lazy = true) }
             app.get { props.prop1 }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
             }
         }
 
-        "Getting a property propagates to other properties if necessary" {
-            val app = Container.start { AppModule(lazy = true) }
+        "Extracting a property propagates to other properties if necessary" {
+            val app = Kraftverk.manage { AppModule(lazy = true) }
             app.get { props.prop2 }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
@@ -125,8 +125,8 @@ class PropertyTest : StringSpec() {
             }
         }
 
-        "Getting a property results in one instantiation even if many invocations" {
-            val app = Container.start { AppModule(lazy = true) }
+        "Extracting a property results in one instantiation even if many invocations" {
+            val app = Kraftverk.manage { AppModule(lazy = true) }
             repeat(3) { app.get { props.prop1 } }
             verifySequence {
                 propertyObjectFactory.newValue(propertyObject1.value)
@@ -134,7 +134,7 @@ class PropertyTest : StringSpec() {
         }
 
         "Binding a property does a proper replace" {
-            val app = Container.start {
+            val app = Kraftverk.manage {
                 AppModule().apply {
                     bind(props.prop1) to { propertyObjectFactory.newValue("Kalle", next()) }
                 }
@@ -147,7 +147,7 @@ class PropertyTest : StringSpec() {
             val po2 = PropertyObject("SET2", po1)
             withEnvironment("PROPS_PROP1" to po1.value) {
                 withSystemProperties("props.prop2" to po2.value) {
-                    val app = Container.start { AppModule() }
+                    val app = Kraftverk.manage { AppModule() }
                     app.get { props.prop1 } shouldBe po1
                     app.get { props.prop2 } shouldBe po2
                 }
@@ -155,8 +155,8 @@ class PropertyTest : StringSpec() {
         }
 
         "Properties should be overridden when using profiles" {
-            withSystemProperties("kraftverk.active.profiles" to "prof1,prof2") {
-                val app = Container.start { AppModule() }
+            withSystemProperties("kraftverk.active.profiles" to "prof2, prof1") {
+                val app = Kraftverk.manage { AppModule() }
                 verifySequence {
                     propertyObjectFactory.newValue(propertyObject1.value)
                     propertyObjectFactory.newValue("152", propertyObject1)
@@ -164,7 +164,7 @@ class PropertyTest : StringSpec() {
                     propertyObjectFactory.newValue(propertyObject4.value)
                     propertyObjectFactory.newValue(propertyObject5.value)
                 }
-                app.profiles.shouldContainExactly("prof1", "prof2")
+                app.profiles.shouldContainExactly("prof2", "prof1")
             }
         }
 

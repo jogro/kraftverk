@@ -9,7 +9,7 @@ Inspired by the "coffee example" from the [Dagger 2 Users guide](https://dagger.
 
 Given a module:
 ```kotlin
-class DripCoffeeModule : Module() {
+class AppModule : Module() {
 
     val heater by bean<Heater>(lazy = true) {
         ElectricHeater()
@@ -33,8 +33,8 @@ class DripCoffeeModule : Module() {
 Start a Container instance:
 ```kotlin
 fun main() {
-    val container = Container.start { DripCoffeeModule() }
-    val coffeeMaker = container.get { coffeeMaker }
+    val app = Kraftverk.manage { AppModule() }
+    val coffeeMaker = app.get { coffeeMaker }
     coffeeMaker.brew()
 }
 ```

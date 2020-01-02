@@ -127,7 +127,7 @@
                 </executions>
                 <configuration>
                     <args>
-                        <arg>-Xuse-experimental=kotlin.contracts.ExperimentalContracts</arg>
+                        <arg>-Xuse-experimental=kotlin.contracts.ExperimentalContracts,kotlin.time.ExperimentalTime</arg>
                     </args>
                 </configuration>
             </plugin>

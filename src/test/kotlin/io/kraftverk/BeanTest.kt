@@ -29,8 +29,8 @@ class BeanTest : StringSpec() {
         }
 
         init {
-            onCreate(widget) { it.start() }
             onCreate(childWidget) { it.start() }
+            onCreate(widget) { it.start() }
             onDestroy(widget) { it.stop() }
             onDestroy(childWidget) { it.stop() }
         }
@@ -44,34 +44,34 @@ class BeanTest : StringSpec() {
 
     init {
 
-        "Bean instantiation is eager by default" {
-            Container.start { AppModule() }
+        "bean instantiation is eager by default" {
+            Kraftverk.manage { AppModule() }
             verifyThatAllBeansAreInstantiated()
         }
 
-        "Bean instantiation is eager when specified for the beans" {
-            Container.start(lazy = true) { AppModule(lazy = false) }
+        "bean instantiation is eager when specified for the beans" {
+            Kraftverk.manage(lazy = true) { AppModule(lazy = false) }
             verifyThatAllBeansAreInstantiated()
         }
 
-        "Bean instantiation is lazy when started lazily" {
-            Container.start(lazy = true) { AppModule() }
+        "bean instantiation is lazy when managed lazily" {
+            Kraftverk.manage(lazy = true) { AppModule() }
             verifyThatNoBeansAreInstantiated()
         }
 
-        "Bean instantiation is lazy when specified for the beans" {
-            Container.start { AppModule(lazy = true) }
+        "bean instantiation is lazy when specified for the beans" {
+            Kraftverk.manage { AppModule(lazy = true) }
             verifyThatNoBeansAreInstantiated()
         }
 
-        "Getting a bean returns expected value" {
-            val app = Container.start { AppModule() }
+        "Extracting a bean returns expected value" {
+            val app = Kraftverk.manage { AppModule() }
             app.get { widget } shouldBe widget
             app.get { childWidget } shouldBe childWidget
         }
 
-        "Getting a bean does not trigger creation of other beans if not necessary" {
-            val app = Container.start(lazy = true) { AppModule() }
+        "Extracting a bean does not propagate to other beans if not necessary" {
+            val app: Managed<AppModule> = Kraftverk.manage(lazy = true) { AppModule() }
             app.get { widget }
             verifySequence {
                 widgetFactory.newWidget()
@@ -79,8 +79,8 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Getting a bean propagates to other beans if necessary" {
-            val app = Container.start(lazy = true) { AppModule() }
+        "Extracting a bean propagates to other beans if necessary" {
+            val app = Kraftverk.manage(lazy = true) { AppModule() }
             app.get { childWidget }
             verifySequence {
                 widgetFactory.newWidget()
@@ -90,8 +90,8 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Getting a bean results in one instantiation even if many invocations" {
-            val app = Container.start(lazy = true) { AppModule() }
+        "Extracting a bean results in one instantiation even if many invocations" {
+            val app = Kraftverk.manage(lazy = true) { AppModule() }
             repeat(3) { app.get { widget } }
             verifySequence {
                 widgetFactory.newWidget()
@@ -99,8 +99,8 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Bean on create invokes next properly" {
-            Container.start {
+        "bean on create invokes next properly" {
+            Kraftverk.manage {
                 AppModule().apply {
                     onCreate(widget) { next() }
                 }
@@ -110,8 +110,8 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Bean on create inhibits next properly" {
-            Container.start {
+        "bean on create inhibits next properly" {
+            Kraftverk.manage {
                 AppModule().apply {
                     onCreate(widget) { }
                 }
@@ -122,8 +122,8 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Bean on destroy invokes next properly" {
-            val app = Container.start {
+        "bean on destroy invokes next properly" {
+            val app = Kraftverk.manage {
                 AppModule().apply {
                     onDestroy(widget) { next() }
                     onDestroy(childWidget) { next() }
@@ -141,12 +141,28 @@ class BeanTest : StringSpec() {
             val replacement = mockk<Widget>(relaxed = true)
             every { widgetFactory.newWidget(widget) } returns replacement
             every { widgetFactory.newWidget(replacement) } returns childWidget
-            val app = Container.start {
+            val app = Kraftverk.manage {
                 AppModule().apply {
                     bind(widget) to { widgetFactory.newWidget(next()) }
                 }
             }
             app.get { widget } shouldBe replacement
+        }
+
+        "Refreshing the module stops and starts the bindings" {
+            val app = Kraftverk.manage { AppModule() }
+            clearAllMocks()
+            every { widgetFactory.newWidget() } returns widget
+            every { widgetFactory.newWidget(widget) } returns childWidget
+            app.refresh()
+            verifySequence {
+                childWidget.stop()
+                widget.stop()
+                widgetFactory.newWidget()
+                widget.start()
+                widgetFactory.newWidget(widget)
+                childWidget.start()
+            }
         }
 
     }
@@ -175,5 +191,10 @@ class BeanTest : StringSpec() {
         fun newWidget(): Widget
         fun newWidget(parent: Widget): Widget
     }
+
+}
+
+private fun Bean.Companion.widget() {
+
 
 }

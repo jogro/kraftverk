@@ -7,6 +7,7 @@ package io.kraftverk.internal
 
 import mu.KotlinLogging
 import kotlin.reflect.KClass
+import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 
@@ -50,7 +51,7 @@ internal sealed class BindingDelegate<T : Any>(
         }
     }
 
-    fun initialize() {
+    fun start() {
         state.applyAs<State.Defining<T>> {
             val provider = createProvider(
                 createInstance,
@@ -61,7 +62,7 @@ internal sealed class BindingDelegate<T : Any>(
         }
     }
 
-    fun evaluate() {
+    fun prepare() {
         state.applyAs<State.Running<T>> {
             if (!lazy) provider.instance()
         }
@@ -73,10 +74,12 @@ internal sealed class BindingDelegate<T : Any>(
         }
     }
 
-    fun destroy() {
+    fun destroy(keepRunning: Boolean) {
         state.applyWhen<State.Running<T>> {
             provider.destroy()
-            state = State.Destroyed
+            if (!keepRunning) {
+                state = State.Destroyed
+            }
         }
     }
 
@@ -89,7 +92,7 @@ internal sealed class BindingDelegate<T : Any>(
     private sealed class State<out T : Any> {
 
         class Defining<T : Any>(
-            internal val lazy: Boolean,
+            val lazy: Boolean,
             instance: () -> T
         ) : State<T>() {
             var createInstance: () -> T = instance
@@ -115,19 +118,18 @@ internal class BeanDelegate<T : Any>(
         createInstance: () -> T,
         onCreate: (T) -> Unit,
         onDestroy: (T) -> Unit
-    ) =
-        Provider(
-            type = type,
-            create = {
-                val started = System.currentTimeMillis()
-                createInstance().also {
-                    val elapsed = System.currentTimeMillis() - started
-                    logger.info("Bean '$name' is bound to $type (${elapsed}ms)")
-                }
-            },
-            onCreate = onCreate,
-            onDestroy = onDestroy
-        )
+    ) = Provider(
+        type = type,
+        create = {
+            measureTimedValue {
+                createInstance()
+            }.also {
+                logger.info("Bean '$name' is bound to $type (${it.duration})")
+            }.value
+        },
+        onCreate = onCreate,
+        onDestroy = onDestroy
+    )
 
 }
 
@@ -143,19 +145,18 @@ internal class PropertyDelegate<T : Any>(
         createInstance: () -> T,
         onCreate: (T) -> Unit,
         onDestroy: (T) -> Unit
-    ) =
-        Provider(
-            type = type,
-            create = {
-                createInstance().also {
-                    if (secret) {
-                        logger.info("Property '$name' is bound to '********'")
-                    } else {
-                        logger.info("Property '$name' is bound to '$it'")
-                    }
+    ) = Provider(
+        type = type,
+        create = {
+            createInstance().also {
+                if (secret) {
+                    logger.info("Property '$name' is bound to '********'")
+                } else {
+                    logger.info("Property '$name' is bound to '$it'")
                 }
-            },
-            onCreate = onCreate,
-            onDestroy = onDestroy
-        )
+            }
+        },
+        onCreate = onCreate,
+        onDestroy = onDestroy
+    )
 }

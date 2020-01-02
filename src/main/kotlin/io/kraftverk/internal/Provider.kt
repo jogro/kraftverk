@@ -15,31 +15,36 @@ internal class Provider<T : Any>(
     private val onDestroy: (T) -> Unit
 ) {
 
-    private val holder: Lazy<InstanceHolder> = lazy {
-        create().let {
-            InstanceHolder(currentInstanceId.incrementAndGet(), it).apply {
+    @Volatile
+    var instanceId: Int? = null
+        private set
+
+    @Volatile
+    private var instance: T? = null
+
+    fun instance(): T {
+        return instance ?: synchronized(this) {
+            instance ?: create().also {
+                instance = it
+                instanceId = currentInstanceId.incrementAndGet()
                 onCreate(it)
             }
         }
     }
 
-    val instanceId: Int?
-        get() = if (holder.isInitialized()) holder.value.id else null
-
-    fun instance(): T = holder.value.instance
-
     fun destroy() {
-        if (holder.isInitialized()) destroyOnce
-    }
-
-    private val destroyOnce: Unit by lazy {
-        onDestroy(holder.value.instance)
+        instance?.also {
+            synchronized(this) {
+                instance?.also {
+                    onDestroy(it)
+                    instance = null
+                }
+            }
+        }
     }
 
     companion object {
-        val currentInstanceId = AtomicInteger(0)
+        val currentInstanceId = AtomicInteger()
     }
-
-    private inner class InstanceHolder(val id: Int, val instance: T)
 
 }
