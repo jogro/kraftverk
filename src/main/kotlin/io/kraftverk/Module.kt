@@ -51,53 +51,57 @@ fun stringProperty(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
-    secret: Boolean = false
+    secret: Boolean = false,
+    block: PropertyDefinition.(String) -> String = { it }
 ): DelegateProvider<Module, Property<String>> =
     property(
         name,
         default,
         lazy,
         secret
-    ) { it }
+    ) { block(it) }
 
 fun intProperty(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
-    secret: Boolean = false
+    secret: Boolean = false,
+    block: PropertyDefinition.(Int) -> Int = { it }
 ): DelegateProvider<Module, Property<Int>> =
     property(
         name,
         default,
         lazy,
         secret
-    ) { it.toInt() }
+    ) { block(it.toInt()) }
 
 fun longProperty(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
-    secret: Boolean = false
+    secret: Boolean = false,
+    block: PropertyDefinition.(Long) -> Long = { it }
 ): DelegateProvider<Module, Property<Long>> =
     property(
         name,
         default,
         lazy,
         secret
-    ) { it.toLong() }
+    ) { block(it.toLong()) }
 
 fun booleanProperty(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
-    secret: Boolean = false
+    secret: Boolean = false,
+    block: PropertyDefinition.(Boolean) -> Boolean = { it }
 ): DelegateProvider<Module, Property<Boolean>> =
     property(
         name,
         default,
         lazy,
         secret
-    ) { it.toBoolean() }
+    ) { block(it.toBoolean()) }
 
 fun portProperty(
     name: String? = null,
