@@ -7,35 +7,35 @@ package io.kraftverk
 
 import io.kraftverk.internal.provider
 
-open class PropertyDefinition internal constructor(val environment: Environment) {
+open class PropertyDefinition internal constructor(val env: Environment) {
     operator fun <T : Any> Property<T>.invoke(): T = provider().instance()
 }
 
 class PropertySupplierDefinition<T> internal constructor(
-    environment: Environment,
+    env: Environment,
     private val supply: () -> T
-) : PropertyDefinition(environment) {
+) : PropertyDefinition(env) {
     fun next() = supply()
 }
 
-open class BeanDefinition internal constructor(environment: Environment) : PropertyDefinition(environment) {
+open class BeanDefinition internal constructor(env: Environment) : PropertyDefinition(env) {
     operator fun <T : Any> Binding<T>.invoke(): T = provider().instance()
 }
 
 class BeanSupplierDefinition<T> internal constructor(
-    environment: Environment,
+    env: Environment,
     private val supply: () -> T
-) : BeanDefinition(environment) {
+) : BeanDefinition(env) {
     fun next() = supply()
 }
 
 class BeanConsumerDefinition<T> internal constructor(
-    environment: Environment,
+    env: Environment,
     private val instance: T,
     private val consume: (T) -> Unit
-) : BeanDefinition(environment) {
+) : BeanDefinition(env) {
     fun next() = consume(instance)
 }
 
-open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.environment)
-open class CustomPropertyDefinition(parent: PropertyDefinition) : PropertyDefinition(parent.environment)
+open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.env)
+open class CustomPropertyDefinition(parent: PropertyDefinition) : PropertyDefinition(parent.env)
