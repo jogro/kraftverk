@@ -121,13 +121,13 @@ fun <T : Any> Module.bind(property: Property<T>) = BindProperty(container, prope
 
 fun <T : Any> Module.onCreate(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onCreate { instance, consumer ->
-        BeanConsumerDefinition(container.profiles, instance, consumer).block(instance)
+        BeanConsumerDefinition(container.environment, instance, consumer).block(instance)
     }
 }
 
 fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onDestroy { instance, consumer ->
-        BeanConsumerDefinition(container.profiles, instance, consumer).block(instance)
+        BeanConsumerDefinition(container.environment, instance, consumer).block(instance)
     }
 }
 
@@ -138,7 +138,7 @@ interface DelegateProvider<in R, out T> {
 class BindBean<T : Any> internal constructor(private val container: Container, private val bean: Bean<T>) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
         bean.onBind { next ->
-            BeanSupplierDefinition(container.profiles, next).block()
+            BeanSupplierDefinition(container.environment, next).block()
         }
     }
 }
@@ -146,7 +146,7 @@ class BindBean<T : Any> internal constructor(private val container: Container, p
 class BindProperty<T : Any> internal constructor(private val container: Container, private val property: Property<T>) {
     infix fun to(block: PropertySupplierDefinition<T>.() -> T) {
         property.onBind { next ->
-            PropertySupplierDefinition(container.profiles, next).block()
+            PropertySupplierDefinition(container.environment, next).block()
         }
     }
 }

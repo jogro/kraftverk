@@ -154,9 +154,10 @@ class PropertyTest : StringSpec() {
             }
         }
 
-        "Properties should be overridden when using profiles" {
+        "Properties should be overridden when using profiles 1" {
             withSystemProperties("kraftverk.active.profiles" to "prof2, prof1") {
-                val app = Kraftverk.manage { AppModule() }
+                val env = Environment.standard()
+                Kraftverk.manage(environment = env) { AppModule() }
                 verifySequence {
                     propertyObjectFactory.newValue(propertyObject1.value)
                     propertyObjectFactory.newValue("152", propertyObject1)
@@ -164,8 +165,21 @@ class PropertyTest : StringSpec() {
                     propertyObjectFactory.newValue(propertyObject4.value)
                     propertyObjectFactory.newValue(propertyObject5.value)
                 }
-                app.profiles.shouldContainExactly("prof2", "prof1")
+                env.profiles.shouldContainExactly("prof2", "prof1")
             }
+        }
+
+        "Properties should be overridden when using profiles 2" {
+            val env = Environment.standard(profiles = listOf("prof2", "prof1"))
+            Kraftverk.manage(environment = env) { AppModule() }
+            verifySequence {
+                propertyObjectFactory.newValue(propertyObject1.value)
+                propertyObjectFactory.newValue("152", propertyObject1)
+                propertyObjectFactory.newValue("253")
+                propertyObjectFactory.newValue(propertyObject4.value)
+                propertyObjectFactory.newValue(propertyObject5.value)
+            }
+            env.profiles.shouldContainExactly("prof2", "prof1")
         }
 
     }

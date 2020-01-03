@@ -9,11 +9,9 @@ import io.kraftverk.*
 
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
-internal class Container(private val lazy: Boolean, private val environment: Environment) {
+internal class Container(private val lazy: Boolean, val environment: Environment) {
 
     private var state: State = State.Defining()
-
-    val profiles: List<String> = environment.profiles
 
     fun <T : Any> newProperty(name: String, config: PropertyConfig<T>) = PropertyImpl(
         PropertyDelegate(
@@ -22,13 +20,11 @@ internal class Container(private val lazy: Boolean, private val environment: Env
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
-                val value = environment[name] ?: config.default
-                ?: throw PropertyNotFoundException("Property '$name' was not found!")
-                config.instance(PropertyDefinition(environment.profiles), value)
+                val value = environment[name] ?: config.default ?: throwPropertyNotFound(name)
+                config.instance(PropertyDefinition(environment), value)
             }
         )
     ).apply(::register)
-
 
     fun <T : Any> newBean(name: String, config: BeanConfig<T>) = BeanImpl(
         BeanDelegate(
@@ -36,7 +32,7 @@ internal class Container(private val lazy: Boolean, private val environment: Env
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
-                config.instance(BeanDefinition(environment.profiles))
+                config.instance(BeanDefinition(environment))
             }
         )
     ).apply(::register)
@@ -90,6 +86,10 @@ internal class Container(private val lazy: Boolean, private val environment: Env
         state.applyAs<State.Defining> {
             bindings.add(binding)
         }
+    }
+
+    private fun throwPropertyNotFound(name: String): Nothing {
+        throw PropertyNotFoundException("Property '$name' was not found!")
     }
 
     private sealed class State {

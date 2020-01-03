@@ -39,13 +39,13 @@ fun Environment.Companion.standard(
     profiles: List<String>? = null,
     propertyFilenamePrefix: String = "application"
 ): DefaultEnvironment {
-    val systemSource = PropertySource.loadFromSystem()
+    val systemSource = PropertySource.fromSystem()
     val actualProfiles = profiles ?: systemSource.activeProfiles()
     return DefaultEnvironment(
         actualProfiles,
         systemSource,
-        *PropertySource.loadFromClasspath(propertyFilenamePrefix, actualProfiles),
-        PropertySource.loadFromClasspath(propertyFilenamePrefix)
+        *PropertySource.fromClasspath(propertyFilenamePrefix, actualProfiles),
+        PropertySource.fromClasspath(propertyFilenamePrefix)
     )
 }
 
@@ -62,7 +62,7 @@ operator fun PropertySource.set(name: String, value: String) {
     map[name.normalize()] = value
 }
 
-fun PropertySource.Companion.loadFromSystem() = PropertySource().apply {
+fun PropertySource.Companion.fromSystem() = PropertySource().apply {
     System.getenv().forEach { e ->
         try {
             this[e.key] = e.value
@@ -75,18 +75,18 @@ fun PropertySource.Companion.loadFromSystem() = PropertySource().apply {
     }
 }
 
-fun PropertySource.Companion.loadFromClasspath(filenamePrefix: String, profiles: List<String>) =
+fun PropertySource.Companion.fromClasspath(filenamePrefix: String, profiles: List<String>) =
     profiles.map { "$filenamePrefix-$it" }
-        .map { PropertySource.loadFromClasspath(it) }
+        .map { PropertySource.fromClasspath(it) }
         .toTypedArray()
 
-fun PropertySource.Companion.loadFromClasspath(filename: String) = PropertySource().apply {
-    loadPropertiesFromClasspath(this::class, Paths.get("$filename.properties")).forEach { e ->
+fun PropertySource.Companion.fromClasspath(filename: String) = PropertySource().apply {
+    propertiesFromClasspath(this::class, Paths.get("$filename.properties")).forEach { e ->
         this[e.key.toString()] = e.value.toString()
     }
 }
 
-fun loadPropertiesFromClasspath(clazz: KClass<*>, path: Path) = Properties().apply {
+fun propertiesFromClasspath(clazz: KClass<*>, path: Path) = Properties().apply {
     path.let(Path::toString)
         .let(clazz.java.classLoader::getResourceAsStream)
         ?.apply {

@@ -193,8 +193,3 @@ class BeanTest : StringSpec() {
     }
 
 }
-
-private fun Bean.Companion.widget() {
-
-
-}
