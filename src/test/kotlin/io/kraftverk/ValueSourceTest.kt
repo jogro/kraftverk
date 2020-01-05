@@ -11,11 +11,11 @@ import io.kotlintest.shouldThrowUnit
 import io.kotlintest.specs.WordSpec
 import io.kotlintest.tables.row
 
-class PropertySourceTest : WordSpec() {
+class ValueSourceTest : WordSpec() {
 
     init {
 
-        val propertySource = PropertySource()
+        val propertySource = ValueSource()
 
         "PropertySource" should {
             "accept a single case in-sensitive alphanumeric property name that might contain dashes" {
@@ -76,7 +76,7 @@ class PropertySourceTest : WordSpec() {
                     row("_")
 
                 ) { name ->
-                    shouldThrowUnit<PropertyNameException> {
+                    shouldThrowUnit<ValueNameException> {
                         propertySource[name] = "ABC"
                     }
                 }

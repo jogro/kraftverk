@@ -5,5 +5,5 @@
 
 package io.kraftverk
 
-class PropertyNameException(msg: String) : Exception(msg)
-class PropertyNotFoundException(msg: String) : Exception(msg)
+class ValueNameException(msg: String) : Exception(msg)
+class ValueNotFoundException(msg: String) : Exception(msg)

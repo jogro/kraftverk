@@ -14,7 +14,7 @@ import kotlin.contracts.contract
 private val logger = KotlinLogging.logger {}
 
 /**
- * Provides access to and manages [Property] and [Bean] instances in a specified
+ * Provides access to and manages [Value] and [Bean] instances in a specified
  * implementation [M] of [Module].
  *
  * Given a module:

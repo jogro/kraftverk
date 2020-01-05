@@ -11,31 +11,31 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 @PublishedApi
-internal data class PropertyConfig<T : Any>(
+internal data class ValueConfig<T : Any>(
     val type: KClass<T>,
     val default: String?,
     val lazy: Boolean?,
     val secret: Boolean,
-    val instance: PropertyDefinition.(String) -> T
+    val instance: ValueDefinition.(String) -> T
 )
 
 @PublishedApi
 internal fun <T : Any> newDelegateProvider(
     name: String?,
-    config: PropertyConfig<T>
-): DelegateProvider<Module, Property<T>> = object : DelegateProvider<Module, Property<T>> {
+    config: ValueConfig<T>
+): DelegateProvider<Module, Value<T>> = object : DelegateProvider<Module, Value<T>> {
 
-    override fun provideDelegate(thisRef: Module, prop: KProperty<*>): ReadOnlyProperty<Module, Property<T>> {
-        val propertyName = (name ?: prop.name).toPropertyName(thisRef.namespace)
-        val propertyImpl = thisRef.container.newProperty(propertyName, config)
-        return object : ReadOnlyProperty<Module, Property<T>> {
-            override fun getValue(thisRef: Module, property: KProperty<*>): Property<T> {
-                return propertyImpl
+    override fun provideDelegate(thisRef: Module, prop: KProperty<*>): ReadOnlyProperty<Module, Value<T>> {
+        val valueName = (name ?: prop.name).toValueName(thisRef.namespace)
+        val valueInstance = thisRef.container.newValue(valueName, config)
+        return object : ReadOnlyProperty<Module, Value<T>> {
+            override fun getValue(thisRef: Module, property: KProperty<*>): Value<T> {
+                return valueInstance
             }
         }
     }
 
-    private fun String.toPropertyName(namespace: String) =
+    private fun String.toValueName(namespace: String) =
         (if (namespace.isBlank()) this else "${namespace}.$this").spinalCase()
 
 }
@@ -54,10 +54,10 @@ internal fun <T : Any> newDelegateProvider(
 
     override fun provideDelegate(thisRef: Module, prop: KProperty<*>): ReadOnlyProperty<Module, Bean<T>> {
         val beanName = prop.name.toBeanName(thisRef.namespace)
-        val beanImpl = thisRef.container.newBean(beanName, config)
+        val beanInstance = thisRef.container.newBean(beanName, config)
         return object : ReadOnlyProperty<Module, Bean<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Bean<T> {
-                return beanImpl
+                return beanInstance
             }
         }
     }
@@ -72,10 +72,10 @@ internal fun <M : Module> newDelegateProvider(
 ): DelegateProvider<Module, M> = object : DelegateProvider<Module, M> {
 
     override fun provideDelegate(thisRef: Module, prop: KProperty<*>): ReadOnlyProperty<Module, M> {
-        val namespace = name ?: prop.name
-        val subModule = if (namespace.isEmpty()) module() else {
+        val moduleName = name ?: prop.name
+        val subModule = if (moduleName.isEmpty()) module() else {
             val currentNamespace = thisRef.namespace
-            val newNamespace = if (currentNamespace.isEmpty()) namespace else "$currentNamespace.$namespace"
+            val newNamespace = if (currentNamespace.isEmpty()) moduleName else "$currentNamespace.$moduleName"
             ModuleCreationContext.use(newNamespace) {
                 module()
             }

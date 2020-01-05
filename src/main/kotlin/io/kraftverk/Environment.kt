@@ -20,14 +20,14 @@ interface Environment {
     companion object
 }
 
-class DefaultEnvironment(override val profiles: List<String>, vararg propertySources: PropertySource) : Environment {
-    val sources = listOf(PropertySource(), *propertySources)
+class DefaultEnvironment(override val profiles: List<String>, vararg valueSources: ValueSource) : Environment {
+    val sources = listOf(ValueSource(), *valueSources)
     override fun get(name: String): String? = sources.mapNotNull { it[name] }.firstOrNull()
 
     companion object
 }
 
-class PropertySource() {
+class ValueSource() {
     internal val map = ConcurrentHashMap<String, String>()
 
     companion object
@@ -35,17 +35,19 @@ class PropertySource() {
 
 private val logger = KotlinLogging.logger { }
 
+fun Environment.Companion.withProfiles(vararg profiles: String) = standard(profiles.toList())
+
 fun Environment.Companion.standard(
     profiles: List<String>? = null,
     propertyFilenamePrefix: String = "application"
 ): DefaultEnvironment {
-    val systemSource = PropertySource.fromSystem()
+    val systemSource = ValueSource.fromSystem()
     val actualProfiles = profiles ?: systemSource.activeProfiles()
     return DefaultEnvironment(
         actualProfiles,
         systemSource,
-        *PropertySource.fromClasspath(propertyFilenamePrefix, actualProfiles),
-        PropertySource.fromClasspath(propertyFilenamePrefix)
+        *ValueSource.fromClasspath(propertyFilenamePrefix, actualProfiles),
+        ValueSource.fromClasspath(propertyFilenamePrefix)
     )
 }
 
@@ -53,20 +55,20 @@ operator fun DefaultEnvironment.set(name: String, value: String) {
     sources.first()[name] = value
 }
 
-operator fun PropertySource.get(name: String) = map[name.normalize()]
+operator fun ValueSource.get(name: String) = map[name.normalize()]
 
-operator fun PropertySource.set(name: String, value: String) {
+operator fun ValueSource.set(name: String, value: String) {
     if (!name.trim().isValidPropertyName()) {
-        throw PropertyNameException("Invalid property name: '$name'")
+        throw ValueNameException("Invalid property name: '$name'")
     }
     map[name.normalize()] = value
 }
 
-fun PropertySource.Companion.fromSystem() = PropertySource().apply {
+fun ValueSource.Companion.fromSystem() = ValueSource().apply {
     System.getenv().forEach { e ->
         try {
             this[e.key] = e.value
-        } catch (ignore: PropertyNameException) {
+        } catch (ignore: ValueNameException) {
             logger.warn { "Skipping malformed environment variable name: '${e.key}'" }
         }
     }
@@ -75,12 +77,12 @@ fun PropertySource.Companion.fromSystem() = PropertySource().apply {
     }
 }
 
-fun PropertySource.Companion.fromClasspath(filenamePrefix: String, profiles: List<String>) =
+fun ValueSource.Companion.fromClasspath(filenamePrefix: String, profiles: List<String>) =
     profiles.map { "$filenamePrefix-$it" }
-        .map { PropertySource.fromClasspath(it) }
+        .map { ValueSource.fromClasspath(it) }
         .toTypedArray()
 
-fun PropertySource.Companion.fromClasspath(filename: String) = PropertySource().apply {
+fun ValueSource.Companion.fromClasspath(filename: String) = ValueSource().apply {
     propertiesFromClasspath(this::class, Paths.get("$filename.properties")).forEach { e ->
         this[e.key.toString()] = e.value.toString()
     }
@@ -94,11 +96,11 @@ fun propertiesFromClasspath(clazz: KClass<*>, path: Path) = Properties().apply {
         }
 }
 
-internal fun PropertySource.clear() {
+internal fun ValueSource.clear() {
     map.clear()
 }
 
-private fun PropertySource.activeProfiles(): List<String> {
+private fun ValueSource.activeProfiles(): List<String> {
     return map[ACTIVE_PROFILES]
         ?.split(",")
         ?.map { it.trim() }

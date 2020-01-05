@@ -13,15 +13,15 @@ internal class Container(private val lazy: Boolean, val environment: Environment
 
     private var state: State = State.Defining()
 
-    fun <T : Any> newProperty(name: String, config: PropertyConfig<T>) = PropertyImpl(
-        PropertyDelegate(
+    fun <T : Any> newValue(name: String, config: ValueConfig<T>) = ValueImpl(
+        ValueDelegate(
             name = name,
             secret = config.secret,
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
-                val value = environment[name] ?: config.default ?: throwPropertyNotFound(name)
-                config.instance(PropertyDefinition(environment), value)
+                val value = environment[name] ?: config.default ?: throwValueNotFound(name)
+                config.instance(ValueDefinition(environment), value)
             }
         )
     ).apply(::register)
@@ -78,7 +78,7 @@ internal class Container(private val lazy: Boolean, val environment: Environment
     }
 
     private fun List<Binding<*>>.prepare() {
-        filterIsInstance<Property<*>>().forEach { it.prepare() }
+        filterIsInstance<Value<*>>().forEach { it.prepare() }
         filterIsInstance<Bean<*>>().forEach { it.prepare() }
     }
 
@@ -88,8 +88,8 @@ internal class Container(private val lazy: Boolean, val environment: Environment
         }
     }
 
-    private fun throwPropertyNotFound(name: String): Nothing {
-        throw PropertyNotFoundException("Property '$name' was not found!")
+    private fun throwValueNotFound(name: String): Nothing {
+        throw ValueNotFoundException("Value '$name' was not found!")
     }
 
     private sealed class State {

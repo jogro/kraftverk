@@ -7,7 +7,7 @@ package io.kraftverk.internal
 
 import io.kraftverk.BeanImpl
 import io.kraftverk.Binding
-import io.kraftverk.PropertyImpl
+import io.kraftverk.ValueImpl
 
 internal fun <T : Any> Binding<T>.onBind(
     block: (() -> T) -> T
@@ -45,5 +45,5 @@ internal fun <T : Any> Binding<T>.provider(): Provider<T> {
 
 private fun <T : Any> Binding<T>.toDelegate(): BindingDelegate<T> = when (this) {
     is BeanImpl<T> -> delegate
-    is PropertyImpl<T> -> delegate
+    is ValueImpl<T> -> delegate
 }

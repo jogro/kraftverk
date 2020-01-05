@@ -6,7 +6,7 @@
 package io.kraftverk
 
 import io.kraftverk.internal.BeanDelegate
-import io.kraftverk.internal.PropertyDelegate
+import io.kraftverk.internal.ValueDelegate
 
 sealed class Binding<out T : Any>
 
@@ -14,9 +14,9 @@ sealed class Bean<out T : Any> : Binding<T>() {
     companion object
 }
 
-sealed class Property<out T : Any> : Binding<T>() {
+sealed class Value<out T : Any> : Binding<T>() {
     companion object
 }
 
 internal class BeanImpl<T : Any>(val delegate: BeanDelegate<T>) : Bean<T>()
-internal class PropertyImpl<T : Any>(val delegate: PropertyDelegate<T>) : Property<T>()
+internal class ValueImpl<T : Any>(val delegate: ValueDelegate<T>) : Value<T>()

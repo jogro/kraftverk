@@ -133,7 +133,7 @@ internal class BeanDelegate<T : Any>(
 
 }
 
-internal class PropertyDelegate<T : Any>(
+internal class ValueDelegate<T : Any>(
     private val name: String,
     private val secret: Boolean,
     type: KClass<T>,
@@ -150,9 +150,9 @@ internal class PropertyDelegate<T : Any>(
         create = {
             createInstance().also {
                 if (secret) {
-                    logger.info("Property '$name' is bound to '********'")
+                    logger.info("Value '$name' is bound to '********'")
                 } else {
-                    logger.info("Property '$name' is bound to '$it'")
+                    logger.info("Value '$name' is bound to '$it'")
                 }
             }
         },
