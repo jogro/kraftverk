@@ -1,7 +1,7 @@
 Kraftverk
 ===========================
 
-Kraftverk is a depency injection framework for Kotlin, that involves no reflection or code generation.
+Kraftverk is a minimalistic depency injection framework for Kotlin.
 
 Sample code
 ---------
