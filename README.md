@@ -30,7 +30,7 @@ class AppModule : Module() {
 
 }
 ```
-Start a Container instance:
+Create a managed instance:
 ```kotlin
 fun main() {
     val app = Kraftverk.manage { AppModule() }
