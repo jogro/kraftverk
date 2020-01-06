@@ -17,8 +17,8 @@ abstract class Module : InternalModule() {
 inline fun <reified T : Any> bean(
     lazy: Boolean? = null,
     noinline instance: BeanDefinition.() -> T
-): DelegateProvider<Module, Bean<T>> =
-    newDelegateProvider(
+): ModuleBinding<Bean<T>> =
+    newModuleBinding(
         BeanConfig(
             T::class,
             lazy,
@@ -29,8 +29,8 @@ inline fun <reified T : Any> bean(
 fun <M : Module> module(
     name: String? = null,
     module: () -> M
-): DelegateProvider<Module, M> =
-    newDelegateProvider(name, module)
+): ModuleBinding<M> =
+    newModuleBinding(name, module)
 
 inline fun <reified T : Any> value(
     name: String? = null,
@@ -38,8 +38,8 @@ inline fun <reified T : Any> value(
     lazy: Boolean? = null,
     secret: Boolean = false,
     noinline instance: ValueDefinition.(String) -> T
-): DelegateProvider<Module, Value<T>> =
-    newDelegateProvider(
+): ModuleBinding<Value<T>> =
+    newModuleBinding(
         name,
         ValueConfig(
             T::class,
@@ -56,7 +56,7 @@ fun string(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(String) -> String = { it }
-): DelegateProvider<Module, Value<String>> =
+): ModuleBinding<Value<String>> =
     value(
         name,
         default,
@@ -70,7 +70,7 @@ fun int(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
-): DelegateProvider<Module, Value<Int>> =
+): ModuleBinding<Value<Int>> =
     value(
         name,
         default,
@@ -84,7 +84,7 @@ fun long(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Long) -> Long = { it }
-): DelegateProvider<Module, Value<Long>> =
+): ModuleBinding<Value<Long>> =
     value(
         name,
         default,
@@ -98,7 +98,7 @@ fun boolean(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Boolean) -> Boolean = { it }
-): DelegateProvider<Module, Value<Boolean>> =
+): ModuleBinding<Value<Boolean>> =
     value(
         name,
         default,
@@ -138,9 +138,11 @@ fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(
     }
 }
 
-interface DelegateProvider<in R, out T> {
-    operator fun provideDelegate(thisRef: R, prop: KProperty<*>): ReadOnlyProperty<R, T>
+interface ModuleBinding<out T> {
+    operator fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<T>
 }
+
+interface ModuleProperty<out T> : ReadOnlyProperty<Module, T>
 
 class BindBean<T : Any> internal constructor(private val container: Container, private val bean: Bean<T>) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
