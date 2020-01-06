@@ -196,13 +196,3 @@ class BeanTest : StringSpec() {
     }
 
 }
-
-open class BeanFactory {
-    operator fun invoke(block: () -> Any): Any = Int
-}
-
-fun main() {
-
-    string()
-
-}

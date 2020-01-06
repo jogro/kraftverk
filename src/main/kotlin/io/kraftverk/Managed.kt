@@ -20,7 +20,7 @@ private val logger = KotlinLogging.logger {}
  * Given a module:
  * ```kotlin
  * class AppModule : Module() {
- *     val username by stringProperty()
+ *     val username by string()
  *     val someService by bean {
  *         SomeService(
  *             username()
