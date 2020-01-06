@@ -5,7 +5,7 @@
 
     <groupId>io.kraftverk</groupId>
     <artifactId>kraftverk</artifactId>
-    <version>0.8.7</version>
+    <version>0.8.8-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Kraftverk DI</name>
@@ -22,7 +22,7 @@
         <connection>scm:git:git@github.com:jogro/kraftverk.git</connection>
         <developerConnection>scm:git:git@github.com:jogro/kraftverk.git</developerConnection>
         <url>https://github.com/jogro/kraftverk.git</url>
-        <tag>kraftverk-0.8.7</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
