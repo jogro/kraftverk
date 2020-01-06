@@ -112,7 +112,7 @@ fun port(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
-) =
+): ModuleBinding<Value<Int>> =
     value(name, default, lazy, secret) { value ->
         block(
             when (val port = value.toInt()) {
