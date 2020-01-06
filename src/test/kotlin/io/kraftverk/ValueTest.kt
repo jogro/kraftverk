@@ -35,8 +35,8 @@ class ValueTest : StringSpec() {
     private val password = "Kuno123"
 
     private class UserModule(lazy: Boolean? = null) : Module() {
-        val userName by stringValue(lazy = lazy)
-        val password by stringValue(lazy = lazy, secret = true)
+        val userName by string(lazy = lazy)
+        val password by string(lazy = lazy, secret = true)
     }
 
     private inner class ValueModule(private val lazy: Boolean? = null) : Module() {
@@ -66,7 +66,7 @@ class ValueTest : StringSpec() {
     }
 
     private inner class AppModule(private val lazy: Boolean? = null) : Module() {
-        val principal by stringValue(lazy = lazy)
+        val principal by string(lazy = lazy)
         val values by module { ValueModule(lazy) }
     }
 

@@ -26,7 +26,10 @@ inline fun <reified T : Any> bean(
         )
     )
 
-fun <M : Module> module(name: String? = null, module: () -> M): DelegateProvider<Module, M> =
+fun <M : Module> module(
+    name: String? = null,
+    module: () -> M
+): DelegateProvider<Module, M> =
     newDelegateProvider(name, module)
 
 inline fun <reified T : Any> value(
@@ -47,7 +50,7 @@ inline fun <reified T : Any> value(
         )
     )
 
-fun stringValue(
+fun string(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -61,7 +64,7 @@ fun stringValue(
         secret
     ) { block(it) }
 
-fun intValue(
+fun int(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -75,7 +78,7 @@ fun intValue(
         secret
     ) { block(it.toInt()) }
 
-fun longValue(
+fun long(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -89,7 +92,7 @@ fun longValue(
         secret
     ) { block(it.toLong()) }
 
-fun booleanValue(
+fun boolean(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -103,7 +106,7 @@ fun booleanValue(
         secret
     ) { block(it.toBoolean()) }
 
-fun portValue(
+fun port(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,

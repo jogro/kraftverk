@@ -5,10 +5,13 @@
 
 package io.kraftverk
 
+import com.univocity.parsers.conversions.Conversions.string
 import io.kotlintest.TestCase
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.mockk.*
+
+val int = {s: String -> s.toInt()}
 
 class BeanTest : StringSpec() {
 
@@ -191,5 +194,15 @@ class BeanTest : StringSpec() {
         fun newWidget(): Widget
         fun newWidget(parent: Widget): Widget
     }
+
+}
+
+open class BeanFactory {
+    operator fun invoke(block: () -> Any): Any = Int
+}
+
+fun main() {
+
+    string()
 
 }
