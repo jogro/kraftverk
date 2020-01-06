@@ -1,7 +1,7 @@
 Kraftverk
 ===========================
 
-Kraftverk is a minimalistic depency injection framework for Kotlin.
+Kraftverk is a minimalistic dependency injection framework for Kotlin.
 
 Sample code
 ---------
