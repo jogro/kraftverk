@@ -59,13 +59,6 @@ fun <M : Module, T : Any> Managed<M>.get(binding: M.() -> Binding<T>): T {
 }
 
 /**
- * Refreshes this instance.
- */
-fun <M : Module> Managed<M>.refresh() {
-    container.refresh()
-}
-
-/**
  * Destroys this instance.
  */
 fun <M : Module> Managed<M>.destroy() {

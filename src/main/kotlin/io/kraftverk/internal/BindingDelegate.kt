@@ -74,12 +74,10 @@ internal sealed class BindingDelegate<T : Any>(
         }
     }
 
-    fun destroy(keepRunning: Boolean) {
+    fun destroy() {
         state.applyWhen<State.Running<T>> {
             provider.destroy()
-            if (!keepRunning) {
-                state = State.Destroyed
-            }
+            state = State.Destroyed
         }
     }
 

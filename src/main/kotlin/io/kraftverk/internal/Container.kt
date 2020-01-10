@@ -47,13 +47,6 @@ internal class Container(private val lazy: Boolean, val environment: Environment
         }
     }
 
-    fun refresh() {
-        state.applyWhen<State.Running> {
-            bindings.destroy(keepRunning = true)
-            bindings.prepare()
-        }
-    }
-
     fun destroy() {
         state.applyWhen<State.Running> {
             bindings.destroy()
@@ -61,12 +54,12 @@ internal class Container(private val lazy: Boolean, val environment: Environment
         }
     }
 
-    private fun List<Binding<*>>.destroy(keepRunning: Boolean = false) {
+    private fun List<Binding<*>>.destroy() {
         filter { it.provider().instanceId != null }
             .sortedByDescending { it.provider().instanceId }
             .forEach { binding ->
                 runCatching {
-                    binding.destroy(keepRunning)
+                    binding.destroy()
                 }.onFailure { ex ->
                     ex.printStackTrace()
                 }

@@ -35,8 +35,8 @@ internal fun Binding<*>.prepare() {
     this.toDelegate().prepare()
 }
 
-internal fun Binding<*>.destroy(keepRunning: Boolean) {
-    this.toDelegate().destroy(keepRunning)
+internal fun Binding<*>.destroy() {
+    this.toDelegate().destroy()
 }
 
 internal fun <T : Any> Binding<T>.provider(): Provider<T> {
