@@ -21,7 +21,7 @@ internal class Container(private val lazy: Boolean, val environment: Environment
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
-                state.checkIs<State.Running>()
+                state.checkIsRunning()
                 val value = environment[name] ?: config.default ?: throwValueNotFound(name)
                 config.instance(ValueDefinition(environment), value)
             }
@@ -34,16 +34,15 @@ internal class Container(private val lazy: Boolean, val environment: Environment
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
-                state.checkIs<State.Running>()
+                state.checkIsRunning()
                 config.instance(BeanDefinition(environment))
             }
         )
     ).apply(::register)
 
-
     fun start() {
         state.applyAs<State.Defining> {
-            state = State.Running(bindings.toList());
+            state = State.Running(bindings.toList())
             bindings.start()
             bindings.prepare()
         }
@@ -86,6 +85,10 @@ internal class Container(private val lazy: Boolean, val environment: Environment
 
     private fun throwValueNotFound(name: String): Nothing =
         throw ValueNotFoundException("Value '$name' was not found!")
+
+    private fun State.checkIsRunning() {
+        narrow<State.Running>()
+    }
 
     private sealed class State {
 

@@ -43,10 +43,10 @@ internal inline fun <reified T : Any> Any.applyAs(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
-    this.checkIs<T>().block()
+    this.narrow<T>().block()
 }
 
-internal inline fun <reified T : Any> Any.checkIs(): T {
+internal inline fun <reified T : Any> Any.narrow(): T {
     check(this is T) { "Expected this to be ${T::class} but was ${this::class}" }
     return this
 }
