@@ -14,28 +14,23 @@ import kotlin.contracts.contract
 private val logger = KotlinLogging.logger {}
 
 /**
- * Provides access to and manages [Value] and [Bean] instances in a specified
+ * Provides access to and manages [Bean] and [Value] instances in a specified
  * implementation [M] of [Module].
  *
  * Given a module:
  * ```kotlin
  * class AppModule : Module() {
- *     val username by string()
- *     val someService by bean {
+ *     val username by string()   //<-- Value binding
+ *     val someService by bean {  //<-- Bean binding
  *         SomeService(
  *             username()
  *         )
  *     }
  * }
  * ```
- * Call the [Kraftverk.Companion.manage] method to create a managed instance of the module.
+ * Call the [Kraftverk.Companion.manage] method to create a [Managed] instance of the module.
  * ```kotlin
- * val app = Kraftverk.manage { AppModule() }
- * ```
- * To access the bean instance, call the [Managed.get]
- * method:
- * ```kotlin
- * val someService = app.get { someService }
+ * val app: Managed<AppModule> = Kraftverk.manage { AppModule() }
  * ```
  */
 class Managed<M : Module> internal constructor(
@@ -46,7 +41,7 @@ class Managed<M : Module> internal constructor(
 }
 
 /**
- * Extracts instance [T] from the specified [binding].
+ * Extracts instance [T] from the specified [Binding].
  * ```kotlin
  * val someService = app.get { someService }
  * ```
