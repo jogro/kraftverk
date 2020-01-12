@@ -22,13 +22,11 @@ internal class Provider<T : Any>(
     @Volatile
     private var instance: T? = null
 
-    fun instance(): T {
-        return instance ?: synchronized(this) {
-            instance ?: create().also {
-                instance = it
-                instanceId = currentInstanceId.incrementAndGet()
-                onCreate(it)
-            }
+    fun instance(): T = instance ?: synchronized(this) {
+        instance ?: create().apply {
+            instance = this
+            instanceId = currentInstanceId.incrementAndGet()
+            onCreate(this)
         }
     }
 
@@ -38,6 +36,7 @@ internal class Provider<T : Any>(
                 instance?.also {
                     onDestroy(it)
                     instance = null
+                    instanceId = null
                 }
             }
         }

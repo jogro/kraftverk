@@ -16,6 +16,7 @@ internal sealed class BindingDelegate<T : Any>(
     lazy: Boolean,
     instance: () -> T
 ) {
+    @Volatile
     private var state: State<T> = State.Defining(lazy, instance)
 
     fun <T : Any> onBind(

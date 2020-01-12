@@ -43,11 +43,12 @@ internal inline fun <reified T : Any> Any.applyAs(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
-    if (this is T) {
-        this.block()
-    } else {
-        throw IllegalStateException("Expected this to be ${T::class} but was ${this::class}")
-    }
+    this.checkIs<T>().block()
+}
+
+internal inline fun <reified T : Any> Any.checkIs(): T {
+    check(this is T) { "Expected this to be ${T::class} but was ${this::class}" }
+    return this
 }
 
 private val spinalRegex = "([A-Z]+)".toRegex()

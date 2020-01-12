@@ -11,6 +11,7 @@ const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
 internal class Container(private val lazy: Boolean, val environment: Environment) {
 
+    @Volatile
     private var state: State = State.Defining()
 
     fun <T : Any> newValue(name: String, config: ValueConfig<T>) = ValueImpl(
@@ -20,6 +21,7 @@ internal class Container(private val lazy: Boolean, val environment: Environment
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
+                state.checkIs<State.Running>()
                 val value = environment[name] ?: config.default ?: throwValueNotFound(name)
                 config.instance(ValueDefinition(environment), value)
             }
@@ -32,6 +34,7 @@ internal class Container(private val lazy: Boolean, val environment: Environment
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
+                state.checkIs<State.Running>()
                 config.instance(BeanDefinition(environment))
             }
         )
@@ -40,15 +43,15 @@ internal class Container(private val lazy: Boolean, val environment: Environment
 
     fun start() {
         state.applyAs<State.Defining> {
-            state = State.Running(bindings.toList()).apply {
-                bindings.start()
-                bindings.prepare()
-            }
+            state = State.Running(bindings.toList());
+            bindings.start()
+            bindings.prepare()
         }
     }
 
     fun destroy() {
         state.applyWhen<State.Running> {
+            state = State.Destroying
             bindings.destroy()
             state = State.Destroyed
         }
@@ -81,15 +84,16 @@ internal class Container(private val lazy: Boolean, val environment: Environment
         }
     }
 
-    private fun throwValueNotFound(name: String): Nothing {
+    private fun throwValueNotFound(name: String): Nothing =
         throw ValueNotFoundException("Value '$name' was not found!")
-    }
 
     private sealed class State {
 
         data class Defining(val bindings: MutableList<Binding<*>> = mutableListOf()) : State()
 
         data class Running(val bindings: List<Binding<*>>) : State()
+
+        object Destroying : State()
 
         object Destroyed : State()
     }
