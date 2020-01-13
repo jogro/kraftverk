@@ -9,7 +9,7 @@ import io.kraftverk.*
 
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
-internal class Container(private val lazy: Boolean, val environment: Environment) {
+internal class Container(private val lazy: Boolean, val refreshable: Boolean, val environment: Environment) {
 
     @Volatile
     private var state: State = State.Defining()
@@ -33,6 +33,7 @@ internal class Container(private val lazy: Boolean, val environment: Environment
             name = name,
             type = config.type,
             lazy = config.lazy ?: lazy,
+            refreshable = config.refreshable ?: refreshable,
             instance = {
                 state.checkIsRunning()
                 config.instance(BeanDefinition(environment))
@@ -56,6 +57,16 @@ internal class Container(private val lazy: Boolean, val environment: Environment
         }
     }
 
+    fun refresh() {
+        state.applyAs<State.Running> {
+            state = State.Refreshing
+            bindings.beginRefresh()
+            bindings.endRefresh()
+            state = this
+            bindings.prepare()
+        }
+    }
+
     private fun List<Binding<*>>.destroy() {
         filter { it.provider().instanceId != null }
             .sortedByDescending { it.provider().instanceId }
@@ -70,6 +81,14 @@ internal class Container(private val lazy: Boolean, val environment: Environment
 
     private fun List<Binding<*>>.start() {
         forEach { it.start() }
+    }
+
+    private fun List<Binding<*>>.beginRefresh() {
+        forEach { it.beginRefresh() }
+    }
+
+    private fun List<Binding<*>>.endRefresh() {
+        forEach { it.endRefresh() }
     }
 
     private fun List<Binding<*>>.prepare() {
@@ -95,6 +114,8 @@ internal class Container(private val lazy: Boolean, val environment: Environment
         data class Defining(val bindings: MutableList<Binding<*>> = mutableListOf()) : State()
 
         data class Running(val bindings: List<Binding<*>>) : State()
+
+        object Refreshing : State()
 
         object Destroying : State()
 

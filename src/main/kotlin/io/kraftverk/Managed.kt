@@ -54,7 +54,17 @@ fun <M : Module, T : Any> Managed<M>.get(binding: M.() -> Binding<T>): T {
 }
 
 /**
- * Destroys this instance.
+ * Refreshes this [Managed] [Module]. This means that all [Value]s will be reinitialized and that all [Bean]s
+ * by default will be destroyed and restarted.
+ *
+ * It is possible to specify that a particular bean should not be refreshed, see the [bean] declaration method.
+ */
+fun <M : Module> Managed<M>.refresh() {
+    container.refresh()
+}
+
+/**
+ * Destroys this instance meaning that all [Beans]s will be destroyed.
  */
 fun <M : Module> Managed<M>.destroy() {
     container.destroy()

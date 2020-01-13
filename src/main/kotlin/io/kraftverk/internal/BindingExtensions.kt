@@ -31,6 +31,14 @@ internal fun Binding<*>.start() {
     this.toDelegate().start()
 }
 
+internal fun Binding<*>.beginRefresh() {
+    this.toDelegate().beginRefresh()
+}
+
+internal fun Binding<*>.endRefresh() {
+    this.toDelegate().endRefresh()
+}
+
 internal fun Binding<*>.prepare() {
     this.toDelegate().prepare()
 }

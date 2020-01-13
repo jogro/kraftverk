@@ -17,7 +17,8 @@ class Kraftverk {
 }
 
 /**
- * A factory function that creates a [Managed] instance of the specified [Module].
+ * A factory function that creates a [Managed] instance of the specified implementation
+ * [M] of [Module].
  * ```kotlin
  * val app: Managed<AppModule> = Kraftverk.manage { AppModule() }
  * ```
@@ -26,19 +27,20 @@ class Kraftverk {
  * Should any value be missing an exception is thrown.
  * 2) All [Bean] bindings are eagerly instantiated.
  *
- * Call the [Managed.destroy] method to destroy the [Managed] instance. Otherwise, this will be performed
+ * Call the [Managed.destroy] method to destroy the [Managed] instance. Otherwise, shutdown will be performed
  * by a shutdown hook.
  */
 fun <M : Module> Kraftverk.Companion.manage(
     namespace: String = "",
     lazy: Boolean = false,
+    refreshable: Boolean = true,
     environment: Environment = Environment.standard(),
     module: () -> M
 ): Managed<M> {
     contract {
         callsInPlace(module, InvocationKind.EXACTLY_ONCE)
     }
-    return createManagedModule(namespace, lazy, environment, module).apply {
+    return createManagedModule(namespace, lazy, refreshable, environment, module).apply {
         Runtime.getRuntime().addShutdownHook(Thread {
             destroy()
         })

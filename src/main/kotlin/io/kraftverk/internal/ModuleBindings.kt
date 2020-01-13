@@ -42,7 +42,8 @@ internal fun <T : Any> newModuleBinding(
 @PublishedApi
 internal data class BeanConfig<T : Any>(
     val type: KClass<T>,
-    val lazy: Boolean? = null,
+    val lazy: Boolean?,
+    val refreshable: Boolean?,
     val instance: BeanDefinition.() -> T
 )
 

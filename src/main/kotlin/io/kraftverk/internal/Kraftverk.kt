@@ -17,8 +17,9 @@ import kotlin.time.measureTimedValue
 private val logger = KotlinLogging.logger {}
 
 internal fun <M : Module> Kraftverk.Companion.createManagedModule(
-    namespace: String = "",
-    lazy: Boolean = false,
+    namespace: String ,
+    lazy: Boolean,
+    refreshable: Boolean,
     env: Environment,
     module: () -> M
 ): Managed<M> {
@@ -27,7 +28,7 @@ internal fun <M : Module> Kraftverk.Companion.createManagedModule(
     }
     return measureTimedValue {
         logger.info("Creating managed module")
-        val container = Container(lazy, env)
+        val container = Container(lazy, refreshable, env)
         val rootModule = ModuleCreationContext.use(container, namespace) { module() }
         container.start()
         Managed(container, rootModule)

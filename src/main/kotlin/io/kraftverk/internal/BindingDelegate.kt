@@ -14,10 +14,11 @@ private val logger = KotlinLogging.logger {}
 internal sealed class BindingDelegate<T : Any>(
     protected val type: KClass<T>,
     lazy: Boolean,
+    refreshable: Boolean,
     instance: () -> T
 ) {
     @Volatile
-    private var state: State<T> = State.Defining(lazy, instance)
+    private var state: State<T> = State.Defining(lazy, refreshable, instance)
 
     fun <T : Any> onBind(
         block: (() -> T) -> T
@@ -59,7 +60,7 @@ internal sealed class BindingDelegate<T : Any>(
                 onCreate,
                 onDestroy
             )
-            state = State.Running(provider, lazy)
+            state = State.Running(provider, lazy, refreshable)
         }
     }
 
@@ -72,6 +73,21 @@ internal sealed class BindingDelegate<T : Any>(
     fun provider(): Provider<T> {
         state.applyAs<State.Running<T>> {
             return provider
+        }
+    }
+
+    fun beginRefresh() {
+        state.applyAs<State.Running<T>> {
+            if (refreshable) {
+                state = State.Refreshing(this)
+                provider.destroy()
+            }
+        }
+    }
+
+    fun endRefresh() {
+        state.applyWhen<State.Refreshing<T>> {
+            state = running
         }
     }
 
@@ -92,6 +108,7 @@ internal sealed class BindingDelegate<T : Any>(
 
         class Defining<T : Any>(
             val lazy: Boolean,
+            val refreshable: Boolean,
             instance: () -> T
         ) : State<T>() {
             var createInstance: () -> T = instance
@@ -99,7 +116,9 @@ internal sealed class BindingDelegate<T : Any>(
             var onDestroy: (T) -> Unit = {}
         }
 
-        class Running<T : Any>(val provider: Provider<T>, val lazy: Boolean) : State<T>()
+        class Running<T : Any>(val provider: Provider<T>, val lazy: Boolean, val refreshable: Boolean) : State<T>()
+
+        class Refreshing<T : Any>(val running: Running<T>) : State<T>()
 
         object Destroyed : State<Nothing>()
     }
@@ -110,8 +129,9 @@ internal class BeanDelegate<T : Any>(
     private val name: String,
     type: KClass<T>,
     lazy: Boolean,
+    refreshable: Boolean,
     instance: () -> T
-) : BindingDelegate<T>(type, lazy, instance) {
+) : BindingDelegate<T>(type, lazy, refreshable, instance) {
 
     override fun createProvider(
         createInstance: () -> T,
@@ -138,7 +158,7 @@ internal class ValueDelegate<T : Any>(
     type: KClass<T>,
     lazy: Boolean,
     instance: () -> T
-) : BindingDelegate<T>(type, lazy, instance) {
+) : BindingDelegate<T>(type, lazy, refreshable = true, instance = instance) {
 
     override fun createProvider(
         createInstance: () -> T,
