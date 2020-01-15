@@ -60,8 +60,7 @@ internal class Container(private val lazy: Boolean, val refreshable: Boolean, va
     fun refresh() {
         state.applyAs<State.Running> {
             state = State.Refreshing
-            bindings.beginRefresh()
-            bindings.endRefresh()
+            bindings.refresh()
             state = this
             bindings.prepare()
         }
@@ -83,12 +82,8 @@ internal class Container(private val lazy: Boolean, val refreshable: Boolean, va
         forEach { it.start() }
     }
 
-    private fun List<Binding<*>>.beginRefresh() {
-        forEach { it.beginRefresh() }
-    }
-
-    private fun List<Binding<*>>.endRefresh() {
-        forEach { it.endRefresh() }
+    private fun List<Binding<*>>.refresh() {
+        forEach { it.refresh() }
     }
 
     private fun List<Binding<*>>.prepare() {

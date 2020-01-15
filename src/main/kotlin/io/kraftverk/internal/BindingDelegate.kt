@@ -76,18 +76,11 @@ internal sealed class BindingDelegate<T : Any>(
         }
     }
 
-    fun beginRefresh() {
+    fun refresh() {
         state.applyAs<State.Running<T>> {
             if (refreshable) {
-                state = State.Refreshing(this)
                 provider.destroy()
             }
-        }
-    }
-
-    fun endRefresh() {
-        state.applyWhen<State.Refreshing<T>> {
-            state = running
         }
     }
 
@@ -117,8 +110,6 @@ internal sealed class BindingDelegate<T : Any>(
         }
 
         class Running<T : Any>(val provider: Provider<T>, val lazy: Boolean, val refreshable: Boolean) : State<T>()
-
-        class Refreshing<T : Any>(val running: Running<T>) : State<T>()
 
         object Destroyed : State<Nothing>()
     }

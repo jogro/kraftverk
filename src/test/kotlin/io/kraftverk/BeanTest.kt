@@ -149,7 +149,7 @@ class BeanTest : StringSpec() {
             app.get { widget } shouldBe replacement
         }
 
-        "Refreshing the module stops and starts the bindings" {
+        "Refreshing the module stops and starts the bindings by default" {
             val app = Kraftverk.manage { AppModule() }
             clearAllMocks()
             every { widgetFactory.newWidget() } returns widget
