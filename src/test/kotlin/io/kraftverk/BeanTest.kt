@@ -6,9 +6,12 @@
 package io.kraftverk
 
 import io.kotlintest.TestCase
+import io.kotlintest.matchers.collections.containExactly
+import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.mockk.*
+import kotlin.concurrent.thread
 
 class BeanTest : StringSpec() {
 
@@ -176,6 +179,30 @@ class BeanTest : StringSpec() {
                 widget wasNot Called
                 widgetFactory wasNot Called
             }
+        }
+
+        class Mod0(val destroyed: MutableList<String>) : Module() {
+            val b1 by bean {
+                b0()
+                Thread.sleep(2000)
+            }
+            val b0 by bean {}
+            val b2 by bean { b1() }
+
+            init {
+                onDestroy(b0) { destroyed.add("b0") }
+                onDestroy(b1) { destroyed.add("b1") }
+                onDestroy(b2) { destroyed.add("b2") }
+            }
+        }
+
+        "Destruction when creation is ongoing" {
+            val destroyed = mutableListOf<String>()
+            val mod0 = Kraftverk.manage(lazy = true) { Mod0(destroyed) }
+            thread { mod0.get { b2 } } // Will take 2000 ms to instantiate
+            Thread.sleep(500)
+            mod0.destroy()
+            destroyed should containExactly("b2", "b1", "b0")
         }
 
     }

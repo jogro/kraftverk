@@ -9,35 +9,43 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
 internal class Provider<T : Any>(
-    val type: KClass<T>,
+    val type: KClass<T>, // Just keep this for now
     private val create: () -> T,
     private val onCreate: (T) -> Unit,
     private val onDestroy: (T) -> Unit
 ) {
 
     @Volatile
-    var instanceId: Int? = null
-        private set
+    private var instance: Instance<T>? = null
 
-    @Volatile
-    private var instance: T? = null
+    val instanceId: Int? get() = synchronized(this) {
+        instance?.id
+    }
 
-    fun instance(): T = instance ?: synchronized(this) {
-        instance ?: create().apply {
-            instance = this
-            instanceId = currentInstanceId.incrementAndGet()
-            onCreate(this)
+    fun instance(): T {
+        val i = instance
+        if (i != null) {
+            return i.value
+        }
+        return synchronized(this) {
+            val i2 = instance
+            if (i2 != null) {
+                i2.value
+            } else {
+                val i3 = Instance(create(), currentInstanceId.incrementAndGet())
+                onCreate(i3.value)
+                instance = i3
+                i3.value
+            }
         }
     }
 
     fun destroy() {
-        instance?.also {
-            synchronized(this) {
-                instance?.also {
-                    onDestroy(it)
-                    instance = null
-                    instanceId = null
-                }
+        synchronized(this) {
+            val i = instance
+            if (i != null) {
+                onDestroy(i.value)
+                instance = null
             }
         }
     }
@@ -45,5 +53,7 @@ internal class Provider<T : Any>(
     companion object {
         val currentInstanceId = AtomicInteger()
     }
+
+    data class Instance<T: Any>(val value: T, val id: Int)
 
 }
