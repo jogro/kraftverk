@@ -19,10 +19,10 @@ internal data class ValueConfig<T : Any>(
 )
 
 @PublishedApi
-internal fun <T : Any> newModuleBinding(
+internal fun <T : Any> newDelegate(
     name: String?,
     config: ValueConfig<T>
-): ModuleBinding<Value<T>> = object : ModuleBinding<Value<T>> {
+): DelegatedValue<T> = object : DelegatedValue<T> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<Value<T>> {
         val valueName = (name ?: property.name).toValueName(thisRef.namespace)
@@ -48,9 +48,9 @@ internal data class BeanConfig<T : Any>(
 )
 
 @PublishedApi
-internal fun <T : Any> newModuleBinding(
+internal fun <T : Any> newDelegate(
     config: BeanConfig<T>
-): ModuleBinding<Bean<T>> = object : ModuleBinding<Bean<T>> {
+): DelegatedBean<T> = object : DelegatedBean<T> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<Bean<T>> {
         val beanName = property.name.toBeanName(thisRef.namespace)
@@ -66,10 +66,10 @@ internal fun <T : Any> newModuleBinding(
         (if (namespace.isEmpty()) this else "${namespace}.$this")
 }
 
-internal fun <M : Module> newModuleBinding(
+internal fun <M : Module> newDelegate(
     name: String? = null,
     subModule: () -> M
-): ModuleBinding<M> = object : ModuleBinding<M> {
+): DelegatedModule<M> = object : DelegatedModule<M> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<M> {
         val moduleName = name ?: property.name

@@ -18,21 +18,19 @@ inline fun <reified T : Any> bean(
     lazy: Boolean? = null,
     refreshable: Boolean? = null,
     noinline instance: BeanDefinition.() -> T
-): ModuleBinding<Bean<T>> =
-    newModuleBinding(
-        BeanConfig(
-            T::class,
-            lazy,
-            refreshable,
-            instance
-        )
+): DelegatedBean<T> = newDelegate(
+    BeanConfig(
+        T::class,
+        lazy,
+        refreshable,
+        instance
     )
+)
 
 fun <M : Module> module(
     name: String? = null,
     module: () -> M
-): ModuleBinding<M> =
-    newModuleBinding(name, module)
+): DelegatedModule<M> = newDelegate(name, module)
 
 inline fun <reified T : Any> value(
     name: String? = null,
@@ -40,17 +38,16 @@ inline fun <reified T : Any> value(
     lazy: Boolean? = null,
     secret: Boolean = false,
     noinline instance: ValueDefinition.(String) -> T
-): ModuleBinding<Value<T>> =
-    newModuleBinding(
-        name,
-        ValueConfig(
-            T::class,
-            default,
-            lazy,
-            secret,
-            instance
-        )
+): DelegatedValue<T> = newDelegate(
+    name,
+    ValueConfig(
+        T::class,
+        default,
+        lazy,
+        secret,
+        instance
     )
+)
 
 fun string(
     name: String? = null,
@@ -58,7 +55,7 @@ fun string(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(String) -> String = { it }
-): ModuleBinding<Value<String>> =
+): DelegatedProperty<Value<String>> =
     value(
         name,
         default,
@@ -72,7 +69,7 @@ fun int(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
-): ModuleBinding<Value<Int>> =
+): DelegatedProperty<Value<Int>> =
     value(
         name,
         default,
@@ -86,7 +83,7 @@ fun long(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Long) -> Long = { it }
-): ModuleBinding<Value<Long>> =
+): DelegatedProperty<Value<Long>> =
     value(
         name,
         default,
@@ -100,7 +97,7 @@ fun boolean(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Boolean) -> Boolean = { it }
-): ModuleBinding<Value<Boolean>> =
+): DelegatedProperty<Value<Boolean>> =
     value(
         name,
         default,
@@ -114,7 +111,7 @@ fun port(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
-): ModuleBinding<Value<Int>> =
+): DelegatedProperty<Value<Int>> =
     value(name, default, lazy, secret) { value ->
         block(
             when (val port = value.toInt()) {
@@ -140,7 +137,11 @@ fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(
     }
 }
 
-interface ModuleBinding<out T> {
+interface DelegatedBean<out T : Any> : DelegatedProperty<Bean<T>>
+interface DelegatedValue<out T : Any> : DelegatedProperty<Value<T>>
+interface DelegatedModule<out T : Module> : DelegatedProperty<T>
+
+interface DelegatedProperty<out T> {
     operator fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<T>
 }
 
