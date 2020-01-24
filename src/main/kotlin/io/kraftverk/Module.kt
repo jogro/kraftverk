@@ -135,11 +135,11 @@ fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(
     }
 }
 
-interface DelegatedBean<out T : Any> : DelegatedProperty<Bean<T>>
-interface DelegatedValue<out T : Any> : DelegatedProperty<Value<T>>
-interface DelegatedModule<out T : Module> : DelegatedProperty<T>
+interface DelegatedBean<out T : Any> : Delegated<Bean<T>>
+interface DelegatedValue<out T : Any> : Delegated<Value<T>>
+interface DelegatedModule<out T : Module> : Delegated<T>
 
-interface DelegatedProperty<out T> {
+interface Delegated<out T> {
     operator fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<T>
 }
 
