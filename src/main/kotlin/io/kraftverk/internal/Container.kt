@@ -69,13 +69,7 @@ internal class Container(private val lazy: Boolean, val refreshable: Boolean, va
     private fun List<Binding<*>>.destroy() {
         filter { it.provider().instanceId != null }
             .sortedByDescending { it.provider().instanceId }
-            .forEach { binding ->
-                runCatching {
-                    binding.destroy()
-                }.onFailure { ex ->
-                    ex.printStackTrace()
-                }
-            }
+            .forEach { it.destroy() }
     }
 
     private fun List<Binding<*>>.start() {

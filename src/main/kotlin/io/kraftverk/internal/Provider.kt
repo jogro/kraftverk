@@ -5,8 +5,11 @@
 
 package io.kraftverk.internal
 
+import mu.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
+
+private val logger = KotlinLogging.logger {  }
 
 internal class Provider<T : Any>(
     val type: KClass<T>, // Just keep this for now
@@ -44,7 +47,11 @@ internal class Provider<T : Any>(
         synchronized(this) {
             val i = instance
             if (i != null) {
-                onDestroy(i.value)
+                try {
+                    onDestroy(i.value)
+                } catch (ex: Exception) {
+                    logger.error("Couldn't destroy bean", ex)
+                }
                 instance = null
             }
         }
