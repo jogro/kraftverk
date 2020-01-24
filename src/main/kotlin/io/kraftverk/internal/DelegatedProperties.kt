@@ -24,10 +24,10 @@ internal fun <T : Any> newDelegate(
     config: ValueConfig<T>
 ): DelegatedValue<T> = object : DelegatedValue<T> {
 
-    override fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<Value<T>> {
+    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<Value<T>> {
         val valueName = (name ?: property.name).toValueName(thisRef.namespace)
         val value = thisRef.container.newValue(valueName, config)
-        return object : ModuleProperty<Value<T>> {
+        return object : Delegate<Value<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Value<T> {
                 return value
             }
@@ -52,10 +52,10 @@ internal fun <T : Any> newDelegate(
     config: BeanConfig<T>
 ): DelegatedBean<T> = object : DelegatedBean<T> {
 
-    override fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<Bean<T>> {
+    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<Bean<T>> {
         val beanName = property.name.toBeanName(thisRef.namespace)
         val bean = thisRef.container.newBean(beanName, config)
-        return object : ModuleProperty<Bean<T>> {
+        return object : Delegate<Bean<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Bean<T> {
                 return bean
             }
@@ -71,7 +71,7 @@ internal fun <M : Module> newDelegate(
     subModule: () -> M
 ): DelegatedModule<M> = object : DelegatedModule<M> {
 
-    override fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<M> {
+    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<M> {
         val moduleName = name ?: property.name
         val module = if (moduleName.isEmpty()) subModule() else {
             val currentNamespace = thisRef.namespace
@@ -80,7 +80,7 @@ internal fun <M : Module> newDelegate(
                 subModule()
             }
         }
-        return object : ModuleProperty<M> {
+        return object : Delegate<M> {
             override fun getValue(thisRef: Module, property: KProperty<*>): M {
                 return module
             }

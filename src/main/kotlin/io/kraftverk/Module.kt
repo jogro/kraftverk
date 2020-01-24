@@ -30,7 +30,10 @@ inline fun <reified T : Any> bean(
 fun <M : Module> module(
     name: String? = null,
     module: () -> M
-): DelegatedModule<M> = newDelegate(name, module)
+): DelegatedModule<M> = newDelegate(
+    name,
+    module
+)
 
 inline fun <reified T : Any> value(
     name: String? = null,
@@ -55,13 +58,12 @@ fun string(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(String) -> String = { it }
-): DelegatedProperty<Value<String>> =
-    value(
-        name,
-        default,
-        lazy,
-        secret
-    ) { block(it) }
+): DelegatedValue<String> = value(
+    name,
+    default,
+    lazy,
+    secret
+) { block(it) }
 
 fun int(
     name: String? = null,
@@ -69,13 +71,12 @@ fun int(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
-): DelegatedProperty<Value<Int>> =
-    value(
-        name,
-        default,
-        lazy,
-        secret
-    ) { block(it.toInt()) }
+): DelegatedValue<Int> = value(
+    name,
+    default,
+    lazy,
+    secret
+) { block(it.toInt()) }
 
 fun long(
     name: String? = null,
@@ -83,13 +84,12 @@ fun long(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Long) -> Long = { it }
-): DelegatedProperty<Value<Long>> =
-    value(
-        name,
-        default,
-        lazy,
-        secret
-    ) { block(it.toLong()) }
+): DelegatedValue<Long> = value(
+    name,
+    default,
+    lazy,
+    secret
+) { block(it.toLong()) }
 
 fun boolean(
     name: String? = null,
@@ -97,13 +97,12 @@ fun boolean(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Boolean) -> Boolean = { it }
-): DelegatedProperty<Value<Boolean>> =
-    value(
-        name,
-        default,
-        lazy,
-        secret
-    ) { block(it.toBoolean()) }
+): DelegatedValue<Boolean> = value(
+    name,
+    default,
+    lazy,
+    secret
+) { block(it.toBoolean()) }
 
 fun port(
     name: String? = null,
@@ -111,15 +110,14 @@ fun port(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
-): DelegatedProperty<Value<Int>> =
-    value(name, default, lazy, secret) { value ->
-        block(
-            when (val port = value.toInt()) {
-                0 -> ServerSocket(0).use { it.localPort }
-                else -> port
-            }
-        )
-    }
+): DelegatedValue<Int> = value(name, default, lazy, secret) { value ->
+    block(
+        when (val port = value.toInt()) {
+            0 -> ServerSocket(0).use { it.localPort }
+            else -> port
+        }
+    )
+}
 
 fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(bean)
 
@@ -142,10 +140,10 @@ interface DelegatedValue<out T : Any> : DelegatedProperty<Value<T>>
 interface DelegatedModule<out T : Module> : DelegatedProperty<T>
 
 interface DelegatedProperty<out T> {
-    operator fun provideDelegate(thisRef: Module, property: KProperty<*>): ModuleProperty<T>
+    operator fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<T>
 }
 
-interface ModuleProperty<out T> : ReadOnlyProperty<Module, T>
+interface Delegate<out T> : ReadOnlyProperty<Module, T>
 
 class BindBean<T : Any> internal constructor(private val bean: Bean<T>) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {

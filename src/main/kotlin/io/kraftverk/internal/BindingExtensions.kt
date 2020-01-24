@@ -47,7 +47,7 @@ internal fun <T : Any> Binding<T>.provider(): Provider<T> {
     return this.toHandler().provider()
 }
 
-internal val Binding<*>.container: Container get() = this.toHandler().container
+internal val Binding<*>.container: Container get() = toHandler().container
 
 private fun <T : Any> Binding<T>.toHandler(): BindingHandler<T> = when (this) {
     is BeanImpl<T> -> handler
