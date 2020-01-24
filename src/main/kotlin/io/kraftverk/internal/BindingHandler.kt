@@ -12,6 +12,7 @@ import kotlin.time.measureTimedValue
 private val logger = KotlinLogging.logger {}
 
 internal sealed class BindingHandler<T : Any>(
+    val container: Container,
     protected val type: KClass<T>,
     lazy: Boolean,
     refreshable: Boolean,
@@ -117,13 +118,13 @@ internal sealed class BindingHandler<T : Any>(
 }
 
 internal class BeanHandler<T : Any>(
-    private val container: Container,
+    container: Container,
     private val name: String,
     type: KClass<T>,
     lazy: Boolean,
     refreshable: Boolean,
     instance: () -> T
-) : BindingHandler<T>(type, lazy, refreshable, instance) {
+) : BindingHandler<T>(container, type, lazy, refreshable, instance) {
 
     override fun createProvider(
         createInstance: () -> T,
@@ -146,13 +147,13 @@ internal class BeanHandler<T : Any>(
 }
 
 internal class ValueHandler<T : Any>(
-    private val container: Container,
+    container: Container,
     private val name: String,
     private val secret: Boolean,
     type: KClass<T>,
     lazy: Boolean,
     instance: () -> T
-) : BindingHandler<T>(type, lazy, true, instance) {
+) : BindingHandler<T>(container, type, lazy, true, instance) {
 
     override fun createProvider(
         createInstance: () -> T,

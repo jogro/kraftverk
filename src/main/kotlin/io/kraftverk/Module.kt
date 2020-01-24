@@ -121,19 +121,19 @@ fun port(
         )
     }
 
-fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(container, bean)
+fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(bean)
 
-fun <T : Any> Module.bind(value: Value<T>) = BindProperty(container, value)
+fun <T : Any> Module.bind(value: Value<T>) = BindProperty(value)
 
 fun <T : Any> Module.onCreate(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onCreate { instance, consumer ->
-        BeanConsumerDefinition(container.environment, instance, consumer).block(instance)
+        BeanConsumerDefinition(bean.container.environment, instance, consumer).block(instance)
     }
 }
 
 fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     bean.onDestroy { instance, consumer ->
-        BeanConsumerDefinition(container.environment, instance, consumer).block(instance)
+        BeanConsumerDefinition(bean.container.environment, instance, consumer).block(instance)
     }
 }
 
@@ -147,18 +147,18 @@ interface DelegatedProperty<out T> {
 
 interface ModuleProperty<out T> : ReadOnlyProperty<Module, T>
 
-class BindBean<T : Any> internal constructor(private val container: Container, private val bean: Bean<T>) {
+class BindBean<T : Any> internal constructor(private val bean: Bean<T>) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
         bean.onBind { next ->
-            BeanSupplierDefinition(container.environment, next).block()
+            BeanSupplierDefinition(bean.container.environment, next).block()
         }
     }
 }
 
-class BindProperty<T : Any> internal constructor(private val container: Container, private val value: Value<T>) {
+class BindProperty<T : Any> internal constructor(private val value: Value<T>) {
     infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
         value.onBind { next ->
-            ValueSupplierDefinition(container.environment, next).block()
+            ValueSupplierDefinition(value.container.environment, next).block()
         }
     }
 }
