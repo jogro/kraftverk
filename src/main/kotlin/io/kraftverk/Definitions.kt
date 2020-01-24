@@ -19,7 +19,7 @@ class ValueSupplierDefinition<T> internal constructor(
 }
 
 open class BeanDefinition internal constructor(env: Environment) : ValueDefinition(env) {
-    operator fun <T : Any> Binding<T>.invoke(): T = provider().instance()
+    operator fun <T : Any> Bean<T>.invoke(): T = provider().instance()
 }
 
 class BeanSupplierDefinition<T> internal constructor(
