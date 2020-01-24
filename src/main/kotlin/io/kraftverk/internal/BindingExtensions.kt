@@ -12,42 +12,42 @@ import io.kraftverk.ValueImpl
 internal fun <T : Any> Binding<T>.onBind(
     block: (() -> T) -> T
 ) {
-    this.toDelegate().onBind(block)
+    this.toHandler().onBind(block)
 }
 
 internal fun <T : Any> Binding<T>.onCreate(
     block: (T, (T) -> Unit) -> Unit
 ) {
-    this.toDelegate().onCreate(block)
+    this.toHandler().onCreate(block)
 }
 
 internal fun <T : Any> Binding<T>.onDestroy(
     block: (T, (T) -> Unit) -> Unit
 ) {
-    this.toDelegate().onDestroy(block)
+    this.toHandler().onDestroy(block)
 }
 
 internal fun Binding<*>.start() {
-    this.toDelegate().start()
+    this.toHandler().start()
 }
 
 internal fun Binding<*>.refresh() {
-    this.toDelegate().refresh()
+    this.toHandler().refresh()
 }
 
 internal fun Binding<*>.prepare() {
-    this.toDelegate().prepare()
+    this.toHandler().prepare()
 }
 
 internal fun Binding<*>.destroy() {
-    this.toDelegate().destroy()
+    this.toHandler().destroy()
 }
 
 internal fun <T : Any> Binding<T>.provider(): Provider<T> {
-    return this.toDelegate().provider()
+    return this.toHandler().provider()
 }
 
-private fun <T : Any> Binding<T>.toDelegate(): BindingDelegate<T> = when (this) {
-    is BeanImpl<T> -> delegate
-    is ValueImpl<T> -> delegate
+private fun <T : Any> Binding<T>.toHandler(): BindingHandler<T> = when (this) {
+    is BeanImpl<T> -> handler
+    is ValueImpl<T> -> handler
 }
