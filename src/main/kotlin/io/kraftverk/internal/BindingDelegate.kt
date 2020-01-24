@@ -117,6 +117,7 @@ internal sealed class BindingDelegate<T : Any>(
 }
 
 internal class BeanDelegate<T : Any>(
+    private val container: Container,
     private val name: String,
     type: KClass<T>,
     lazy: Boolean,
@@ -129,6 +130,7 @@ internal class BeanDelegate<T : Any>(
         onCreate: (T) -> Unit,
         onDestroy: (T) -> Unit
     ) = Provider(
+        container = container,
         type = type,
         create = {
             measureTimedValue {
@@ -144,6 +146,7 @@ internal class BeanDelegate<T : Any>(
 }
 
 internal class ValueDelegate<T : Any>(
+    private val container: Container,
     private val name: String,
     private val secret: Boolean,
     type: KClass<T>,
@@ -156,6 +159,7 @@ internal class ValueDelegate<T : Any>(
         onCreate: (T) -> Unit,
         onDestroy: (T) -> Unit
     ) = Provider(
+        container = container,
         type = type,
         create = {
             createInstance().also {

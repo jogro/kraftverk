@@ -9,10 +9,11 @@ import mu.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
-private val logger = KotlinLogging.logger {  }
+private val logger = KotlinLogging.logger { }
 
 internal class Provider<T : Any>(
-    val type: KClass<T>, // Just keep this for now
+    val container: Container, // Just keep this for now
+    val type: KClass<T>,
     private val create: () -> T,
     private val onCreate: (T) -> Unit,
     private val onDestroy: (T) -> Unit
@@ -21,11 +22,13 @@ internal class Provider<T : Any>(
     @Volatile
     private var instance: Instance<T>? = null
 
-    val instanceId: Int? get() = synchronized(this) {
-        instance?.id
-    }
+    val instanceId: Int?
+        get() = synchronized(this) {
+            instance?.id
+        }
 
     fun instance(): T {
+        container.checkIsRunning()
         val i = instance
         if (i != null) {
             return i.value
@@ -61,6 +64,6 @@ internal class Provider<T : Any>(
         val currentInstanceId = AtomicInteger()
     }
 
-    data class Instance<T: Any>(val value: T, val id: Int)
+    data class Instance<T : Any>(val value: T, val id: Int)
 
 }

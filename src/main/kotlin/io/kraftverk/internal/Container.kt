@@ -16,12 +16,12 @@ internal class Container(private val lazy: Boolean, val refreshable: Boolean, va
 
     fun <T : Any> newValue(name: String, config: ValueConfig<T>) = ValueImpl(
         ValueDelegate(
+            container = this,
             name = name,
             secret = config.secret,
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
-                state.checkIsRunning()
                 val value = environment[name] ?: config.default ?: throwValueNotFound(name)
                 config.instance(ValueDefinition(environment), value)
             }
@@ -30,12 +30,12 @@ internal class Container(private val lazy: Boolean, val refreshable: Boolean, va
 
     fun <T : Any> newBean(name: String, config: BeanConfig<T>) = BeanImpl(
         BeanDelegate(
+            container = this,
             name = name,
             type = config.type,
             lazy = config.lazy ?: lazy,
             refreshable = config.refreshable ?: refreshable,
             instance = {
-                state.checkIsRunning()
                 config.instance(BeanDefinition(environment))
             }
         )
@@ -66,6 +66,10 @@ internal class Container(private val lazy: Boolean, val refreshable: Boolean, va
         }
     }
 
+    fun checkIsRunning() {
+        state.narrow<State.Running>()
+    }
+
     private fun List<Binding<*>>.destroy() {
         filter { it.provider().instanceId != null }
             .sortedByDescending { it.provider().instanceId }
@@ -93,10 +97,6 @@ internal class Container(private val lazy: Boolean, val refreshable: Boolean, va
 
     private fun throwValueNotFound(name: String): Nothing =
         throw ValueNotFoundException("Value '$name' was not found!")
-
-    private fun State.checkIsRunning() {
-        narrow<State.Running>()
-    }
 
     private sealed class State {
 
