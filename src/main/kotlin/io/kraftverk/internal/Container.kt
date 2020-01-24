@@ -9,7 +9,7 @@ import io.kraftverk.*
 
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
-internal class Container(private val lazy: Boolean, val refreshable: Boolean, val environment: Environment) {
+internal class Container(private val lazy: Boolean, private val refreshable: Boolean, val environment: Environment) {
 
     @Volatile
     private var state: State = State.Defining()
