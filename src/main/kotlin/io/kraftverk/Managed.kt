@@ -54,7 +54,7 @@ fun <M : Module, T : Any> Managed<M>.get(binding: M.() -> Binding<T>): T {
 }
 
 /**
- * Refreshes this [Managed] [Module]. This means that all [Value]s and [Bean]s will be destroyed and reinitialized.
+ * Refreshes this [Managed] [Module]. All [Value]s and [Bean]s will be destroyed and reinitialized.
  *
  * It is possible to specify whether a certain bean is refreshable, see the [bean] declaration method.
  */

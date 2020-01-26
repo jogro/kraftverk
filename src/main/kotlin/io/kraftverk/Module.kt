@@ -137,15 +137,15 @@ fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(
     }
 }
 
-interface BeanDelegate<out T : Any> : Delegated<Bean<T>>
-interface ValueDelegate<out T : Any> : Delegated<Value<T>>
-interface ModuleDelegate<out T : Module> : Delegated<T>
+interface BeanDelegate<out T : Any> : Delegate<Bean<T>>
+interface ValueDelegate<out T : Any> : Delegate<Value<T>>
+interface ModuleDelegate<out T : Module> : Delegate<T>
 
-interface Delegated<out T> {
-    operator fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<T>
+interface Delegate<out T> {
+    operator fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<T>
 }
 
-interface Delegate<out T> : ReadOnlyProperty<Module, T>
+interface Property<out T> : ReadOnlyProperty<Module, T>
 
 class BindBean<T : Any> internal constructor(private val bean: Bean<T>) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {

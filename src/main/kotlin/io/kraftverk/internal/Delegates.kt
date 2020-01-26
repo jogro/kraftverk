@@ -24,10 +24,10 @@ internal fun <T : Any> newValueDelegate(
     config: ValueConfig<T>
 ): ValueDelegate<T> = object : ValueDelegate<T> {
 
-    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<Value<T>> {
+    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<Value<T>> {
         val valueName = (name ?: property.name).toQualifiedName(thisRef.namespace).spinalCase()
         val value = thisRef.container.newValue(valueName, config)
-        return object : Delegate<Value<T>> {
+        return object : Property<Value<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Value<T> {
                 return value
             }
@@ -49,10 +49,10 @@ internal fun <T : Any> newBeanDelegate(
     config: BeanConfig<T>
 ): BeanDelegate<T> = object : BeanDelegate<T> {
 
-    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<Bean<T>> {
+    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<Bean<T>> {
         val beanName = property.name.toQualifiedName(thisRef.namespace)
         val bean = thisRef.container.newBean(beanName, config)
-        return object : Delegate<Bean<T>> {
+        return object : Property<Bean<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Bean<T> {
                 return bean
             }
@@ -66,10 +66,10 @@ internal fun <M : Module> newModuleDelegate(
     subModule: () -> M
 ): ModuleDelegate<M> = object : ModuleDelegate<M> {
 
-    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<M> {
+    override fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<M> {
         val moduleName = (name ?: property.name).toQualifiedName(thisRef.namespace)
         val module = ModuleCreationContext.use(moduleName) { subModule() }
-        return object : Delegate<M> {
+        return object : Property<M> {
             override fun getValue(thisRef: Module, property: KProperty<*>): M {
                 return module
             }
