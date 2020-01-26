@@ -79,4 +79,4 @@ internal fun <M : Module> newModuleDelegate(
 }
 
 private fun String.toQualifiedName(namespace: String) =
-    (if (namespace.isEmpty()) this else "${namespace}.$this")
+    (if (namespace.isBlank()) this else "${namespace}.$this")
