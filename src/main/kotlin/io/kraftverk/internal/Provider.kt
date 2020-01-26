@@ -12,8 +12,10 @@ import kotlin.reflect.KClass
 private val logger = KotlinLogging.logger { }
 
 internal class Provider<T : Any>(
-    val container: Container, // Just keep this for now
+    val container: Container,
     val type: KClass<T>,
+    val lazy: Boolean,
+    val refreshable: Boolean,
     private val create: () -> T,
     private val onCreate: (T) -> Unit,
     private val onDestroy: (T) -> Unit
@@ -26,6 +28,10 @@ internal class Provider<T : Any>(
         get() = synchronized(this) {
             instance?.id
         }
+
+    fun prepare() {
+        if (!lazy) instance()
+    }
 
     fun instance(): T {
         container.checkIsRunning()
@@ -44,6 +50,10 @@ internal class Provider<T : Any>(
                 i3.value
             }
         }
+    }
+
+    fun refresh() {
+        if (refreshable) destroy()
     }
 
     fun destroy() {

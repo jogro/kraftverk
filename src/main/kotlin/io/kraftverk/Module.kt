@@ -18,7 +18,7 @@ inline fun <reified T : Any> bean(
     lazy: Boolean? = null,
     refreshable: Boolean? = null,
     noinline instance: BeanDefinition.() -> T
-): DelegatedBean<T> = newDelegate(
+): BeanDelegate<T> = newBeanDelegate(
     BeanConfig(
         T::class,
         lazy,
@@ -30,7 +30,7 @@ inline fun <reified T : Any> bean(
 fun <M : Module> module(
     name: String? = null,
     module: () -> M
-): DelegatedModule<M> = newDelegate(
+): ModuleDelegate<M> = newModuleDelegate(
     name,
     module
 )
@@ -41,7 +41,7 @@ inline fun <reified T : Any> value(
     lazy: Boolean? = null,
     secret: Boolean = false,
     noinline instance: ValueDefinition.(String) -> T
-): DelegatedValue<T> = newDelegate(
+): ValueDelegate<T> = newValueDelegate(
     name,
     ValueConfig(
         T::class,
@@ -58,7 +58,7 @@ fun string(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(String) -> String = { it }
-): DelegatedValue<String> = value(
+): ValueDelegate<String> = value(
     name,
     default,
     lazy,
@@ -71,7 +71,7 @@ fun int(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
-): DelegatedValue<Int> = value(
+): ValueDelegate<Int> = value(
     name,
     default,
     lazy,
@@ -84,7 +84,7 @@ fun long(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Long) -> Long = { it }
-): DelegatedValue<Long> = value(
+): ValueDelegate<Long> = value(
     name,
     default,
     lazy,
@@ -97,7 +97,7 @@ fun boolean(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Boolean) -> Boolean = { it }
-): DelegatedValue<Boolean> = value(
+): ValueDelegate<Boolean> = value(
     name,
     default,
     lazy,
@@ -110,7 +110,7 @@ fun port(
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
-): DelegatedValue<Int> = value(name, default, lazy, secret) { value ->
+): ValueDelegate<Int> = value(name, default, lazy, secret) { value ->
     block(
         when (val port = value.toInt()) {
             0 -> ServerSocket(0).use { it.localPort }
@@ -124,20 +124,22 @@ fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(bean)
 fun <T : Any> Module.bind(value: Value<T>) = BindProperty(value)
 
 fun <T : Any> Module.onCreate(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
+    val env = bean.container.environment
     bean.onCreate { instance, consumer ->
-        BeanConsumerDefinition(bean.container.environment, instance, consumer).block(instance)
+        BeanConsumerDefinition(env, instance, consumer).block(instance)
     }
 }
 
 fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
+    val env = bean.container.environment
     bean.onDestroy { instance, consumer ->
-        BeanConsumerDefinition(bean.container.environment, instance, consumer).block(instance)
+        BeanConsumerDefinition(env, instance, consumer).block(instance)
     }
 }
 
-interface DelegatedBean<out T : Any> : Delegated<Bean<T>>
-interface DelegatedValue<out T : Any> : Delegated<Value<T>>
-interface DelegatedModule<out T : Module> : Delegated<T>
+interface BeanDelegate<out T : Any> : Delegated<Bean<T>>
+interface ValueDelegate<out T : Any> : Delegated<Value<T>>
+interface ModuleDelegate<out T : Module> : Delegated<T>
 
 interface Delegated<out T> {
     operator fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<T>
@@ -147,16 +149,18 @@ interface Delegate<out T> : ReadOnlyProperty<Module, T>
 
 class BindBean<T : Any> internal constructor(private val bean: Bean<T>) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
+        val env = bean.container.environment
         bean.onBind { next ->
-            BeanSupplierDefinition(bean.container.environment, next).block()
+            BeanSupplierDefinition(env, next).block()
         }
     }
 }
 
 class BindProperty<T : Any> internal constructor(private val value: Value<T>) {
     infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
+        val env = value.container.environment
         value.onBind { next ->
-            ValueSupplierDefinition(value.container.environment, next).block()
+            ValueSupplierDefinition(env, next).block()
         }
     }
 }

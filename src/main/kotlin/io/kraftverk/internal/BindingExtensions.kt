@@ -5,8 +5,8 @@
 
 package io.kraftverk.internal
 
+import io.kraftverk.*
 import io.kraftverk.BeanImpl
-import io.kraftverk.Binding
 import io.kraftverk.ValueImpl
 
 internal fun <T : Any> Binding<T>.onBind(
@@ -47,7 +47,13 @@ internal fun <T : Any> Binding<T>.provider(): Provider<T> {
     return this.toHandler().provider()
 }
 
-internal val Binding<*>.container: Container get() = toHandler().container
+internal val Bean<*>.container: Container get() = when (this) {
+    is BeanImpl<*> -> handler.container
+}
+
+internal val Value<*>.container: Container get() = when (this) {
+    is ValueImpl<*> -> handler.container
+}
 
 private fun <T : Any> Binding<T>.toHandler(): BindingHandler<T> = when (this) {
     is BeanImpl<T> -> handler

@@ -19,13 +19,13 @@ internal data class ValueConfig<T : Any>(
 )
 
 @PublishedApi
-internal fun <T : Any> newDelegate(
+internal fun <T : Any> newValueDelegate(
     name: String?,
     config: ValueConfig<T>
-): DelegatedValue<T> = object : DelegatedValue<T> {
+): ValueDelegate<T> = object : ValueDelegate<T> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<Value<T>> {
-        val valueName = (name ?: property.name).toValueName(thisRef.namespace)
+        val valueName = (name ?: property.name).toQualifiedName(thisRef.namespace).spinalCase()
         val value = thisRef.container.newValue(valueName, config)
         return object : Delegate<Value<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Value<T> {
@@ -33,9 +33,6 @@ internal fun <T : Any> newDelegate(
             }
         }
     }
-
-    private fun String.toValueName(namespace: String) =
-        (if (namespace.isBlank()) this else "${namespace}.$this").spinalCase()
 
 }
 
@@ -48,12 +45,12 @@ internal data class BeanConfig<T : Any>(
 )
 
 @PublishedApi
-internal fun <T : Any> newDelegate(
+internal fun <T : Any> newBeanDelegate(
     config: BeanConfig<T>
-): DelegatedBean<T> = object : DelegatedBean<T> {
+): BeanDelegate<T> = object : BeanDelegate<T> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<Bean<T>> {
-        val beanName = property.name.toBeanName(thisRef.namespace)
+        val beanName = property.name.toQualifiedName(thisRef.namespace)
         val bean = thisRef.container.newBean(beanName, config)
         return object : Delegate<Bean<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Bean<T> {
@@ -62,24 +59,16 @@ internal fun <T : Any> newDelegate(
         }
     }
 
-    private fun String.toBeanName(namespace: String) =
-        (if (namespace.isEmpty()) this else "${namespace}.$this")
 }
 
-internal fun <M : Module> newDelegate(
+internal fun <M : Module> newModuleDelegate(
     name: String? = null,
     subModule: () -> M
-): DelegatedModule<M> = object : DelegatedModule<M> {
+): ModuleDelegate<M> = object : ModuleDelegate<M> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): Delegate<M> {
-        val moduleName = name ?: property.name
-        val module = if (moduleName.isEmpty()) subModule() else {
-            val currentNamespace = thisRef.namespace
-            val newNamespace = if (currentNamespace.isEmpty()) moduleName else "$currentNamespace.$moduleName"
-            ModuleCreationContext.use(newNamespace) {
-                subModule()
-            }
-        }
+        val moduleName = (name ?: property.name).toQualifiedName(thisRef.namespace)
+        val module = ModuleCreationContext.use(moduleName) { subModule() }
         return object : Delegate<M> {
             override fun getValue(thisRef: Module, property: KProperty<*>): M {
                 return module
@@ -89,4 +78,5 @@ internal fun <M : Module> newDelegate(
 
 }
 
-
+private fun String.toQualifiedName(namespace: String) =
+    (if (namespace.isEmpty()) this else "${namespace}.$this")

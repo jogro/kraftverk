@@ -11,15 +11,10 @@ import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 
-internal sealed class BindingHandler<T : Any>(
-    val container: Container,
-    protected val type: KClass<T>,
-    lazy: Boolean,
-    refreshable: Boolean,
-    instance: () -> T
-) {
+internal sealed class BindingHandler<T : Any>(instance: () -> T) {
+
     @Volatile
-    private var state: State<T> = State.Defining(lazy, refreshable, instance)
+    private var state: State<T> = State.Defining(instance)
 
     fun <T : Any> onBind(
         block: (() -> T) -> T
@@ -61,13 +56,13 @@ internal sealed class BindingHandler<T : Any>(
                 onCreate,
                 onDestroy
             )
-            state = State.Running(provider, lazy, refreshable)
+            state = State.Running(provider)
         }
     }
 
     fun prepare() {
         state.applyAs<State.Running<T>> {
-            if (!lazy) provider.instance()
+            provider.prepare()
         }
     }
 
@@ -79,9 +74,7 @@ internal sealed class BindingHandler<T : Any>(
 
     fun refresh() {
         state.applyAs<State.Running<T>> {
-            if (refreshable) {
-                provider.destroy()
-            }
+            provider.refresh()
         }
     }
 
@@ -101,8 +94,6 @@ internal sealed class BindingHandler<T : Any>(
     private sealed class State<out T : Any> {
 
         class Defining<T : Any>(
-            val lazy: Boolean,
-            val refreshable: Boolean,
             instance: () -> T
         ) : State<T>() {
             var createInstance: () -> T = instance
@@ -110,7 +101,7 @@ internal sealed class BindingHandler<T : Any>(
             var onDestroy: (T) -> Unit = {}
         }
 
-        class Running<T : Any>(val provider: Provider<T>, val lazy: Boolean, val refreshable: Boolean) : State<T>()
+        class Running<T : Any>(val provider: Provider<T>) : State<T>()
 
         object Destroyed : State<Nothing>()
     }
@@ -118,13 +109,13 @@ internal sealed class BindingHandler<T : Any>(
 }
 
 internal class BeanHandler<T : Any>(
-    container: Container,
+    val container: Container,
     private val name: String,
-    type: KClass<T>,
-    lazy: Boolean,
-    refreshable: Boolean,
+    private val type: KClass<T>,
+    private val lazy: Boolean,
+    private val refreshable: Boolean,
     instance: () -> T
-) : BindingHandler<T>(container, type, lazy, refreshable, instance) {
+) : BindingHandler<T>(instance) {
 
     override fun createProvider(
         createInstance: () -> T,
@@ -133,6 +124,8 @@ internal class BeanHandler<T : Any>(
     ) = Provider(
         container = container,
         type = type,
+        lazy = lazy,
+        refreshable = refreshable,
         create = {
             measureTimedValue {
                 createInstance()
@@ -147,13 +140,13 @@ internal class BeanHandler<T : Any>(
 }
 
 internal class ValueHandler<T : Any>(
-    container: Container,
+    val container: Container,
     private val name: String,
+    private val type: KClass<T>,
+    private val lazy: Boolean,
     private val secret: Boolean,
-    type: KClass<T>,
-    lazy: Boolean,
     instance: () -> T
-) : BindingHandler<T>(container, type, lazy, true, instance) {
+) : BindingHandler<T>(instance) {
 
     override fun createProvider(
         createInstance: () -> T,
@@ -162,6 +155,8 @@ internal class ValueHandler<T : Any>(
     ) = Provider(
         container = container,
         type = type,
+        lazy = lazy,
+        refreshable = true,
         create = {
             createInstance().also {
                 if (secret) {
@@ -174,4 +169,5 @@ internal class ValueHandler<T : Any>(
         onCreate = onCreate,
         onDestroy = onDestroy
     )
+
 }

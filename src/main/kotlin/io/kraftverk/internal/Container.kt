@@ -9,7 +9,7 @@ import io.kraftverk.*
 
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
-internal class Container(private val lazy: Boolean, private val refreshable: Boolean, val environment: Environment) {
+internal class Container(val lazy: Boolean, private val refreshable: Boolean, val environment: Environment) {
 
     @Volatile
     private var state: State = State.Defining()
@@ -22,8 +22,10 @@ internal class Container(private val lazy: Boolean, private val refreshable: Boo
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
-                val value = environment[name] ?: config.default ?: throwValueNotFound(name)
-                config.instance(ValueDefinition(environment), value)
+                config.instance(
+                    ValueDefinition(environment),
+                    environment[name] ?: config.default ?: throwValueNotFound(name)
+                )
             }
         )
     ).apply(::register)
