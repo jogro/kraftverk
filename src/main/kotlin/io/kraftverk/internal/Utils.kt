@@ -53,4 +53,4 @@ internal inline fun <reified T : Any> Any.narrow(): T {
 
 private val spinalRegex = "([A-Z]+)".toRegex()
 
-internal fun String.spinalCase() = replace(spinalRegex, "\\-$1").toLowerCase()
+internal fun String.toSpinalCase() = replace(spinalRegex, "\\-$1").toLowerCase()

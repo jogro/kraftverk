@@ -25,7 +25,7 @@ internal fun <T : Any> newValueDelegate(
 ): ValueDelegate<T> = object : ValueDelegate<T> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<Value<T>> {
-        val valueName = (name ?: property.name).toQualifiedName(thisRef.namespace).spinalCase()
+        val valueName = (name ?: property.name).toQualifiedName(thisRef.namespace).toSpinalCase()
         val value = thisRef.container.newValue(valueName, config)
         return object : Property<Value<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Value<T> {
