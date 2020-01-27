@@ -25,7 +25,7 @@ internal fun <T : Any> newValueDelegate(
 ): ValueDelegate<T> = object : ValueDelegate<T> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<Value<T>> {
-        val valueName = (name ?: property.name).toQualifiedName(thisRef.namespace).toSpinalCase()
+        val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
         val value = thisRef.container.newValue(valueName, config)
         return object : Property<Value<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Value<T> {
@@ -50,7 +50,7 @@ internal fun <T : Any> newBeanDelegate(
 ): BeanDelegate<T> = object : BeanDelegate<T> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<Bean<T>> {
-        val beanName = property.name.toQualifiedName(thisRef.namespace)
+        val beanName = property.name.toQualifiedName(thisRef)
         val bean = thisRef.container.newBean(beanName, config)
         return object : Property<Bean<T>> {
             override fun getValue(thisRef: Module, property: KProperty<*>): Bean<T> {
@@ -67,7 +67,7 @@ internal fun <M : Module> newModuleDelegate(
 ): ModuleDelegate<M> = object : ModuleDelegate<M> {
 
     override fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<M> {
-        val moduleName = (name ?: property.name).toQualifiedName(thisRef.namespace)
+        val moduleName = (name ?: property.name).toQualifiedName(thisRef)
         val module = ModuleCreationContext.use(moduleName) { subModule() }
         return object : Property<M> {
             override fun getValue(thisRef: Module, property: KProperty<*>): M {
@@ -78,5 +78,5 @@ internal fun <M : Module> newModuleDelegate(
 
 }
 
-private fun String.toQualifiedName(namespace: String) =
-    (if (namespace.isBlank()) this else "${namespace}.$this")
+private fun String.toQualifiedName(module: Module) =
+    (if (module.namespace.isBlank()) this else "${module.namespace}.$this")
