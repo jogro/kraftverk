@@ -7,8 +7,6 @@ package io.kraftverk
 
 import io.kraftverk.internal.*
 import java.net.ServerSocket
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 abstract class Module : InternalModule() {
     companion object
@@ -121,7 +119,7 @@ fun port(
 
 fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(bean)
 
-fun <T : Any> Module.bind(value: Value<T>) = BindProperty(value)
+fun <T : Any> Module.bind(value: Value<T>) = BindValue(value)
 
 fun <T : Any> Module.onCreate(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
     val env = bean.container.environment
@@ -137,16 +135,6 @@ fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(
     }
 }
 
-interface BeanDelegate<out T : Any> : Delegate<Bean<T>>
-interface ValueDelegate<out T : Any> : Delegate<Value<T>>
-interface ModuleDelegate<out T : Module> : Delegate<T>
-
-interface Delegate<out T> {
-    operator fun provideDelegate(thisRef: Module, property: KProperty<*>): Property<T>
-}
-
-interface Property<out T> : ReadOnlyProperty<Module, T>
-
 class BindBean<T : Any> internal constructor(private val bean: Bean<T>) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
         val env = bean.container.environment
@@ -156,7 +144,7 @@ class BindBean<T : Any> internal constructor(private val bean: Bean<T>) {
     }
 }
 
-class BindProperty<T : Any> internal constructor(private val value: Value<T>) {
+class BindValue<T : Any> internal constructor(private val value: Value<T>) {
     infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
         val env = value.container.environment
         value.onBind { next ->
