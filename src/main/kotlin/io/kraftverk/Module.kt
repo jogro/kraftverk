@@ -5,10 +5,13 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.*
 import java.net.ServerSocket
 
-abstract class Module : InternalModule() {
+abstract class Module  {
+
+    internal val container: Container = ModuleCreationContext.container
+    internal val namespace: String = ModuleCreationContext.namespace
+
     companion object
 }
 

@@ -3,13 +3,15 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk.internal
-
-import io.kraftverk.*
+package io.kraftverk
 
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
-internal class Container(val lazy: Boolean, private val refreshable: Boolean, val environment: Environment) {
+internal class Container(
+    private val lazy: Boolean,
+    private val refreshable: Boolean,
+    val environment: Environment
+) {
 
     @Volatile
     private var state: State = State.Defining()
@@ -20,7 +22,7 @@ internal class Container(val lazy: Boolean, private val refreshable: Boolean, va
             secret = config.secret,
             type = config.type,
             lazy = config.lazy ?: lazy,
-            instance = {
+            createInstance = {
                 state.checkIsRunning()
                 config.instance(
                     ValueDefinition(environment),
@@ -36,7 +38,7 @@ internal class Container(val lazy: Boolean, private val refreshable: Boolean, va
             type = config.type,
             lazy = config.lazy ?: lazy,
             resettable = config.refreshable ?: refreshable,
-            instance = {
+            createInstance = {
                 state.checkIsRunning()
                 config.instance(BeanDefinition(environment))
             }
@@ -98,7 +100,7 @@ internal class Container(val lazy: Boolean, private val refreshable: Boolean, va
     }
 
     private fun throwValueNotFound(name: String): Nothing =
-        throw ValueNotFoundException("Value '$name' was not found!")
+        throw IllegalStateException("Value '$name' was not found!")
 
     private sealed class State {
 

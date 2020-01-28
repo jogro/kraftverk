@@ -5,7 +5,6 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.ACTIVE_PROFILES
 import mu.KotlinLogging
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -32,6 +31,8 @@ class ValueSource() {
 
     companion object
 }
+
+class ValueNameException(msg: String) : Exception(msg)
 
 private val logger = KotlinLogging.logger { }
 

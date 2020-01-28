@@ -3,7 +3,7 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk.internal
+package io.kraftverk
 
 import mu.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
@@ -42,7 +42,10 @@ internal class Provider<T : Any>(
             if (i2 != null) {
                 i2.value
             } else {
-                val i3 = Instance(create(), currentInstanceId.incrementAndGet())
+                val i3 = Instance(
+                    create(),
+                    currentInstanceId.incrementAndGet()
+                )
                 onCreate(i3.value)
                 instance = i3
                 i3.value

@@ -5,9 +5,10 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.createManagedModule
+import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.time.measureTimedValue
 
 /**
  * Bootstrap
@@ -45,4 +46,27 @@ fun <M : Module> Kraftverk.Companion.manage(
             destroy()
         })
     }
+}
+
+private val logger = KotlinLogging.logger {}
+
+internal fun <M : Module> Kraftverk.Companion.createManagedModule(
+    namespace: String,
+    lazy: Boolean,
+    refreshable: Boolean,
+    environment: Environment,
+    module: () -> M
+): Managed<M> {
+    contract {
+        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
+    }
+    return measureTimedValue {
+        logger.info("Creating managed module")
+        val container = Container(lazy, refreshable, environment)
+        val rootModule = ModuleCreationContext.use(container, namespace) { module() }
+        container.start()
+        Managed(container, rootModule)
+    }.also {
+        logger.info("Created managed module in ${it.duration}")
+    }.value
 }

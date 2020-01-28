@@ -3,7 +3,7 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk.internal
+package io.kraftverk
 
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

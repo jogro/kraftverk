@@ -5,8 +5,6 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.provider
-
 open class ValueDefinition internal constructor(val env: Environment) {
     operator fun <T : Any> Value<T>.invoke(): T = provider().instance()
 }

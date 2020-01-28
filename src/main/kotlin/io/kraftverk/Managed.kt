@@ -5,8 +5,6 @@
 
 package io.kraftverk
 
-import io.kraftverk.internal.Container
-import io.kraftverk.internal.provider
 import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
