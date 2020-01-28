@@ -49,7 +49,7 @@ internal fun Binding<*>.reset() {
     this.toHandler().reset()
 }
 
-internal fun Binding<*>.prepare() {
+internal fun Binding<*>.initialize() {
     this.toHandler().prepare()
 }
 
@@ -120,7 +120,7 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
 
     fun prepare() {
         state.applyAs<State.Running<T>> {
-            provider.prepare()
+            provider.initialize()
         }
     }
 
@@ -243,7 +243,7 @@ internal class Provider<T : Any>(
             instance?.id
         }
 
-    fun prepare() {
+    fun initialize() {
         if (!lazy) instance()
     }
 

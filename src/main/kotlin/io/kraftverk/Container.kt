@@ -49,7 +49,7 @@ internal class Container(
         state.applyAs<State.Defining> {
             state = State.Running(bindings.toList())
             bindings.start()
-            bindings.prepare()
+            bindings.initialize()
         }
     }
 
@@ -66,7 +66,7 @@ internal class Container(
             state = State.Refreshing
             bindings.reset()
             state = this
-            bindings.prepare()
+            bindings.initialize()
         }
     }
 
@@ -88,9 +88,9 @@ internal class Container(
         forEach { it.reset() }
     }
 
-    private fun List<Binding<*>>.prepare() {
-        filterIsInstance<Value<*>>().forEach { it.prepare() }
-        filterIsInstance<Bean<*>>().forEach { it.prepare() }
+    private fun List<Binding<*>>.initialize() {
+        filterIsInstance<Value<*>>().forEach { it.initialize() }
+        filterIsInstance<Bean<*>>().forEach { it.initialize() }
     }
 
     private fun register(binding: Binding<*>) {
