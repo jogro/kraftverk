@@ -31,8 +31,8 @@ internal fun Binding<*>.start() {
     this.toHandler().start()
 }
 
-internal fun Binding<*>.refresh() {
-    this.toHandler().refresh()
+internal fun Binding<*>.reset() {
+    this.toHandler().reset()
 }
 
 internal fun Binding<*>.prepare() {
@@ -45,14 +45,6 @@ internal fun Binding<*>.destroy() {
 
 internal fun <T : Any> Binding<T>.provider(): Provider<T> {
     return this.toHandler().provider()
-}
-
-internal val Bean<*>.container: Container get() = when (this) {
-    is BeanImpl<*> -> handler.container
-}
-
-internal val Value<*>.container: Container get() = when (this) {
-    is ValueImpl<*> -> handler.container
 }
 
 private fun <T : Any> Binding<T>.toHandler(): BindingHandler<T> = when (this) {

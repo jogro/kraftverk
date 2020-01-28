@@ -117,38 +117,54 @@ fun port(
     )
 }
 
-fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(bean)
+fun <T : Any> Module.bind(bean: Bean<T>) = BindBean(container, bean)
 
-fun <T : Any> Module.bind(value: Value<T>) = BindValue(value)
+fun <T : Any> Module.bind(value: Value<T>) = BindValue(container, value)
 
-fun <T : Any> Module.onCreate(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
-    val env = bean.container.environment
+fun <T : Any> Module.onCreate(
+    bean: Bean<T>,
+    block: BeanConsumerDefinition<T>.(T) -> Unit
+) {
     bean.onCreate { instance, consumer ->
-        BeanConsumerDefinition(env, instance, consumer).block(instance)
+        BeanConsumerDefinition(
+            container.environment,
+            instance,
+            consumer
+        ).block(instance)
     }
 }
 
-fun <T : Any> Module.onDestroy(bean: Bean<T>, block: BeanConsumerDefinition<T>.(T) -> Unit) {
-    val env = bean.container.environment
+fun <T : Any> Module.onDestroy(
+    bean: Bean<T>,
+    block: BeanConsumerDefinition<T>.(T) -> Unit
+) {
     bean.onDestroy { instance, consumer ->
-        BeanConsumerDefinition(env, instance, consumer).block(instance)
+        BeanConsumerDefinition(
+            container.environment,
+            instance,
+            consumer
+        ).block(instance)
     }
 }
 
-class BindBean<T : Any> internal constructor(private val bean: Bean<T>) {
+class BindBean<T : Any> internal constructor(
+    private val container: Container,
+    private val bean: Bean<T>
+) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
-        val env = bean.container.environment
         bean.onBind { next ->
-            BeanSupplierDefinition(env, next).block()
+            BeanSupplierDefinition(container.environment, next).block()
         }
     }
 }
 
-class BindValue<T : Any> internal constructor(private val value: Value<T>) {
+class BindValue<T : Any> internal constructor(
+    private val container: Container,
+    private val value: Value<T>
+) {
     infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
-        val env = value.container.environment
         value.onBind { next ->
-            ValueSupplierDefinition(env, next).block()
+            ValueSupplierDefinition(container.environment, next).block()
         }
     }
 }

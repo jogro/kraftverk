@@ -16,12 +16,12 @@ internal class Container(val lazy: Boolean, private val refreshable: Boolean, va
 
     fun <T : Any> newValue(name: String, config: ValueConfig<T>) = ValueImpl(
         ValueHandler(
-            container = this,
             name = name,
             secret = config.secret,
             type = config.type,
             lazy = config.lazy ?: lazy,
             instance = {
+                state.checkIsRunning()
                 config.instance(
                     ValueDefinition(environment),
                     environment[name] ?: config.default ?: throwValueNotFound(name)
@@ -32,12 +32,12 @@ internal class Container(val lazy: Boolean, private val refreshable: Boolean, va
 
     fun <T : Any> newBean(name: String, config: BeanConfig<T>) = BeanImpl(
         BeanHandler(
-            container = this,
             name = name,
             type = config.type,
             lazy = config.lazy ?: lazy,
-            refreshable = config.refreshable ?: refreshable,
+            resettable = config.refreshable ?: refreshable,
             instance = {
+                state.checkIsRunning()
                 config.instance(BeanDefinition(environment))
             }
         )
@@ -62,14 +62,14 @@ internal class Container(val lazy: Boolean, private val refreshable: Boolean, va
     fun refresh() {
         state.applyAs<State.Running> {
             state = State.Refreshing
-            bindings.refresh()
+            bindings.reset()
             state = this
             bindings.prepare()
         }
     }
 
-    fun checkIsRunning() {
-        state.narrow<State.Running>()
+    private fun State.checkIsRunning() {
+        narrow<State.Running>()
     }
 
     private fun List<Binding<*>>.destroy() {
@@ -82,8 +82,8 @@ internal class Container(val lazy: Boolean, private val refreshable: Boolean, va
         forEach { it.start() }
     }
 
-    private fun List<Binding<*>>.refresh() {
-        forEach { it.refresh() }
+    private fun List<Binding<*>>.reset() {
+        forEach { it.reset() }
     }
 
     private fun List<Binding<*>>.prepare() {

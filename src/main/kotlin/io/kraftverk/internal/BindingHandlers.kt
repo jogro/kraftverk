@@ -20,8 +20,8 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
         block: (() -> T) -> T
     ) {
         state.applyAs<State.Defining<T>> {
-            val supplier = createInstance
-            createInstance = {
+            val supplier = create
+            create = {
                 block(supplier)
             }
         }
@@ -52,7 +52,7 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
     fun start() {
         state.applyAs<State.Defining<T>> {
             val provider = createProvider(
-                createInstance,
+                create,
                 onCreate,
                 onDestroy
             )
@@ -72,9 +72,9 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
         }
     }
 
-    fun refresh() {
+    fun reset() {
         state.applyAs<State.Running<T>> {
-            provider.refresh()
+            provider.reset()
         }
     }
 
@@ -96,7 +96,7 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
         class Defining<T : Any>(
             instance: () -> T
         ) : State<T>() {
-            var createInstance: () -> T = instance
+            var create: () -> T = instance
             var onCreate: (T) -> Unit = {}
             var onDestroy: (T) -> Unit = {}
         }
@@ -109,11 +109,10 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
 }
 
 internal class BeanHandler<T : Any>(
-    val container: Container,
     private val name: String,
     private val type: KClass<T>,
     private val lazy: Boolean,
-    private val refreshable: Boolean,
+    private val resettable: Boolean,
     instance: () -> T
 ) : BindingHandler<T>(instance) {
 
@@ -122,10 +121,9 @@ internal class BeanHandler<T : Any>(
         onCreate: (T) -> Unit,
         onDestroy: (T) -> Unit
     ) = Provider(
-        container = container,
         type = type,
         lazy = lazy,
-        refreshable = refreshable,
+        resettable = resettable,
         create = {
             measureTimedValue {
                 createInstance()
@@ -140,7 +138,6 @@ internal class BeanHandler<T : Any>(
 }
 
 internal class ValueHandler<T : Any>(
-    val container: Container,
     private val name: String,
     private val type: KClass<T>,
     private val lazy: Boolean,
@@ -153,10 +150,9 @@ internal class ValueHandler<T : Any>(
         onCreate: (T) -> Unit,
         onDestroy: (T) -> Unit
     ) = Provider(
-        container = container,
         type = type,
         lazy = lazy,
-        refreshable = true,
+        resettable = true,
         create = {
             createInstance().also {
                 if (secret) {
