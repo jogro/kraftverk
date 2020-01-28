@@ -50,7 +50,7 @@ internal fun Binding<*>.reset() {
 }
 
 internal fun Binding<*>.initialize() {
-    this.toHandler().prepare()
+    this.toHandler().initialize()
 }
 
 internal fun Binding<*>.destroy() {
@@ -118,7 +118,7 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
         }
     }
 
-    fun prepare() {
+    fun initialize() {
         state.applyAs<State.Running<T>> {
             provider.initialize()
         }
