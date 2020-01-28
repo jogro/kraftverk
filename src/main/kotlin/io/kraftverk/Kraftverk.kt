@@ -17,6 +17,8 @@ class Kraftverk {
     companion object
 }
 
+private val logger = KotlinLogging.logger {}
+
 /**
  * A factory function that creates a [Managed] instance of the specified implementation
  * [M] of [Module].
@@ -41,31 +43,16 @@ fun <M : Module> Kraftverk.Companion.manage(
     contract {
         callsInPlace(module, InvocationKind.EXACTLY_ONCE)
     }
-    return createManagedModule(namespace, lazy, refreshable, environment, module).apply {
-        Runtime.getRuntime().addShutdownHook(Thread {
-            destroy()
-        })
-    }
-}
-
-private val logger = KotlinLogging.logger {}
-
-internal fun <M : Module> Kraftverk.Companion.createManagedModule(
-    namespace: String,
-    lazy: Boolean,
-    refreshable: Boolean,
-    environment: Environment,
-    module: () -> M
-): Managed<M> {
-    contract {
-        callsInPlace(module, InvocationKind.EXACTLY_ONCE)
-    }
     return measureTimedValue {
         logger.info("Creating managed module")
         val container = Container(lazy, refreshable, environment)
         val rootModule = ModuleCreationContext.use(container, namespace) { module() }
         container.start()
-        Managed(container, rootModule)
+        Managed(container, rootModule).apply {
+            Runtime.getRuntime().addShutdownHook(Thread {
+                destroy()
+            })
+        }
     }.also {
         logger.info("Created managed module in ${it.duration}")
     }.value
