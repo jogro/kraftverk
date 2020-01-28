@@ -16,6 +16,19 @@ internal class Container(
     @Volatile
     private var state: State = State.Defining()
 
+    fun <T : Any> newBean(name: String, config: BeanConfig<T>) = BeanImpl(
+        BeanHandler(
+            name = name,
+            type = config.type,
+            lazy = config.lazy ?: lazy,
+            resettable = config.refreshable ?: refreshable,
+            createInstance = {
+                state.checkIsRunning()
+                config.instance(BeanDefinition(environment))
+            }
+        )
+    ).apply(::register)
+
     fun <T : Any> newValue(name: String, config: ValueConfig<T>) = ValueImpl(
         ValueHandler(
             name = name,
@@ -28,19 +41,6 @@ internal class Container(
                     ValueDefinition(environment),
                     environment[name] ?: config.default ?: throwValueNotFound(name)
                 )
-            }
-        )
-    ).apply(::register)
-
-    fun <T : Any> newBean(name: String, config: BeanConfig<T>) = BeanImpl(
-        BeanHandler(
-            name = name,
-            type = config.type,
-            lazy = config.lazy ?: lazy,
-            resettable = config.refreshable ?: refreshable,
-            createInstance = {
-                state.checkIsRunning()
-                config.instance(BeanDefinition(environment))
             }
         )
     ).apply(::register)
