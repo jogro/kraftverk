@@ -23,48 +23,20 @@ sealed class Value<out T : Any> : Binding<T>() {
 internal class BeanImpl<T : Any>(val handler: BeanHandler<T>) : Bean<T>()
 internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
 
-internal fun <T : Any> Binding<T>.onBind(
-    block: (() -> T) -> T
-) {
-    this.toHandler().onBind(block)
-}
+internal fun <T : Any> Binding<T>.onBind(block: (() -> T) -> T) = handler.onBind(block)
+internal fun <T : Any> Binding<T>.onCreate(block: (T, (T) -> Unit) -> Unit) = handler.onCreate(block)
+internal fun <T : Any> Binding<T>.onDestroy(block: (T, (T) -> Unit) -> Unit) = handler.onDestroy(block)
+internal fun Binding<*>.start() = handler.start()
+internal fun Binding<*>.reset() = handler.reset()
+internal fun Binding<*>.initialize() = handler.initialize()
+internal fun Binding<*>.destroy() = handler.destroy()
+internal val <T : Any> Binding<T>.provider get() = handler.provider
 
-internal fun <T : Any> Binding<T>.onCreate(
-    block: (T, (T) -> Unit) -> Unit
-) {
-    this.toHandler().onCreate(block)
-}
-
-internal fun <T : Any> Binding<T>.onDestroy(
-    block: (T, (T) -> Unit) -> Unit
-) {
-    this.toHandler().onDestroy(block)
-}
-
-internal fun Binding<*>.start() {
-    this.toHandler().start()
-}
-
-internal fun Binding<*>.reset() {
-    this.toHandler().reset()
-}
-
-internal fun Binding<*>.initialize() {
-    this.toHandler().initialize()
-}
-
-internal fun Binding<*>.destroy() {
-    this.toHandler().destroy()
-}
-
-internal fun <T : Any> Binding<T>.provider(): Provider<T> {
-    return this.toHandler().provider()
-}
-
-private fun <T : Any> Binding<T>.toHandler(): BindingHandler<T> = when (this) {
-    is BeanImpl<T> -> handler
-    is ValueImpl<T> -> handler
-}
+private val <T : Any> Binding<T>.handler: BindingHandler<T>
+    get() = when (this) {
+        is BeanImpl<T> -> handler
+        is ValueImpl<T> -> handler
+    }
 
 private val logger = KotlinLogging.logger {}
 
@@ -124,11 +96,12 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
         }
     }
 
-    fun provider(): Provider<T> {
-        state.applyAs<State.Running<T>> {
-            return provider
+    val provider: Provider<T>
+        get() {
+            state.applyAs<State.Running<T>> {
+                return provider
+            }
         }
-    }
 
     fun reset() {
         state.applyAs<State.Running<T>> {
@@ -244,10 +217,10 @@ internal class Provider<T : Any>(
         }
 
     fun initialize() {
-        if (!lazy) instance()
+        if (!lazy) get()
     }
 
-    fun instance(): T {
+    fun get(): T {
         val i = instance
         if (i != null) {
             return i.value
@@ -293,3 +266,5 @@ internal class Provider<T : Any>(
     data class Instance<T : Any>(val value: T, val id: Int)
 
 }
+
+

@@ -75,8 +75,8 @@ internal class Container(
     }
 
     private fun List<Binding<*>>.destroy() {
-        filter { it.provider().instanceId != null }
-            .sortedByDescending { it.provider().instanceId }
+        filter { it.provider.instanceId != null }
+            .sortedByDescending { it.provider.instanceId }
             .forEach { it.destroy() }
     }
 

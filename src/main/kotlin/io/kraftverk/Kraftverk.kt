@@ -95,7 +95,7 @@ fun <M : Module, T : Any> Managed<M>.get(binding: M.() -> Binding<T>): T {
     contract {
         callsInPlace(binding, InvocationKind.EXACTLY_ONCE)
     }
-    return module.binding().provider().instance()
+    return module.binding().provider.get()
 }
 
 /**

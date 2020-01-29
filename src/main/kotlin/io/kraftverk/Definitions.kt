@@ -6,7 +6,7 @@
 package io.kraftverk
 
 open class ValueDefinition internal constructor(val env: Environment) {
-    operator fun <T : Any> Value<T>.invoke(): T = provider().instance()
+    operator fun <T : Any> Value<T>.invoke(): T = provider.get()
 }
 
 class ValueSupplierDefinition<T> internal constructor(
@@ -17,7 +17,7 @@ class ValueSupplierDefinition<T> internal constructor(
 }
 
 open class BeanDefinition internal constructor(env: Environment) : ValueDefinition(env) {
-    operator fun <T : Any> Bean<T>.invoke(): T = provider().instance()
+    operator fun <T : Any> Bean<T>.invoke(): T = provider.get()
 }
 
 class BeanSupplierDefinition<T> internal constructor(
