@@ -149,7 +149,8 @@ class BeanTest : StringSpec() {
                     bind(widget) to { widgetFactory.newWidget(next()) }
                 }
             }
-            app.get { widget } shouldBe replacement
+            val widget by app { widget }
+            widget shouldBe replacement
         }
 
         "Refreshing the module stops and starts the bindings by default" {

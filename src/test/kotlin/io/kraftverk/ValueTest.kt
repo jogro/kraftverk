@@ -148,8 +148,10 @@ class ValueTest : StringSpec() {
             withEnvironment("VALUES_VAL1" to po1.value) {
                 withSystemProperties("values.val2" to po2.value) {
                     val app = Kraftverk.manage { AppModule() }
-                    app.get { values.val1 } shouldBe po1
-                    app.get { values.val2 } shouldBe po2
+                    val val1 by app { values.val1 }
+                    val val2 by app { values.val2 }
+                    val1 shouldBe po1
+                    val2 shouldBe po2
                 }
             }
         }

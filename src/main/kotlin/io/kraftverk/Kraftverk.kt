@@ -8,6 +8,8 @@ package io.kraftverk
 import mu.KotlinLogging
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 import kotlin.time.measureTimedValue
 
 /**
@@ -99,7 +101,20 @@ fun <M : Module, T : Any> Managed<M>.get(binding: M.() -> Binding<T>): T {
 }
 
 /**
- * Refreshes this [Managed] [Module]. All [Value]s and [Bean]s will be destroyed and reinitialized.
+ * Extracts instance [T] as a delegated property from the specified [Binding].
+ * ```kotlin
+ * val someService by app { someService }
+ * ```
+ */
+operator fun <M : Module, T : Any> Managed<M>.invoke(binding: M.() -> Binding<T>) =
+    object : ReadOnlyProperty<Nothing?, T> {
+        override fun getValue(thisRef: Nothing?, property: KProperty<*>): T {
+            return module.binding().provider.get()
+        }
+    }
+
+/**
+ * Refreshes this managed [Module]. All [Value]s and [Bean]s will be destroyed and reinitialized.
  *
  * It is possible to specify whether a certain bean is refreshable, see the [bean] declaration method.
  */
