@@ -46,86 +46,17 @@ internal typealias ProviderFactory<T> = (
     onDestroy: (T) -> Unit
 ) -> Provider<T>
 
-internal class BindingHandler<T : Any>(createInstance: () -> T, val createProvider: ProviderFactory<T>) {
+internal class BindingHandler<T : Any>(createInstance: () -> T, createProvider: ProviderFactory<T>) {
 
     @Volatile
-    private var state: State<T> =
-        State.Defining(createInstance)
+    internal var state: State<T> =
+        State.Defining(createInstance, createProvider)
 
-    fun <T : Any> onBind(
-        block: (() -> T) -> T
-    ) {
-        state.applyAs<State.Defining<T>> {
-            val supplier = create
-            create = {
-                block(supplier)
-            }
-        }
-    }
-
-    fun <T : Any> onCreate(
-        block: (T, (T) -> Unit) -> Unit
-    ) {
-        state.applyAs<State.Defining<T>> {
-            val consumer = onCreate
-            onCreate = { instance ->
-                block(instance, consumer)
-            }
-        }
-    }
-
-    fun <T : Any> onDestroy(
-        block: (T, (T) -> Unit) -> Unit
-    ) {
-        state.applyAs<State.Defining<T>> {
-            val consumer = onDestroy
-            onDestroy = { instance ->
-                block(instance, consumer)
-            }
-        }
-    }
-
-    fun start() {
-        state.applyAs<State.Defining<T>> {
-            val provider = createProvider(
-                create,
-                onCreate,
-                onDestroy
-            )
-            state = State.Running(provider)
-        }
-    }
-
-    fun initialize() {
-        state.applyAs<State.Running<T>> {
-            provider.initialize()
-        }
-    }
-
-    val provider: Provider<T>
-        get() {
-            state.applyAs<State.Running<T>> {
-                return provider
-            }
-        }
-
-    fun reset() {
-        state.applyAs<State.Running<T>> {
-            provider.reset()
-        }
-    }
-
-    fun destroy() {
-        state.applyWhen<State.Running<T>> {
-            provider.destroy()
-            state = State.Destroyed
-        }
-    }
-
-    private sealed class State<out T : Any> {
+    internal sealed class State<out T : Any> {
 
         class Defining<T : Any>(
-            instance: () -> T
+            instance: () -> T,
+            val createProvider: ProviderFactory<T>
         ) : State<T>() {
             var create: () -> T = instance
             var onCreate: (T) -> Unit = {}
@@ -138,6 +69,77 @@ internal class BindingHandler<T : Any>(createInstance: () -> T, val createProvid
     }
 
 }
+
+internal fun <T : Any> BindingHandler<T>.onBind(
+    block: (() -> T) -> T
+) {
+    state.applyAs<BindingHandler.State.Defining<T>> {
+        val supplier = create
+        create = {
+            block(supplier)
+        }
+    }
+}
+
+internal fun <T : Any> BindingHandler<T>.onCreate(
+    block: (T, (T) -> Unit) -> Unit
+) {
+    state.applyAs<BindingHandler.State.Defining<T>> {
+        val consumer = onCreate
+        onCreate = { instance ->
+            block(instance, consumer)
+        }
+    }
+}
+
+internal fun <T : Any> BindingHandler<T>.onDestroy(
+    block: (T, (T) -> Unit) -> Unit
+) {
+    state.applyAs<BindingHandler.State.Defining<T>> {
+        val consumer = onDestroy
+        onDestroy = { instance ->
+            block(instance, consumer)
+        }
+    }
+}
+
+internal fun <T : Any> BindingHandler<T>.start() {
+    state.applyAs<BindingHandler.State.Defining<T>> {
+        val provider = createProvider(
+            create,
+            onCreate,
+            onDestroy
+        )
+        state = BindingHandler.State.Running(provider)
+    }
+}
+
+internal fun BindingHandler<*>.initialize() {
+    state.applyAs<BindingHandler.State.Running<*>> {
+        provider.initialize()
+    }
+}
+
+internal val <T : Any> BindingHandler<T>.provider: Provider<T>
+    get() {
+        state.applyAs<BindingHandler.State.Running<T>> {
+            return provider
+        }
+    }
+
+internal fun BindingHandler<*>.reset() {
+    state.applyAs<BindingHandler.State.Running<*>> {
+        provider.reset()
+    }
+}
+
+internal fun BindingHandler<*>.destroy() {
+    state.applyWhen<BindingHandler.State.Running<*>> {
+        provider.destroy()
+        state = BindingHandler.State.Destroyed
+    }
+}
+
 
 internal fun <T : Any> newBeanHandler(
     name: String,
