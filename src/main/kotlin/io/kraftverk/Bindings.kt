@@ -140,66 +140,6 @@ internal fun BindingHandler<*>.destroy() {
     }
 }
 
-
-internal fun <T : Any> newBeanHandler(
-    name: String,
-    type: KClass<T>,
-    lazy: Boolean,
-    resettable: Boolean,
-    createInstance: () -> T
-): BindingHandler<T> {
-    return BindingHandler(
-        createInstance,
-        createProvider = { create, onCreate, onDestroy ->
-            Provider(
-                type = type,
-                lazy = lazy,
-                resettable = resettable,
-                create = {
-                    measureTimedValue {
-                        create()
-                    }.also {
-                        logger.info("Bean '$name' is bound to $type (${it.duration})")
-                    }.value
-                },
-                onCreate = onCreate,
-                onDestroy = onDestroy
-            )
-        }
-    )
-}
-
-internal fun <T : Any> newValueHandler(
-    name: String,
-    type: KClass<T>,
-    lazy: Boolean,
-    secret: Boolean,
-    createInstance: () -> T
-): BindingHandler<T> {
-
-    return BindingHandler(
-        createInstance,
-        createProvider = { create, onCreate, onDestroy ->
-            Provider(
-                type = type,
-                lazy = lazy,
-                resettable = true,
-                create = {
-                    create().also {
-                        if (secret) {
-                            logger.info("Value '$name' is bound to '********'")
-                        } else {
-                            logger.info("Value '$name' is bound to '$it'")
-                        }
-                    }
-                },
-                onCreate = onCreate,
-                onDestroy = onDestroy
-            )
-        }
-    )
-}
-
 internal class Provider<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean,
@@ -267,5 +207,3 @@ internal class Provider<T : Any>(
     data class Instance<T : Any>(val value: T, val id: Int)
 
 }
-
-
