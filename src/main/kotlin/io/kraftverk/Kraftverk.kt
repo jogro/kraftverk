@@ -101,14 +101,14 @@ fun <M : Module, T : Any> Managed<M>.get(binding: M.() -> Binding<T>): T {
 }
 
 /**
- * Extracts instance [T] as a delegated property from the specified [Binding].
+ * Lazy extraction of instance [T] from the specified [Binding].
  * ```kotlin
  * val someService by app { someService }
  * ```
  */
 operator fun <M : Module, T : Any> Managed<M>.invoke(binding: M.() -> Binding<T>) =
-    object : ReadOnlyProperty<Nothing?, T> {
-        override fun getValue(thisRef: Nothing?, property: KProperty<*>): T {
+    object : ReadOnlyProperty<Any?, T> {
+        override fun getValue(thisRef: Any?, property: KProperty<*>): T {
             return module.binding().provider.get()
         }
     }
