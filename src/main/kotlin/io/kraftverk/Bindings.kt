@@ -20,8 +20,8 @@ sealed class Value<out T : Any> : Binding<T>() {
     companion object
 }
 
-internal class BeanImpl<T : Any>(val handler: BeanHandler<T>) : Bean<T>()
-internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
+internal class BeanImpl<T : Any>(val handler: BindingHandler<T>) : Bean<T>()
+internal class ValueImpl<T : Any>(val handler: BindingHandler<T>) : Value<T>()
 
 internal fun <T : Any> Binding<T>.onBind(block: (() -> T) -> T) = handler.onBind(block)
 internal fun <T : Any> Binding<T>.onCreate(block: (T, (T) -> Unit) -> Unit) = handler.onCreate(block)
@@ -40,11 +40,17 @@ private val <T : Any> Binding<T>.handler: BindingHandler<T>
 
 private val logger = KotlinLogging.logger {}
 
-internal sealed class BindingHandler<T : Any>(instance: () -> T) {
+internal typealias ProviderFactory<T> = (
+    create: () -> T,
+    onCreate: (T) -> Unit,
+    onDestroy: (T) -> Unit
+) -> Provider<T>
+
+internal class BindingHandler<T : Any>(createInstance: () -> T, val createProvider: ProviderFactory<T>) {
 
     @Volatile
     private var state: State<T> =
-        State.Defining(instance)
+        State.Defining(createInstance)
 
     fun <T : Any> onBind(
         block: (() -> T) -> T
@@ -116,12 +122,6 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
         }
     }
 
-    abstract fun createProvider(
-        create: () -> T,
-        onCreate: (T) -> Unit = {},
-        onDestroy: (T) -> Unit = {}
-    ): Provider<T>
-
     private sealed class State<out T : Any> {
 
         class Defining<T : Any>(
@@ -139,64 +139,63 @@ internal sealed class BindingHandler<T : Any>(instance: () -> T) {
 
 }
 
-internal class BeanHandler<T : Any>(
-    private val name: String,
-    private val type: KClass<T>,
-    private val lazy: Boolean,
-    private val resettable: Boolean,
+internal fun <T : Any> newBeanHandler(
+    name: String,
+    type: KClass<T>,
+    lazy: Boolean,
+    resettable: Boolean,
     createInstance: () -> T
-) : BindingHandler<T>(createInstance) {
-
-    override fun createProvider(
-        create: () -> T,
-        onCreate: (T) -> Unit,
-        onDestroy: (T) -> Unit
-    ) = Provider(
-        type = type,
-        lazy = lazy,
-        resettable = resettable,
-        create = {
-            measureTimedValue {
-                create()
-            }.also {
-                logger.info("Bean '$name' is bound to $type (${it.duration})")
-            }.value
-        },
-        onCreate = onCreate,
-        onDestroy = onDestroy
+): BindingHandler<T> {
+    return BindingHandler(
+        createInstance,
+        createProvider = { create, onCreate, onDestroy ->
+            Provider(
+                type = type,
+                lazy = lazy,
+                resettable = resettable,
+                create = {
+                    measureTimedValue {
+                        create()
+                    }.also {
+                        logger.info("Bean '$name' is bound to $type (${it.duration})")
+                    }.value
+                },
+                onCreate = onCreate,
+                onDestroy = onDestroy
+            )
+        }
     )
-
 }
 
-internal class ValueHandler<T : Any>(
-    private val name: String,
-    private val type: KClass<T>,
-    private val lazy: Boolean,
-    private val secret: Boolean,
+internal fun <T : Any> newValueHandler(
+    name: String,
+    type: KClass<T>,
+    lazy: Boolean,
+    secret: Boolean,
     createInstance: () -> T
-) : BindingHandler<T>(createInstance) {
+): BindingHandler<T> {
 
-    override fun createProvider(
-        create: () -> T,
-        onCreate: (T) -> Unit,
-        onDestroy: (T) -> Unit
-    ) = Provider(
-        type = type,
-        lazy = lazy,
-        resettable = true,
-        create = {
-            create().also {
-                if (secret) {
-                    logger.info("Value '$name' is bound to '********'")
-                } else {
-                    logger.info("Value '$name' is bound to '$it'")
-                }
-            }
-        },
-        onCreate = onCreate,
-        onDestroy = onDestroy
+    return BindingHandler(
+        createInstance,
+        createProvider = { create, onCreate, onDestroy ->
+            Provider(
+                type = type,
+                lazy = lazy,
+                resettable = true,
+                create = {
+                    create().also {
+                        if (secret) {
+                            logger.info("Value '$name' is bound to '********'")
+                        } else {
+                            logger.info("Value '$name' is bound to '$it'")
+                        }
+                    }
+                },
+                onCreate = onCreate,
+                onDestroy = onDestroy
+            )
+        }
     )
-
 }
 
 internal class Provider<T : Any>(

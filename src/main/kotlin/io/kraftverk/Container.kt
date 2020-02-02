@@ -17,7 +17,7 @@ internal class Container(
     private var state: State = State.Defining()
 
     fun <T : Any> newBean(name: String, config: BeanConfig<T>) = BeanImpl(
-        BeanHandler(
+        newBeanHandler(
             name = name,
             type = config.type,
             lazy = config.lazy ?: lazy,
@@ -30,7 +30,7 @@ internal class Container(
     ).apply(::register)
 
     fun <T : Any> newValue(name: String, config: ValueConfig<T>) = ValueImpl(
-        ValueHandler(
+        newValueHandler(
             name = name,
             secret = config.secret,
             type = config.type,
