@@ -11,7 +11,7 @@ open class ValueDefinition internal constructor(val env: Environment) {
 
 class ValueSupplierDefinition<T> internal constructor(
     env: Environment,
-    private val supply: () -> T
+    private val supply: InstanceSupplier<T>
 ) : ValueDefinition(env) {
     fun next() = supply()
 }
@@ -22,7 +22,7 @@ open class BeanDefinition internal constructor(env: Environment) : ValueDefiniti
 
 class BeanSupplierDefinition<T> internal constructor(
     env: Environment,
-    private val supply: () -> T
+    val supply: InstanceSupplier<T>
 ) : BeanDefinition(env) {
     fun next() = supply()
 }
@@ -30,7 +30,7 @@ class BeanSupplierDefinition<T> internal constructor(
 class BeanConsumerDefinition<T> internal constructor(
     env: Environment,
     private val instance: T,
-    private val consume: (T) -> Unit
+    private val consume: Consumer<T>
 ) : BeanDefinition(env) {
     fun next() = consume(instance)
 }

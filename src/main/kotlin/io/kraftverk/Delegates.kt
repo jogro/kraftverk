@@ -36,7 +36,7 @@ internal data class BeanConfig<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean?,
     val refreshable: Boolean?,
-    val instance: BeanDefinition.() -> T
+    val createInstance: BeanDefinition.() -> T
 )
 
 @PublishedApi
@@ -63,7 +63,7 @@ internal data class ValueConfig<T : Any>(
     val default: String?,
     val lazy: Boolean?,
     val secret: Boolean,
-    val instance: ValueDefinition.(String) -> T
+    val createInstance: ValueDefinition.(String) -> T
 )
 
 internal fun <M : Module> newModuleDelegate(

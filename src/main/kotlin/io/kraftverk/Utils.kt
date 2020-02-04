@@ -8,6 +8,16 @@ package io.kraftverk
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+internal typealias Consumer<T> = (T) -> Unit
+
+internal typealias InstanceSupplier<T> = () -> T
+
+internal typealias ProviderFactory<T> = (
+    createInstance: InstanceSupplier<T>,
+    onCreate: Consumer<T>,
+    onDestroy: Consumer<T>
+) -> Provider<T>
+
 internal class ThreadBound<T> {
 
     private val threadLocal = ThreadLocal<T>()

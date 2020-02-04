@@ -8,7 +8,6 @@ package io.kraftverk
 import mu.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
-import kotlin.time.measureTimedValue
 
 sealed class Binding<out T : Any>
 
@@ -23,9 +22,9 @@ sealed class Value<out T : Any> : Binding<T>() {
 internal class BeanImpl<T : Any>(val handler: BindingHandler<T>) : Bean<T>()
 internal class ValueImpl<T : Any>(val handler: BindingHandler<T>) : Value<T>()
 
-internal fun <T : Any> Binding<T>.onBind(block: (() -> T) -> T) = handler.onBind(block)
-internal fun <T : Any> Binding<T>.onCreate(block: (T, (T) -> Unit) -> Unit) = handler.onCreate(block)
-internal fun <T : Any> Binding<T>.onDestroy(block: (T, (T) -> Unit) -> Unit) = handler.onDestroy(block)
+internal fun <T : Any> Binding<T>.onBind(block: (InstanceSupplier<T>) -> T) = handler.onBind(block)
+internal fun <T : Any> Binding<T>.onCreate(block: (T, Consumer<T>) -> Unit) = handler.onCreate(block)
+internal fun <T : Any> Binding<T>.onDestroy(block: (T, Consumer<T>) -> Unit) = handler.onDestroy(block)
 internal fun Binding<*>.start() = handler.start()
 internal fun Binding<*>.reset() = handler.reset()
 internal fun Binding<*>.initialize() = handler.initialize()
@@ -38,15 +37,10 @@ private val <T : Any> Binding<T>.handler: BindingHandler<T>
         is ValueImpl<T> -> handler
     }
 
-private val logger = KotlinLogging.logger {}
-
-internal typealias ProviderFactory<T> = (
-    create: () -> T,
-    onCreate: (T) -> Unit,
-    onDestroy: (T) -> Unit
-) -> Provider<T>
-
-internal class BindingHandler<T : Any>(createInstance: () -> T, createProvider: ProviderFactory<T>) {
+internal class BindingHandler<T : Any>(
+    createInstance: InstanceSupplier<T>,
+    createProvider: ProviderFactory<T>
+) {
 
     @Volatile
     internal var state: State<T> =
@@ -55,15 +49,17 @@ internal class BindingHandler<T : Any>(createInstance: () -> T, createProvider: 
     internal sealed class State<out T : Any> {
 
         class Defining<T : Any>(
-            instance: () -> T,
+            createInstance: InstanceSupplier<T>,
             val createProvider: ProviderFactory<T>
         ) : State<T>() {
-            var create: () -> T = instance
+            var create: InstanceSupplier<T> = createInstance
             var onCreate: (T) -> Unit = {}
             var onDestroy: (T) -> Unit = {}
         }
 
-        class Running<T : Any>(val provider: Provider<T>) : State<T>()
+        class Running<T : Any>(
+            val provider: Provider<T>
+        ) : State<T>()
 
         object Destroyed : State<Nothing>()
     }
@@ -71,7 +67,7 @@ internal class BindingHandler<T : Any>(createInstance: () -> T, createProvider: 
 }
 
 internal fun <T : Any> BindingHandler<T>.onBind(
-    block: (() -> T) -> T
+    block: (InstanceSupplier<T>) -> T
 ) {
     state.applyAs<BindingHandler.State.Defining<T>> {
         val supplier = create
@@ -82,7 +78,7 @@ internal fun <T : Any> BindingHandler<T>.onBind(
 }
 
 internal fun <T : Any> BindingHandler<T>.onCreate(
-    block: (T, (T) -> Unit) -> Unit
+    block: (T, Consumer<T>) -> Unit
 ) {
     state.applyAs<BindingHandler.State.Defining<T>> {
         val consumer = onCreate
@@ -93,7 +89,7 @@ internal fun <T : Any> BindingHandler<T>.onCreate(
 }
 
 internal fun <T : Any> BindingHandler<T>.onDestroy(
-    block: (T, (T) -> Unit) -> Unit
+    block: (T, Consumer<T>) -> Unit
 ) {
     state.applyAs<BindingHandler.State.Defining<T>> {
         val consumer = onDestroy
@@ -114,11 +110,11 @@ internal fun <T : Any> BindingHandler<T>.start() {
     }
 }
 
-internal fun BindingHandler<*>.initialize() {
+internal fun BindingHandler<*>.initialize() =
     state.applyAs<BindingHandler.State.Running<*>> {
         provider.initialize()
     }
-}
+
 
 internal val <T : Any> BindingHandler<T>.provider: Provider<T>
     get() {
@@ -127,26 +123,27 @@ internal val <T : Any> BindingHandler<T>.provider: Provider<T>
         }
     }
 
-internal fun BindingHandler<*>.reset() {
+internal fun BindingHandler<*>.reset() =
     state.applyAs<BindingHandler.State.Running<*>> {
         provider.reset()
     }
-}
 
-internal fun BindingHandler<*>.destroy() {
+
+internal fun BindingHandler<*>.destroy() =
     state.applyWhen<BindingHandler.State.Running<*>> {
         provider.destroy()
         state = BindingHandler.State.Destroyed
     }
-}
+
+private val logger = KotlinLogging.logger {}
 
 internal class Provider<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean,
     val resettable: Boolean,
-    private val create: () -> T,
-    private val onCreate: (T) -> Unit,
-    private val onDestroy: (T) -> Unit
+    private val createInstance: InstanceSupplier<T>,
+    private val onCreate: Consumer<T>,
+    private val onDestroy: Consumer<T>
 ) {
 
     @Volatile
@@ -172,7 +169,7 @@ internal class Provider<T : Any>(
                 i2.value
             } else {
                 val i3 = Instance(
-                    create(),
+                    createInstance(),
                     currentInstanceId.incrementAndGet()
                 )
                 onCreate(i3.value)
