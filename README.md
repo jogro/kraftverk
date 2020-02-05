@@ -24,18 +24,21 @@ compile "io.kraftverk:kraftverk:0.8.9"
 
 ### Define a module
 ```kotlin
-class ServiceA(val b: ServiceB)
-class ServiceB()
+class MyService(val b: MyRepository)
+class MyRepository()
 
 class AppModule : Module() {
-    val serviceA by bean { // Bean<ServiceA>
-        ServiceA(
-            serviceB() // Inject
+
+    val myService by bean {
+        MyService(
+            myRepository() // Inject
         )
     }
-    val serviceB by bean {
-        ServiceB()
+
+    val myRepository by bean {
+        MyRepository()
     }
+
 }
 ```
 
@@ -43,7 +46,7 @@ class AppModule : Module() {
 ```kotlin
 fun main() {
     val app = Kraftverk.manage { AppModule() }
-    val serviceA by app { serviceA }
-    print(serviceA)
+    val myService = app.get { myService }
+    println(myService)
 }
 ```
