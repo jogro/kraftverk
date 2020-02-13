@@ -77,48 +77,48 @@ class ValueTest : StringSpec() {
     init {
 
         "Value instantiation is eager by default" {
-            Kraftverk.manage { AppModule() }
+            start { AppModule() }
             verifyThatAllValuesAreInstantiated()
         }
 
         "Value instantiation is lazy when specified for the container" {
-            Kraftverk.manage(lazy = true) { AppModule() }
+            start(lazy = true) { AppModule() }
             verifyThatNoValuesAreInstantiated()
         }
 
         "Value instantiation is eager when specified for the values" {
-            Kraftverk.manage { AppModule(lazy = false) }
+            start { AppModule(lazy = false) }
             verifyThatAllValuesAreInstantiated()
         }
 
         "Value instantiation is lazy when specified for the values" {
-            Kraftverk.manage { AppModule(lazy = true) }
+            start { AppModule(lazy = true) }
             verifyThatNoValuesAreInstantiated()
         }
 
         "Extracting a value returns expected value" {
-            val app = Kraftverk.manage { AppModule() }
-            app.get { principal } shouldBe principal
-            app.get { values.val1 } shouldBe valueObject1
-            app.get { values.val2 } shouldBe valueObject2
-            app.get { values.val3 } shouldBe valueObject3
-            app.get { values.val4 } shouldBe valueObject4
-            app.get { values.val5 } shouldBe valueObject5
-            app.get { values.user.userName } shouldBe userName
-            app.get { values.user.password } shouldBe password
+            val app = start { AppModule() }
+            app { principal } shouldBe principal
+            app { values.val1 } shouldBe valueObject1
+            app { values.val2 } shouldBe valueObject2
+            app { values.val3 } shouldBe valueObject3
+            app { values.val4 } shouldBe valueObject4
+            app { values.val5 } shouldBe valueObject5
+            app { values.user.userName } shouldBe userName
+            app { values.user.password } shouldBe password
         }
 
         "Extracting a value does not propagate to other values if not necessary" {
-            val app = Kraftverk.manage { AppModule(lazy = true) }
-            app.get { values.val1 }
+            val app = start { AppModule(lazy = true) }
+            app { values.val1 }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
             }
         }
 
         "Extracting a value propagates to other values if necessary" {
-            val app = Kraftverk.manage { AppModule(lazy = true) }
-            app.get { values.val2 }
+            val app = start { AppModule(lazy = true) }
+            app { values.val2 }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
                 valueObjectFactory.newValue(valueObject2.value, valueObject1)
@@ -126,20 +126,20 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value results in one instantiation even if many invocations" {
-            val app = Kraftverk.manage { AppModule(lazy = true) }
-            repeat(3) { app.get { values.val1 } }
+            val app = start { AppModule(lazy = true) }
+            repeat(3) { app { values.val1 } }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
             }
         }
 
         "Binding a value does a proper replace" {
-            val app = Kraftverk.manage {
+            val app = start {
                 AppModule().apply {
                     bind(values.val1) to { valueObjectFactory.newValue("Kalle", next()) }
                 }
             }
-            app.get { values.val1 } shouldBe ValueObject("Kalle", valueObject1)
+            app { values.val1 } shouldBe ValueObject("Kalle", valueObject1)
         }
 
         "Values can be overridden by environment vars and system properties" {
@@ -147,9 +147,9 @@ class ValueTest : StringSpec() {
             val po2 = ValueObject("SET2", po1)
             withEnvironment("VALUES_VAL1" to po1.value) {
                 withSystemProperties("values.val2" to po2.value) {
-                    val app = Kraftverk.manage { AppModule() }
-                    val val1 by app { values.val1 }
-                    val val2 by app { values.val2 }
+                    val app = start { AppModule() }
+                    val val1 by app.get { values.val1 }
+                    val val2 by app.get { values.val2 }
                     val1 shouldBe po1
                     val2 shouldBe po2
                 }
@@ -159,7 +159,7 @@ class ValueTest : StringSpec() {
         "Values should be overridden when using profiles 1" {
             withSystemProperties("kraftverk.active.profiles" to "prof2, prof1") {
                 val env = Environment.standard()
-                Kraftverk.manage(environment = env) { AppModule() }
+                start(environment = env) { AppModule() }
                 verifySequence {
                     valueObjectFactory.newValue(valueObject1.value)
                     valueObjectFactory.newValue("152", valueObject1)
@@ -173,7 +173,7 @@ class ValueTest : StringSpec() {
 
         "Values should be overridden when using profiles 2" {
             val env = Environment.standard(profiles = listOf("prof2", "prof1"))
-            Kraftverk.manage(environment = env) { AppModule() }
+            start(environment = env) { AppModule() }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
                 valueObjectFactory.newValue("152", valueObject1)
