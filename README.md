@@ -22,11 +22,13 @@ Kraftverk is a minimalistic dependency injection toolkit written in pure Kotlin.
 compile "io.kraftverk:kraftverk:0.8.11"
 ```
 
-### Define a module
+### Given some classes
 ```kotlin
 class Service(val repo: Repository)
 class Repository
-
+```
+### Define a module
+```kotlin
 class AppModule : Module() {
 
     val service by bean {

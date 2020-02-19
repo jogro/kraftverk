@@ -1,5 +1,6 @@
 package io.kraftverk
 
+import mu.KotlinLogging
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -26,6 +27,8 @@ import kotlin.reflect.KProperty
 class Managed<M : Module> internal constructor(
     runtime: () -> ModuleRuntime<M>
 ) {
+    internal val logger = KotlinLogging.logger {}
+
     @Volatile
     internal var state: State<M> = State.Defining(runtime)
 
@@ -48,13 +51,16 @@ class Managed<M : Module> internal constructor(
 }
 
 fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
-    configure(block)
+    logger.info { "Starting module" }
+    val startMs = System.currentTimeMillis()
+    customize(block)
     state.applyAs<Managed.State.Defining<M>> {
         val runtime = runtime()
         onStart(runtime.module)
         state = Managed.State.Running(runtime)
         runtime.start()
     }
+    logger.info { "Started module in ${System.currentTimeMillis() - startMs}ms" }
     return this
 }
 
@@ -103,7 +109,7 @@ fun <M : Module> Managed<M>.destroy() {
     }
 }
 
-fun <M : Module> Managed<M>.configure(block: M.() -> Unit): Managed<M> {
+fun <M : Module> Managed<M>.customize(block: M.() -> Unit): Managed<M> {
     state.applyAs<Managed.State.Defining<M>> {
         val consumer = onStart
         onStart = { instance ->

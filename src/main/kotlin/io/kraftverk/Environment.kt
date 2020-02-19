@@ -42,14 +42,19 @@ fun Environment.Companion.standard(
     profiles: List<String>? = null,
     propertyFilenamePrefix: String = "application"
 ): DefaultEnvironment {
+    val startMs = System.currentTimeMillis()
+    logger.info { "Creating environment" }
     val systemSource = ValueSource.fromSystem()
     val actualProfiles = profiles ?: systemSource.activeProfiles()
+    logger.info { "Using profiles: $actualProfiles" }
     return DefaultEnvironment(
         actualProfiles,
         systemSource,
         *ValueSource.fromClasspath(propertyFilenamePrefix, actualProfiles),
         ValueSource.fromClasspath(propertyFilenamePrefix)
-    )
+    ).also {
+        logger.info { "Created environment in ${System.currentTimeMillis() - startMs}ms" }
+    }
 }
 
 operator fun DefaultEnvironment.set(name: String, value: String) {
@@ -66,15 +71,19 @@ operator fun ValueSource.set(name: String, value: String) {
 }
 
 fun ValueSource.Companion.fromSystem() = ValueSource().apply {
+    logger.info { "Loading environment variables" }
     System.getenv().forEach { e ->
         try {
             this[e.key] = e.value
+            logger.debug { e.key + "=" + e.value }
         } catch (ignore: ValueNameException) {
             logger.warn { "Skipping malformed environment variable name: '${e.key}'" }
         }
     }
+    logger.info { "Loading system properties" }
     System.getProperties().forEach { e ->
         this[e.key.toString()] = e.value.toString()
+        logger.debug { e.key.toString() + "=" + e.value.toString() }
     }
 }
 
@@ -86,12 +95,15 @@ fun ValueSource.Companion.fromClasspath(filenamePrefix: String, profiles: List<S
 fun ValueSource.Companion.fromClasspath(filename: String) = ValueSource().apply {
     propertiesFromClasspath(this::class, Paths.get("$filename.properties")).forEach { e ->
         this[e.key.toString()] = e.value.toString()
+        logger.debug { e.key.toString() + "=" + e.value.toString() }
     }
 }
 
 fun propertiesFromClasspath(clazz: KClass<*>, path: Path) = Properties().apply {
     path.let(Path::toString)
-        .let(clazz.java.classLoader::getResourceAsStream)
+        .let(clazz.java.classLoader::getResource)
+        ?.also { logger.info { "Loading properties from $it" } }
+        ?.openStream()
         ?.apply {
             use { stream -> load(stream) }
         }

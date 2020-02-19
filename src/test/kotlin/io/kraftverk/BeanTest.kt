@@ -248,7 +248,7 @@ class BeanTest : StringSpec() {
 
     private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline bean: M.() -> Bean<T>):
             ReadOnlyProperty<Any?, T> {
-        configure {
+        customize {
             bind(bean()) to { mockk() }
         }
         return get(bean)
@@ -256,7 +256,7 @@ class BeanTest : StringSpec() {
 
     private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline bean: M.() -> Bean<T>):
             ReadOnlyProperty<Any?, T> {
-        configure {
+        customize {
             bind(bean()) to { spyk(next()) }
         }
         return get(bean)
