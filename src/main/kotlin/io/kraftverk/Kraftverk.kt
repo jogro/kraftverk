@@ -32,7 +32,7 @@ fun <M : Module> Kraftverk.start(
     namespace: String = "",
     lazy: Boolean = false,
     refreshable: Boolean = true,
-    env: Environment = Environment.standard(),
+    env: Environment = environment(),
     module: () -> M
 ): Managed<M> {
     return manage(namespace, lazy, refreshable, env, module).apply { start() }
@@ -42,7 +42,7 @@ fun <M : Module> Kraftverk.manage(
     namespace: String = "",
     lazy: Boolean = false,
     refreshable: Boolean = true,
-    env: Environment = Environment.standard(),
+    env: Environment = environment(),
     module: () -> M
 ): Managed<M> {
     logger.info { "Creating managed module(lazy = $lazy, namespace = '$namespace')" }

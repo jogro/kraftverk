@@ -19,7 +19,7 @@ interface Environment {
     companion object
 }
 
-class DefaultEnvironment(override val profiles: List<String>, vararg valueSources: ValueSource) : Environment {
+class MutableEnvironment(override val profiles: List<String>, vararg valueSources: ValueSource) : Environment {
     val sources = listOf(ValueSource(), *valueSources)
     override fun get(name: String): String? = sources.mapNotNull { it[name] }.firstOrNull()
 
@@ -34,30 +34,37 @@ class ValueSource() {
 
 class ValueNameException(msg: String) : Exception(msg)
 
+const val ACTIVE_PROFILES = "kraftverk.active.profiles"
+
 private val logger = KotlinLogging.logger { }
 
-fun Environment.Companion.withProfiles(vararg profiles: String) = standard(profiles.toList())
+class EnvironmentDefinition {
+    internal val valueSource = ValueSource()
+    var propertyFilenamePrefix: String = "application"
+    fun set(name: String, value: String) {
+        valueSource[name] = value
+    }
+}
 
-fun Environment.Companion.standard(
-    profiles: List<String>? = null,
-    propertyFilenamePrefix: String = "application"
-): DefaultEnvironment {
+fun environment(vararg profiles: String, block: EnvironmentDefinition.() -> Unit = {}): MutableEnvironment {
     val startMs = System.currentTimeMillis()
     logger.info { "Creating environment" }
     val systemSource = ValueSource.fromSystem()
-    val actualProfiles = profiles ?: systemSource.activeProfiles()
+    val actualProfiles = if (profiles.isEmpty()) systemSource.activeProfiles() else profiles.toList()
     logger.info { "Using profiles: $actualProfiles" }
-    return DefaultEnvironment(
+    val definition = EnvironmentDefinition().apply(block)
+    return MutableEnvironment(
         actualProfiles,
+        definition.valueSource,
         systemSource,
-        *ValueSource.fromClasspath(propertyFilenamePrefix, actualProfiles),
-        ValueSource.fromClasspath(propertyFilenamePrefix)
+        *ValueSource.fromClasspath(definition.propertyFilenamePrefix, actualProfiles),
+        ValueSource.fromClasspath(definition.propertyFilenamePrefix)
     ).also {
         logger.info { "Created environment in ${System.currentTimeMillis() - startMs}ms" }
     }
 }
 
-operator fun DefaultEnvironment.set(name: String, value: String) {
+operator fun MutableEnvironment.set(name: String, value: String) {
     sources.first()[name] = value
 }
 

@@ -9,8 +9,6 @@ import mu.KotlinLogging
 import kotlin.reflect.KClass
 import kotlin.time.measureTimedValue
 
-const val ACTIVE_PROFILES = "kraftverk.active.profiles"
-
 internal class Container(
     val lazy: Boolean,
     val refreshable: Boolean,

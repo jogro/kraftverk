@@ -159,7 +159,7 @@ class ValueTest : StringSpec() {
 
         "Values should be overridden when using profiles 1" {
             withSystemProperties("kraftverk.active.profiles" to "prof2, prof1") {
-                val env = Environment.standard()
+                val env = environment()
                 Kraftverk.start(env = env) { AppModule() }
                 verifySequence {
                     valueObjectFactory.newValue(valueObject1.value)
@@ -173,7 +173,7 @@ class ValueTest : StringSpec() {
         }
 
         "Values should be overridden when using profiles 2" {
-            val env = Environment.standard(profiles = listOf("prof2", "prof1"))
+            val env = environment("prof2", "prof1")
             Kraftverk.start(env = env) { AppModule() }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
@@ -183,6 +183,18 @@ class ValueTest : StringSpec() {
                 valueObjectFactory.newValue(valueObject5.value)
             }
             env.profiles.shouldContainExactly("prof2", "prof1")
+        }
+
+        "Using environment set method should update properties" {
+            val app = Kraftverk.start(
+                env = environment {
+                    set("principal", "jonas")
+                },
+                module = {
+                    AppModule()
+                }
+            )
+            app { principal } shouldBe "jonas"
         }
 
     }
