@@ -12,6 +12,7 @@ import io.kotlintest.matchers.collections.shouldContainExactly
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.mockk.*
+import kotlinx.coroutines.NonCancellable.start
 
 
 class ValueTest : StringSpec() {
@@ -77,27 +78,27 @@ class ValueTest : StringSpec() {
     init {
 
         "Value instantiation is eager by default" {
-            start { AppModule() }
+            Kraftverk.start { AppModule() }
             verifyThatAllValuesAreInstantiated()
         }
 
         "Value instantiation is lazy when specified for the container" {
-            start(lazy = true) { AppModule() }
+            Kraftverk.start(lazy = true) { AppModule() }
             verifyThatNoValuesAreInstantiated()
         }
 
         "Value instantiation is eager when specified for the values" {
-            start { AppModule(lazy = false) }
+            Kraftverk.start { AppModule(lazy = false) }
             verifyThatAllValuesAreInstantiated()
         }
 
         "Value instantiation is lazy when specified for the values" {
-            start { AppModule(lazy = true) }
+            Kraftverk.start { AppModule(lazy = true) }
             verifyThatNoValuesAreInstantiated()
         }
 
         "Extracting a value returns expected value" {
-            val app = start { AppModule() }
+            val app = Kraftverk.start { AppModule() }
             app { principal } shouldBe principal
             app { values.val1 } shouldBe valueObject1
             app { values.val2 } shouldBe valueObject2
@@ -109,7 +110,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value does not propagate to other values if not necessary" {
-            val app = start { AppModule(lazy = true) }
+            val app = Kraftverk.start { AppModule(lazy = true) }
             app { values.val1 }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
@@ -117,7 +118,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value propagates to other values if necessary" {
-            val app = start { AppModule(lazy = true) }
+            val app = Kraftverk.start { AppModule(lazy = true) }
             app { values.val2 }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
@@ -126,7 +127,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value results in one instantiation even if many invocations" {
-            val app = start { AppModule(lazy = true) }
+            val app = Kraftverk.start { AppModule(lazy = true) }
             repeat(3) { app { values.val1 } }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
@@ -134,7 +135,7 @@ class ValueTest : StringSpec() {
         }
 
         "Binding a value does a proper replace" {
-            val app = start {
+            val app = Kraftverk.start {
                 AppModule().apply {
                     bind(values.val1) to { valueObjectFactory.newValue("Kalle", next()) }
                 }
@@ -147,7 +148,7 @@ class ValueTest : StringSpec() {
             val po2 = ValueObject("SET2", po1)
             withEnvironment("VALUES_VAL1" to po1.value) {
                 withSystemProperties("values.val2" to po2.value) {
-                    val app = start { AppModule() }
+                    val app = Kraftverk.start { AppModule() }
                     val val1 by app.get { values.val1 }
                     val val2 by app.get { values.val2 }
                     val1 shouldBe po1
@@ -159,7 +160,7 @@ class ValueTest : StringSpec() {
         "Values should be overridden when using profiles 1" {
             withSystemProperties("kraftverk.active.profiles" to "prof2, prof1") {
                 val env = Environment.standard()
-                start(environment = env) { AppModule() }
+                Kraftverk.start(env = env) { AppModule() }
                 verifySequence {
                     valueObjectFactory.newValue(valueObject1.value)
                     valueObjectFactory.newValue("152", valueObject1)
@@ -173,7 +174,7 @@ class ValueTest : StringSpec() {
 
         "Values should be overridden when using profiles 2" {
             val env = Environment.standard(profiles = listOf("prof2", "prof1"))
-            start(environment = env) { AppModule() }
+            Kraftverk.start(env = env) { AppModule() }
             verifySequence {
                 valueObjectFactory.newValue(valueObject1.value)
                 valueObjectFactory.newValue("152", valueObject1)

@@ -49,27 +49,27 @@ class BeanTest : StringSpec() {
     init {
 
         "bean instantiation is eager by default" {
-            start { AppModule() }
+            Kraftverk.start { AppModule() }
             verifyThatAllBeansAreInstantiated()
         }
 
         "bean instantiation is eager when specified for the beans" {
-            start(lazy = true) { AppModule(lazy = false) }
+            Kraftverk.start(lazy = true) { AppModule(lazy = false) }
             verifyThatAllBeansAreInstantiated()
         }
 
         "bean instantiation is lazy when managed lazily" {
-            start(lazy = true) { AppModule() }
+            Kraftverk.start(lazy = true) { AppModule() }
             verifyThatNoBeansAreInstantiated()
         }
 
         "bean instantiation is lazy when specified for the beans" {
-            start { AppModule(lazy = true) }
+            Kraftverk.start { AppModule(lazy = true) }
             verifyThatNoBeansAreInstantiated()
         }
 
         "Extracting a bean returns expected value" {
-            val app = start { AppModule() }
+            val app = Kraftverk.start { AppModule() }
 
             val w by app.get { widget }
             val c by app.get { childWidget }
@@ -79,7 +79,7 @@ class BeanTest : StringSpec() {
         }
 
         "Extracting a bean does not propagate to other beans if not necessary" {
-            val app = start(lazy = true) { AppModule() }
+            val app = Kraftverk.start(lazy = true) { AppModule() }
             app { widget }
             verifySequence {
                 widgetFactory.newWidget()
@@ -88,7 +88,7 @@ class BeanTest : StringSpec() {
         }
 
         "Extracting a bean propagates to other beans if necessary" {
-            val app = start(lazy = true) { AppModule() }
+            val app = Kraftverk.start(lazy = true) { AppModule() }
             app { childWidget }
             verifySequence {
                 widgetFactory.newWidget()
@@ -99,7 +99,7 @@ class BeanTest : StringSpec() {
         }
 
         "Extracting a bean results in one instantiation even if many invocations" {
-            val app = start(lazy = true) { AppModule() }
+            val app = Kraftverk.start(lazy = true) { AppModule() }
             repeat(3) { app { widget } }
             verifySequence {
                 widgetFactory.newWidget()
@@ -108,7 +108,7 @@ class BeanTest : StringSpec() {
         }
 
         "bean on create invokes next properly" {
-            val app = manage { AppModule() }
+            val app = Kraftverk.manage { AppModule() }
             app.start {
                 onCreate(widget) { next() }
             }
@@ -118,7 +118,7 @@ class BeanTest : StringSpec() {
         }
 
         "bean on create inhibits next properly" {
-            val app = manage { AppModule() }
+            val app = Kraftverk.manage { AppModule() }
             app.start {
                 onCreate(widget) { }
             }
@@ -129,7 +129,7 @@ class BeanTest : StringSpec() {
         }
 
         "bean on destroy invokes next properly" {
-            val app = manage { AppModule() }
+            val app = Kraftverk.manage { AppModule() }
             app.start {
                 onDestroy(widget) { next() }
                 onDestroy(childWidget) { next() }
@@ -146,7 +146,7 @@ class BeanTest : StringSpec() {
             val replacement = mockk<Widget>(relaxed = true)
             every { widgetFactory.newWidget(widget) } returns replacement
             every { widgetFactory.newWidget(replacement) } returns childWidget
-            val app = start {
+            val app = Kraftverk.start {
                 AppModule().apply {
                     bind(widget) to { widgetFactory.newWidget(next()) }
                 }
@@ -156,7 +156,7 @@ class BeanTest : StringSpec() {
         }
 
         "Refreshing the module stops and starts the bindings by default" {
-            val app = start { AppModule() }
+            val app = Kraftverk.start { AppModule() }
             clearAllMocks()
             every { widgetFactory.newWidget() } returns widget
             every { widgetFactory.newWidget(widget) } returns childWidget
@@ -172,7 +172,7 @@ class BeanTest : StringSpec() {
         }
 
         "Refreshing the module affects nothing when refreshable is false" {
-            val app = start(refreshable = false) { AppModule() }
+            val app = Kraftverk.start(refreshable = false) { AppModule() }
             clearAllMocks()
             every { widgetFactory.newWidget() } returns widget
             every { widgetFactory.newWidget(widget) } returns childWidget
@@ -201,7 +201,7 @@ class BeanTest : StringSpec() {
 
         "Destruction when creation is ongoing" {
             val destroyed = mutableListOf<String>()
-            val mod0 = start(lazy = true) { Mod0(destroyed) }
+            val mod0 = Kraftverk.start(lazy = true) { Mod0(destroyed) }
             thread { mod0 { b2 } } // Will take 2000 ms to instantiate
             Thread.sleep(500)
             mod0.destroy()
@@ -209,7 +209,7 @@ class BeanTest : StringSpec() {
         }
 
         "Trying out managed use case" {
-            val module = manage { Mod0(mutableListOf()) }
+            val module = Kraftverk.manage { Mod0(mutableListOf()) }
             val b0 by module.mock { b0 }
             val b1 by module.mock { b1 }
             val b2 by module.spy { b2 }

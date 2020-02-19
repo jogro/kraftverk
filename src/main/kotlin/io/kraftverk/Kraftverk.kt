@@ -5,6 +5,15 @@
 
 package io.kraftverk
 
+import mu.KotlinLogging
+
+/**
+ * Bootstrap
+ */
+object Kraftverk {
+    internal val logger = KotlinLogging.logger {}
+}
+
 /**
  * A factory function that starts a [Managed] instance of the specified implementation
  * [M] of [Module].
@@ -19,25 +28,26 @@ package io.kraftverk
  * Call the [Managed.destroy] method to destroy the [Managed] instance. Otherwise, shutdown will be performed
  * by a shutdown hook.
  */
-fun <M : Module> start(
+fun <M : Module> Kraftverk.start(
     namespace: String = "",
     lazy: Boolean = false,
     refreshable: Boolean = true,
-    environment: Environment = Environment.standard(),
+    env: Environment = Environment.standard(),
     module: () -> M
 ): Managed<M> {
-    return manage(namespace, lazy, refreshable, environment, module).apply { start() }
+    return manage(namespace, lazy, refreshable, env, module).apply { start() }
 }
 
-fun <M : Module> manage(
+fun <M : Module> Kraftverk.manage(
     namespace: String = "",
     lazy: Boolean = false,
     refreshable: Boolean = true,
-    environment: Environment = Environment.standard(),
+    env: Environment = Environment.standard(),
     module: () -> M
 ): Managed<M> {
     val runtime = {
-        val container = Container(lazy, refreshable, environment)
+        logger.info { "Creating managed module(lazy = $lazy, namespace = '$namespace')" }
+        val container = Container(lazy, refreshable, env)
         ModuleRuntime(
             container = container,
             module = ModuleCreationContext.use(container, namespace) {
@@ -50,13 +60,4 @@ fun <M : Module> manage(
             destroy()
         })
     }
-}
-
-fun <M : Module> manageLazy(
-    namespace: String = "",
-    refreshable: Boolean = true,
-    environment: Environment = Environment.standard(),
-    module: () -> M
-): Managed<M> {
-    return manage(namespace, true, refreshable, environment, module)
 }
