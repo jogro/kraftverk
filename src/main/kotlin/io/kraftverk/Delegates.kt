@@ -28,7 +28,6 @@ internal fun <T : Any> newBeanDelegate(
             }
         }
     }
-
 }
 
 @PublishedApi
@@ -53,7 +52,6 @@ internal fun <T : Any> newValueDelegate(
             }
         }
     }
-
 }
 
 @PublishedApi
@@ -79,7 +77,6 @@ internal fun <M : Module> newModuleDelegate(
             }
         }
     }
-
 }
 
 private fun String.toQualifiedName(module: Module) =

@@ -11,9 +11,11 @@ import io.kotlintest.extensions.system.withSystemProperties
 import io.kotlintest.matchers.collections.shouldContainExactly
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import io.mockk.*
-import kotlinx.coroutines.NonCancellable.start
-
+import io.mockk.Called
+import io.mockk.clearMocks
+import io.mockk.spyk
+import io.mockk.verify
+import io.mockk.verifySequence
 
 class ValueTest : StringSpec() {
 
@@ -63,7 +65,6 @@ class ValueTest : StringSpec() {
         }
 
         val user by module { UserModule(lazy) }
-
     }
 
     private inner class AppModule(private val lazy: Boolean? = null) : Module() {
@@ -196,7 +197,6 @@ class ValueTest : StringSpec() {
             )
             app { principal } shouldBe "jonas"
         }
-
     }
 
     private fun verifyThatNoValuesAreInstantiated() {
@@ -221,5 +221,4 @@ class ValueTest : StringSpec() {
         fun newValue(value: String) = ValueObject(value)
         fun newValue(value: String, parent: ValueObject) = ValueObject(value, parent)
     }
-
 }

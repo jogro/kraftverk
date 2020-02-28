@@ -37,7 +37,6 @@ internal class ThreadBound<T> {
             }
         }
     }
-
 }
 
 internal inline fun <reified T : Any> Any.applyWhen(block: T.() -> Unit) {

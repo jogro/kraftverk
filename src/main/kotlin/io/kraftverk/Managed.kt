@@ -1,8 +1,8 @@
 package io.kraftverk
 
-import mu.KotlinLogging
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
+import mu.KotlinLogging
 
 /**
  * Provides access to and manages [Bean] and [Value] instances in a specified
@@ -44,7 +44,6 @@ class Managed<M : Module> internal constructor(
         ) : State<M>()
 
         object Destroyed : State<Nothing>()
-
     }
 
     companion object

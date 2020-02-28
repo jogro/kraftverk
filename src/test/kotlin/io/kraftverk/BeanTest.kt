@@ -10,7 +10,14 @@ import io.kotlintest.matchers.collections.containExactly
 import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import io.mockk.*
+import io.mockk.Called
+import io.mockk.clearAllMocks
+import io.mockk.clearMocks
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
+import io.mockk.verifySequence
 import kotlin.concurrent.thread
 import kotlin.properties.ReadOnlyProperty
 
@@ -189,7 +196,6 @@ class BeanTest : StringSpec() {
             println(b1)
             println(b2)
         }
-
     }
 
     private fun verifyThatNoBeansAreInstantiated() {
@@ -232,5 +238,4 @@ class BeanTest : StringSpec() {
         }
         return get(bean)
     }
-
 }

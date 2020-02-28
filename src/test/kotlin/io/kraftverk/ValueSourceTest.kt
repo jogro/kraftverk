@@ -56,7 +56,6 @@ class ValueSourceTest : WordSpec() {
                         propertySource[getterName] shouldBe "ABC"
                     }
                 }
-
             }
             "throw exception when an invalid property name is encountered" {
                 forall(
@@ -82,6 +81,5 @@ class ValueSourceTest : WordSpec() {
                 }
             }
         }
-
     }
 }

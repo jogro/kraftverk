@@ -5,9 +5,9 @@
 
 package io.kraftverk
 
-import mu.KotlinLogging
 import kotlin.reflect.KClass
 import kotlin.time.measureTimedValue
+import mu.KotlinLogging
 
 internal class Container(
     val lazy: Boolean,
@@ -29,9 +29,7 @@ internal class Container(
 
         object Destroying : State()
         object Destroyed : State()
-
     }
-
 }
 
 private val logger = KotlinLogging.logger {}
@@ -76,7 +74,6 @@ internal fun Container.start() =
         bindings.start()
         bindings.initialize()
     }
-
 
 internal fun Container.destroy() =
     state.applyWhen<Container.State.Running> {
@@ -144,7 +141,6 @@ private fun <T : Any> newValueHandler(
         )
     }
 )
-
 
 private fun List<Binding<*>>.destroy() =
     filter { it.provider.instanceId != null }

@@ -5,9 +5,9 @@
 
 package io.kraftverk
 
-import mu.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
+import mu.KotlinLogging
 
 sealed class Binding<out T : Any>
 
@@ -62,7 +62,6 @@ internal class BindingHandler<T : Any>(
 
         object Destroyed : State<Nothing>()
     }
-
 }
 
 internal fun <T : Any> BindingHandler<T>.onBind(
@@ -113,7 +112,6 @@ internal fun BindingHandler<*>.initialize() =
     state.applyAs<BindingHandler.State.Running<*>> {
         provider.initialize()
     }
-
 
 internal val <T : Any> BindingHandler<T>.provider: Provider<T>
     get() {
@@ -190,5 +188,4 @@ internal class Provider<T : Any>(
     }
 
     data class Instance<T : Any>(val value: T, val id: Int)
-
 }

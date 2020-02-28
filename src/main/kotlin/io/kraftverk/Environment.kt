@@ -5,12 +5,12 @@
 
 package io.kraftverk
 
-import mu.KotlinLogging
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
+import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
+import mu.KotlinLogging
 
 interface Environment {
     val profiles: List<String>
@@ -26,7 +26,7 @@ class MutableEnvironment(override val profiles: List<String>, vararg valueSource
     companion object
 }
 
-class ValueSource() {
+class ValueSource {
     internal val map = ConcurrentHashMap<String, String>()
 
     companion object
@@ -127,7 +127,6 @@ private fun ValueSource.activeProfiles(): List<String> {
         ?.filter { it.isNotEmpty() }
         ?: emptyList()
 }
-
 
 private fun String.normalize() = this.replace('_', '.').filter { it != '-' }.toLowerCase().trim()
 

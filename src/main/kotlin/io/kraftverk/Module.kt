@@ -9,7 +9,7 @@ import java.net.ServerSocket
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-abstract class Module  {
+abstract class Module {
 
     internal val container: Container = ModuleCreationContext.container
     internal val namespace: String = ModuleCreationContext.namespace
@@ -189,7 +189,6 @@ internal class ModuleCreationContext {
         internal fun <R> use(container: Container, block: () -> R): R {
             return threadBoundContainer.use(container, block)
         }
-
     }
 }
 
