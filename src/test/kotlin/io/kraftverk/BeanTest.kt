@@ -155,35 +155,6 @@ class BeanTest : StringSpec() {
             widget shouldBe replacement
         }
 
-        "Refreshing the module stops and starts the bindings by default" {
-            val app = Kraftverk.start { AppModule() }
-            clearAllMocks()
-            every { widgetFactory.newWidget() } returns widget
-            every { widgetFactory.newWidget(widget) } returns childWidget
-            app.refresh()
-            verifySequence {
-                childWidget.stop()
-                widget.stop()
-                widgetFactory.newWidget()
-                widget.start()
-                widgetFactory.newWidget(widget)
-                childWidget.start()
-            }
-        }
-
-        "Refreshing the module affects nothing when refreshable is false" {
-            val app = Kraftverk.start(refreshable = false) { AppModule() }
-            clearAllMocks()
-            every { widgetFactory.newWidget() } returns widget
-            every { widgetFactory.newWidget(widget) } returns childWidget
-            app.refresh()
-            verify {
-                childWidget wasNot Called
-                widget wasNot Called
-                widgetFactory wasNot Called
-            }
-        }
-
         class Mod0(val destroyed: MutableList<String>) : Module() {
             val b1 by bean {
                 b0()

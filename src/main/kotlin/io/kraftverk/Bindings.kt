@@ -26,7 +26,6 @@ internal fun <T : Any> Binding<T>.onBind(block: (InstanceSupplier<T>) -> T) = ha
 internal fun <T : Any> Binding<T>.onCreate(block: (T, Consumer<T>) -> Unit) = handler.onCreate(block)
 internal fun <T : Any> Binding<T>.onDestroy(block: (T, Consumer<T>) -> Unit) = handler.onDestroy(block)
 internal fun Binding<*>.start() = handler.start()
-internal fun Binding<*>.reset() = handler.reset()
 internal fun Binding<*>.initialize() = handler.initialize()
 internal fun Binding<*>.destroy() = handler.destroy()
 internal val <T : Any> Binding<T>.provider get() = handler.provider
@@ -123,12 +122,6 @@ internal val <T : Any> BindingHandler<T>.provider: Provider<T>
         }
     }
 
-internal fun BindingHandler<*>.reset() =
-    state.applyAs<BindingHandler.State.Running<*>> {
-        provider.reset()
-    }
-
-
 internal fun BindingHandler<*>.destroy() =
     state.applyWhen<BindingHandler.State.Running<*>> {
         provider.destroy()
@@ -140,7 +133,6 @@ private val logger = KotlinLogging.logger {}
 internal class Provider<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean,
-    val resettable: Boolean,
     private val createInstance: InstanceSupplier<T>,
     private val onCreate: Consumer<T>,
     private val onDestroy: Consumer<T>
@@ -177,10 +169,6 @@ internal class Provider<T : Any>(
                 i3.value
             }
         }
-    }
-
-    fun reset() {
-        if (resettable) destroy()
     }
 
     fun destroy() {

@@ -47,7 +47,7 @@ fun <M : Module> Kraftverk.manage(
 ): Managed<M> {
     logger.info { "Creating managed module(lazy = $lazy, namespace = '$namespace')" }
     val runtime = {
-        val container = Container(lazy, refreshable, env)
+        val container = Container(lazy, env)
         ModuleRuntime(
             container = container,
             module = ModuleCreationContext.use(container, namespace) {

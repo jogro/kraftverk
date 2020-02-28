@@ -19,13 +19,11 @@ abstract class Module  {
 
 inline fun <reified T : Any> bean(
     lazy: Boolean? = null,
-    refreshable: Boolean? = null,
     noinline instance: BeanDefinition.() -> T
 ): BeanDelegate<T> = newBeanDelegate(
     BeanConfig(
         T::class,
         lazy,
-        refreshable,
         instance
     )
 )

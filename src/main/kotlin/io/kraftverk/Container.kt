@@ -11,7 +11,6 @@ import kotlin.time.measureTimedValue
 
 internal class Container(
     val lazy: Boolean,
-    val refreshable: Boolean,
     val environment: Environment
 ) {
 
@@ -28,7 +27,6 @@ internal class Container(
             val bindings: List<Binding<*>>
         ) : State()
 
-        object Refreshing : State()
         object Destroying : State()
         object Destroyed : State()
 
@@ -46,7 +44,6 @@ internal fun <T : Any> Container.newBean(
         name = name,
         type = config.type,
         lazy = config.lazy ?: lazy,
-        resettable = config.refreshable ?: refreshable,
         createInstance = {
             state.checkIsRunning()
             config.createInstance(BeanDefinition(environment))
@@ -88,14 +85,6 @@ internal fun Container.destroy() =
         state = Container.State.Destroyed
     }
 
-internal fun Container.refresh() =
-    state.applyAs<Container.State.Running> {
-        state = Container.State.Refreshing
-        bindings.reset()
-        state = this
-        bindings.initialize()
-    }
-
 private fun Container.State.checkIsRunning() {
     narrow<Container.State.Running>()
 }
@@ -109,7 +98,6 @@ private fun <T : Any> newBeanHandler(
     name: String,
     type: KClass<T>,
     lazy: Boolean,
-    resettable: Boolean,
     createInstance: InstanceSupplier<T>
 ): BindingHandler<T> = BindingHandler(
     createInstance,
@@ -117,7 +105,6 @@ private fun <T : Any> newBeanHandler(
         Provider(
             type = type,
             lazy = lazy,
-            resettable = resettable,
             createInstance = {
                 measureTimedValue {
                     create()
@@ -143,7 +130,6 @@ private fun <T : Any> newValueHandler(
         Provider(
             type = type,
             lazy = lazy,
-            resettable = true,
             createInstance = {
                 create().also {
                     if (secret) {
@@ -166,8 +152,6 @@ private fun List<Binding<*>>.destroy() =
         .forEach { it.destroy() }
 
 private fun List<Binding<*>>.start() = forEach { it.start() }
-
-private fun List<Binding<*>>.reset() = forEach { it.reset() }
 
 private fun List<Binding<*>>.initialize() {
     filterIsInstance<Value<*>>().forEach { it.initialize() }

@@ -88,18 +88,6 @@ fun <M : Module, T : Any> Managed<M>.get(binding: M.() -> Binding<T>) =
     }
 
 /**
- * Refreshes this managed [Module]. All [Value]s and [Bean]s will be destroyed and reinitialized.
- *
- * It is possible to specify whether a certain bean is refreshable, see the [bean] declaration method.
- */
-fun <M : Module> Managed<M>.refresh(): Managed<M> {
-    state.applyWhen<Managed.State.Running<*>> {
-        runtime.refresh()
-    }
-    return this
-}
-
-/**
  * Destroys this instance meaning that all [Bean]s will be destroyed.
  */
 fun <M : Module> Managed<M>.destroy() {
@@ -131,4 +119,3 @@ internal class ModuleRuntime<out M : Module>(val container: Container, val modul
 
 private fun ModuleRuntime<*>.start() = container.start()
 private fun ModuleRuntime<*>.destroy() = container.destroy()
-private fun ModuleRuntime<*>.refresh() = container.refresh()

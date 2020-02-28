@@ -35,7 +35,6 @@ internal fun <T : Any> newBeanDelegate(
 internal data class BeanConfig<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean?,
-    val refreshable: Boolean?,
     val createInstance: BeanDefinition.() -> T
 )
 
