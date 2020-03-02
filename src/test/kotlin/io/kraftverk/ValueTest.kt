@@ -12,14 +12,14 @@ import io.kotlintest.matchers.collections.shouldContainExactly
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.env.environment
-import io.kraftverk.managed.get
-import io.kraftverk.managed.invoke
-import io.kraftverk.managed.start
+import io.kraftverk.managed.operations.get
+import io.kraftverk.managed.operations.invoke
+import io.kraftverk.managed.operations.start
 import io.kraftverk.module.Module
-import io.kraftverk.module.bind
-import io.kraftverk.module.module
-import io.kraftverk.module.string
-import io.kraftverk.module.value
+import io.kraftverk.module.operations.bind
+import io.kraftverk.module.operations.module
+import io.kraftverk.module.operations.string
+import io.kraftverk.module.operations.value
 import io.mockk.Called
 import io.mockk.clearMocks
 import io.mockk.spyk
@@ -65,7 +65,10 @@ class ValueTest : StringSpec() {
             valueObjectFactory.newValue(it)
         }
 
-        val val4 by value(lazy = this.lazy, default = valueObject4.value) {
+        val val4 by value(
+            lazy = this.lazy,
+            default = valueObject4.value
+        ) {
             valueObjectFactory.newValue(it)
         }
 

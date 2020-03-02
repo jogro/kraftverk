@@ -6,5 +6,5 @@ open class InternalModule {
     internal val container: Container = ModuleCreationContext.container
     internal val namespace: String = ModuleCreationContext.namespace
 
-    companion object
+    internal companion object
 }

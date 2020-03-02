@@ -12,16 +12,16 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.managed.Managed
-import io.kraftverk.managed.customize
-import io.kraftverk.managed.destroy
-import io.kraftverk.managed.get
-import io.kraftverk.managed.invoke
-import io.kraftverk.managed.start
+import io.kraftverk.managed.operations.customize
+import io.kraftverk.managed.operations.get
+import io.kraftverk.managed.operations.invoke
+import io.kraftverk.managed.operations.start
+import io.kraftverk.managed.operations.stop
 import io.kraftverk.module.Module
-import io.kraftverk.module.bean
-import io.kraftverk.module.bind
-import io.kraftverk.module.onCreate
-import io.kraftverk.module.onDestroy
+import io.kraftverk.module.operations.bean
+import io.kraftverk.module.operations.bind
+import io.kraftverk.module.operations.onCreate
+import io.kraftverk.module.operations.onDestroy
 import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.clearMocks
@@ -178,7 +178,7 @@ class BeanTest : StringSpec() {
                 onDestroy(childWidget) { next() }
             }
             clearMocks(widget, childWidget)
-            app.destroy()
+            app.stop()
             verifySequence {
                 childWidget.stop()
                 widget.stop()
@@ -222,7 +222,7 @@ class BeanTest : StringSpec() {
             mod0.start()
             thread { mod0 { b2 } } // Will take 2000 ms to instantiate
             Thread.sleep(500)
-            mod0.destroy()
+            mod0.stop()
             destroyed should containExactly("b2", "b1", "b0")
         }
 

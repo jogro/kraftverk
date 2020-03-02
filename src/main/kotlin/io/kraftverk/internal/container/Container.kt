@@ -99,7 +99,7 @@ internal fun Container.start() =
         }
     }
 
-internal fun Container.destroy() =
+internal fun Container.stop() =
     state.applyWhen<Container.State.Running> {
         state = Container.State.Destroying
         bindings.filter { binding ->

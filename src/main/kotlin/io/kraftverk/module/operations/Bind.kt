@@ -1,4 +1,4 @@
-package io.kraftverk.module
+package io.kraftverk.module.operations
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
@@ -7,8 +7,10 @@ import io.kraftverk.definition.BeanSupplierDefinition
 import io.kraftverk.definition.ValueSupplierDefinition
 import io.kraftverk.internal.binding.onBind
 import io.kraftverk.internal.container.Container
+import io.kraftverk.module.Module
 
-fun <T : Any> Module.bind(bean: Bean<T>) = BeanBinder(container, bean)
+fun <T : Any> Module.bind(bean: Bean<T>) =
+    BeanBinder(container, bean)
 
 class BeanBinder<T : Any> internal constructor(
     private val container: Container,
@@ -21,7 +23,8 @@ class BeanBinder<T : Any> internal constructor(
     }
 }
 
-fun <T : Any> Module.bind(value: Value<T>) = ValueBinder(container, value)
+fun <T : Any> Module.bind(value: Value<T>) =
+    ValueBinder(container, value)
 
 class ValueBinder<T : Any> internal constructor(
     private val container: Container,

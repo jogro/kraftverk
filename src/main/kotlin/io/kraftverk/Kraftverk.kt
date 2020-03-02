@@ -8,11 +8,11 @@ package io.kraftverk
 import io.kraftverk.env.Environment
 import io.kraftverk.env.environment
 import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.managed.InternalManaged
 import io.kraftverk.internal.module.ModuleCreationContext
 import io.kraftverk.internal.module.use
 import io.kraftverk.managed.Managed
-import io.kraftverk.managed.ManagedRuntime
-import io.kraftverk.managed.destroy
+import io.kraftverk.managed.operations.stop
 import io.kraftverk.module.Module
 import mu.KotlinLogging
 
@@ -38,7 +38,7 @@ fun <M : Module> Kraftverk.manage(
     logger.info { "Creating managed module(lazy = $lazy, namespace = '$namespace')" }
     val runtime = {
         val container = Container(lazy, env)
-        ManagedRuntime(
+        InternalManaged.Runtime(
             container = container,
             module = ModuleCreationContext.use(container, namespace) {
                 module()
@@ -47,7 +47,7 @@ fun <M : Module> Kraftverk.manage(
     }
     return Managed(runtime).apply {
         Runtime.getRuntime().addShutdownHook(Thread {
-            destroy()
+            stop()
         })
     }
 }

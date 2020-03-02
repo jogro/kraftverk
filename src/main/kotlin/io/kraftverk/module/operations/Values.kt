@@ -1,4 +1,4 @@
-package io.kraftverk.module
+package io.kraftverk.module.operations
 
 import io.kraftverk.component.ValueComponent
 import io.kraftverk.definition.ValueDefinition
