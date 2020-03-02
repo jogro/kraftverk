@@ -90,7 +90,7 @@ internal val <T : Any> BindingHandler<T>.provider: Provider<T>
         }
     }
 
-internal fun BindingHandler<*>.destroy() =
+internal fun BindingHandler<*>.stop() =
     state.applyWhen<BindingHandler.State.Running<*>> {
         provider.destroy()
         state = BindingHandler.State.Destroyed

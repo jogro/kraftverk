@@ -16,7 +16,7 @@ import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.env.Environment
 import io.kraftverk.env.get
-import io.kraftverk.internal.binding.destroy
+import io.kraftverk.internal.binding.stop
 import io.kraftverk.internal.binding.initialize
 import io.kraftverk.internal.binding.newBeanHandler
 import io.kraftverk.internal.binding.newValueHandler
@@ -42,7 +42,7 @@ internal class Container(
             val bindings = mutableListOf<Binding<*>>()
         }
 
-        class Running(
+        class Started(
             val bindings: List<Binding<*>>
         ) : State()
 
@@ -87,10 +87,10 @@ internal fun <T : Any> Container.newValue(
 
 internal fun Container.start() =
     state.applyAs<Container.State.Defining> {
-        state = Container.State.Running(bindings.toList())
         bindings.forEach { binding ->
             binding.handler.start()
         }
+        state = Container.State.Started(bindings.toList())
         bindings.filterIsInstance<Value<*>>().forEach { value ->
             value.handler.initialize()
         }
@@ -100,20 +100,20 @@ internal fun Container.start() =
     }
 
 internal fun Container.stop() =
-    state.applyWhen<Container.State.Running> {
+    state.applyWhen<Container.State.Started> {
         state = Container.State.Destroying
         bindings.filter { binding ->
             binding.provider.instanceId != null
         }.sortedByDescending { binding ->
             binding.provider.instanceId
         }.forEach { binding ->
-            binding.handler.destroy()
+            binding.handler.stop()
         }
         state = Container.State.Destroyed
     }
 
 private fun Container.State.checkIsRunning() {
-    narrow<Container.State.Running>()
+    narrow<Container.State.Started>()
 }
 
 private fun Container.register(binding: Binding<*>) =

@@ -26,6 +26,6 @@ operator fun <M : Module, T : Any> Managed<M>.invoke(binding: M.() -> Binding<T>
 fun <M : Module, T : Any> Managed<M>.get(binding: M.() -> Binding<T>) =
     object : ReadOnlyProperty<Any?, T> {
         override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-            return module.binding().provider.get()
+            return invoke(binding)
         }
     }

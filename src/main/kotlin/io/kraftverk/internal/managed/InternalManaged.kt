@@ -23,7 +23,7 @@ open class InternalManaged<M : InternalModule> internal constructor(
             var onStart: Consumer<M> = {}
         ) : State<M>()
 
-        class Running<M : InternalModule>(
+        class Started<M : InternalModule>(
             val runtime: Runtime<M>
         ) : State<M>()
 
@@ -39,7 +39,7 @@ open class InternalManaged<M : InternalModule> internal constructor(
 
     internal val module: M
         get() {
-            state.applyAs<State.Running<M>> {
+            state.applyAs<State.Started<M>> {
                 return runtime.module
             }
         }

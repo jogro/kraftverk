@@ -9,7 +9,7 @@ import io.kraftverk.module.Module
  * Stops this instance meaning that all beans will be destroyed.
  */
 fun <M : Module> Managed<M>.stop() {
-    state.applyWhen<State.Running<*>> {
+    state.applyWhen<State.Started<*>> {
         state = State.Destroying
         runtime.stop()
         state = State.Destroyed

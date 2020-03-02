@@ -22,8 +22,8 @@ fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
     state.applyAs<State.Defining<M>> {
         val runtime = createRuntime()
         onStart(runtime.module)
-        state = State.Running(runtime)
         runtime.start()
+        state = State.Started(runtime)
     }
     logger.info { "Started module in ${System.currentTimeMillis() - startMs}ms" }
     return this
