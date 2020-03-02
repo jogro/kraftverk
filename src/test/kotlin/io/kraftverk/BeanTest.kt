@@ -10,6 +10,18 @@ import io.kotlintest.matchers.collections.containExactly
 import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
+import io.kraftverk.binding.Bean
+import io.kraftverk.managed.Managed
+import io.kraftverk.managed.customize
+import io.kraftverk.managed.destroy
+import io.kraftverk.managed.get
+import io.kraftverk.managed.invoke
+import io.kraftverk.managed.start
+import io.kraftverk.module.Module
+import io.kraftverk.module.bean
+import io.kraftverk.module.bind
+import io.kraftverk.module.onCreate
+import io.kraftverk.module.onDestroy
 import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.clearMocks
@@ -56,46 +68,67 @@ class BeanTest : StringSpec() {
     init {
 
         "bean instantiation is eager by default" {
-            Kraftverk.start { AppModule() }
+            val app = Kraftverk.manage {
+                AppModule()
+            }
+            app.start()
             verifyThatAllBeansAreInstantiated()
         }
 
-        "bean instantiation is eager when specified for the beans" {
-            Kraftverk.start(lazy = true) { AppModule(lazy = false) }
+        "bean instantiation is eager when specified for the dsl" {
+            val app = Kraftverk.manage(lazy = true) {
+                AppModule(lazy = false)
+            }
+            app.start()
             verifyThatAllBeansAreInstantiated()
         }
 
         "bean instantiation is lazy when managed lazily" {
-            Kraftverk.start(lazy = true) { AppModule() }
+            val app = Kraftverk.manage(lazy = true) {
+                AppModule()
+            }
+            app.start()
             verifyThatNoBeansAreInstantiated()
         }
 
-        "bean instantiation is lazy when specified for the beans" {
-            Kraftverk.start { AppModule(lazy = true) }
+        "bean instantiation is lazy when specified for the dsl" {
+            val app = Kraftverk.manage {
+                AppModule(lazy = true)
+            }
+            app.start()
             verifyThatNoBeansAreInstantiated()
         }
 
         "Extracting a bean returns expected value" {
-            val app = Kraftverk.start { AppModule() }
+            val app = Kraftverk.manage { AppModule() }
 
             val w by app.get { widget }
             val c by app.get { childWidget }
+
+            app.start()
 
             w shouldBe widget
             c shouldBe childWidget
         }
 
-        "Extracting a bean does not propagate to other beans if not necessary" {
-            val app = Kraftverk.start(lazy = true) { AppModule() }
+        "Extracting a bean does not propagate to other dsl if not necessary" {
+            val app = Kraftverk.manage(lazy = true) {
+                AppModule()
+            }
+            app.start()
             app { widget }
+
             verifySequence {
                 widgetFactory.newWidget()
                 widget.start()
             }
         }
 
-        "Extracting a bean propagates to other beans if necessary" {
-            val app = Kraftverk.start(lazy = true) { AppModule() }
+        "Extracting a bean propagates to other dsl if necessary" {
+            val app = Kraftverk.manage(lazy = true) {
+                AppModule()
+            }
+            app.start()
             app { childWidget }
             verifySequence {
                 widgetFactory.newWidget()
@@ -106,7 +139,10 @@ class BeanTest : StringSpec() {
         }
 
         "Extracting a bean results in one instantiation even if many invocations" {
-            val app = Kraftverk.start(lazy = true) { AppModule() }
+            val app = Kraftverk.manage(lazy = true) {
+                AppModule()
+            }
+            app.start()
             repeat(3) { app { widget } }
             verifySequence {
                 widgetFactory.newWidget()
@@ -153,11 +189,12 @@ class BeanTest : StringSpec() {
             val replacement = mockk<Widget>(relaxed = true)
             every { widgetFactory.newWidget(widget) } returns replacement
             every { widgetFactory.newWidget(replacement) } returns childWidget
-            val app = Kraftverk.start {
+            val app = Kraftverk.manage {
                 AppModule().apply {
                     bind(widget) to { widgetFactory.newWidget(next()) }
                 }
             }
+            app.start()
             val widget by app.get { widget }
             widget shouldBe replacement
         }
@@ -179,7 +216,10 @@ class BeanTest : StringSpec() {
 
         "Destruction when creation is ongoing" {
             val destroyed = mutableListOf<String>()
-            val mod0 = Kraftverk.start(lazy = true) { Mod0(destroyed) }
+            val mod0 = Kraftverk.manage(lazy = true) {
+                Mod0(destroyed)
+            }
+            mod0.start()
             thread { mod0 { b2 } } // Will take 2000 ms to instantiate
             Thread.sleep(500)
             mod0.destroy()

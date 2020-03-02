@@ -1,5 +1,15 @@
-package io.kraftverk
+package io.kraftverk.managed
 
+import io.kraftverk.binding.Binding
+import io.kraftverk.binding.provider
+import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.container.destroy
+import io.kraftverk.internal.container.start
+import io.kraftverk.internal.misc.Consumer
+import io.kraftverk.internal.misc.applyAs
+import io.kraftverk.internal.misc.applyWhen
+import io.kraftverk.manage
+import io.kraftverk.module.Module
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 import mu.KotlinLogging
@@ -19,13 +29,13 @@ import mu.KotlinLogging
  *     }
  * }
  * ```
- * Call the [start] method to create a [Managed] instance of the module.
+ * Call the [manage] factory function to create a [Managed] instance of the module.
  * ```kotlin
- * val app: Managed<AppModule> = start { AppModule() }
+ * val app by Kraftverk.manage { AppModule() }
  * ```
  */
 class Managed<M : Module> internal constructor(
-    runtime: () -> ModuleRuntime<M>
+    runtime: () -> ManagedRuntime<M>
 ) {
     internal val logger = KotlinLogging.logger {}
 
@@ -35,12 +45,12 @@ class Managed<M : Module> internal constructor(
     internal sealed class State<out M : Module> {
 
         class Defining<M : Module>(
-            val runtime: () -> ModuleRuntime<M>,
+            val runtime: () -> ManagedRuntime<M>,
             var onStart: Consumer<M> = {}
         ) : State<M>()
 
         class Running<M : Module>(
-            val runtime: ModuleRuntime<M>
+            val runtime: ManagedRuntime<M>
         ) : State<M>()
 
         object Destroyed : State<Nothing>()
@@ -49,6 +59,16 @@ class Managed<M : Module> internal constructor(
     companion object
 }
 
+/**
+ * The [start] function will by default perform the following actions:
+ * 1) All [Value] binding declared in the [Module] are eagerly looked up using the [Environment] that
+ * was specified at the time the managed instance was created.
+ * Should any value be missing an exception is thrown.
+ * 2) All [Bean] bindings are eagerly instantiated.
+ *
+ * Call the [Managed.destroy] method to destroy the [Managed] instance. Otherwise, shutdown will be performed
+ * by a shutdown hook.
+ */
 fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
     logger.info { "Starting module" }
     val startMs = System.currentTimeMillis()
@@ -107,14 +127,14 @@ fun <M : Module> Managed<M>.customize(block: M.() -> Unit): Managed<M> {
     return this
 }
 
+internal class ManagedRuntime<out M : Module>(val container: Container, val module: M)
+
+internal fun ManagedRuntime<*>.start() = container.start()
+internal fun ManagedRuntime<*>.destroy() = container.destroy()
+
 internal val <M : Module> Managed<M>.module: M
     get() {
         state.applyAs<Managed.State.Running<M>> {
             return runtime.module
         }
     }
-
-internal class ModuleRuntime<out M : Module>(val container: Container, val module: M)
-
-private fun ModuleRuntime<*>.start() = container.start()
-private fun ModuleRuntime<*>.destroy() = container.destroy()

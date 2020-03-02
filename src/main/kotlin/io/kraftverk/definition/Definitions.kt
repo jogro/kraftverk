@@ -3,7 +3,14 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk
+package io.kraftverk.definition
+
+import io.kraftverk.binding.Bean
+import io.kraftverk.binding.Value
+import io.kraftverk.binding.provider
+import io.kraftverk.env.Environment
+import io.kraftverk.internal.misc.Consumer
+import io.kraftverk.internal.misc.InstanceFactory
 
 open class ValueDefinition internal constructor(val env: Environment) {
     operator fun <T : Any> Value<T>.invoke(): T = provider.get()
@@ -11,7 +18,7 @@ open class ValueDefinition internal constructor(val env: Environment) {
 
 class ValueSupplierDefinition<T> internal constructor(
     env: Environment,
-    private val supply: InstanceSupplier<T>
+    private val supply: InstanceFactory<T>
 ) : ValueDefinition(env) {
     fun next() = supply()
 }
@@ -22,7 +29,7 @@ open class BeanDefinition internal constructor(env: Environment) : ValueDefiniti
 
 class BeanSupplierDefinition<T> internal constructor(
     env: Environment,
-    val supply: InstanceSupplier<T>
+    val supply: InstanceFactory<T>
 ) : BeanDefinition(env) {
     fun next() = supply()
 }

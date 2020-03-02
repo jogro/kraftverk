@@ -3,41 +3,21 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk
+package io.kraftverk.internal.misc
 
+import io.kraftverk.internal.binding.Provider
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 internal typealias Consumer<T> = (T) -> Unit
 
-internal typealias InstanceSupplier<T> = () -> T
+internal typealias InstanceFactory<T> = () -> T
 
 internal typealias ProviderFactory<T> = (
-    createInstance: InstanceSupplier<T>,
+    createInstance: InstanceFactory<T>,
     onCreate: Consumer<T>,
     onDestroy: Consumer<T>
 ) -> Provider<T>
-
-internal class ThreadBound<T> {
-
-    private val threadLocal = ThreadLocal<T>()
-
-    fun get(): T = threadLocal.get() ?: throw IllegalStateException()
-
-    fun <R> use(value: T, block: () -> R): R {
-        val previous: T? = threadLocal.get()
-        threadLocal.set(value)
-        try {
-            return block()
-        } finally {
-            if (previous == null) {
-                threadLocal.remove()
-            } else {
-                threadLocal.set(previous)
-            }
-        }
-    }
-}
 
 internal inline fun <reified T : Any> Any.applyWhen(block: T.() -> Unit) {
     contract {
@@ -59,7 +39,3 @@ internal inline fun <reified T : Any> Any.narrow(): T {
     check(this is T) { "Expected this to be ${T::class} but was ${this::class}" }
     return this
 }
-
-private val spinalRegex = "([A-Z]+)".toRegex()
-
-internal fun String.toSpinalCase() = replace(spinalRegex, "\\-$1").toLowerCase()

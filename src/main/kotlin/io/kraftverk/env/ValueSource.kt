@@ -1,9 +1,4 @@
-/*
- * Copyright 2019 Jonas Grönberg
- * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
- */
-
-package io.kraftverk
+package io.kraftverk.env
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -12,64 +7,19 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import mu.KotlinLogging
 
-interface Environment {
-    val profiles: List<String>
-    operator fun get(name: String): String?
-
-    companion object
-}
-
-class MutableEnvironment(override val profiles: List<String>, vararg valueSources: ValueSource) : Environment {
-    val sources = listOf(ValueSource(), *valueSources)
-    override fun get(name: String): String? = sources.mapNotNull { it[name] }.firstOrNull()
-
-    companion object
-}
-
 class ValueSource {
     internal val map = ConcurrentHashMap<String, String>()
 
     companion object
 }
 
-class ValueNameException(msg: String) : Exception(msg)
-
 const val ACTIVE_PROFILES = "kraftverk.active.profiles"
+
+class ValueNameException(msg: String) : Exception(msg)
 
 private val logger = KotlinLogging.logger { }
 
-class EnvironmentDefinition {
-    internal val valueSource = ValueSource()
-    var propertyFilenamePrefix: String = "application"
-    fun set(name: String, value: String) {
-        valueSource[name] = value
-    }
-}
-
-fun environment(vararg profiles: String, block: EnvironmentDefinition.() -> Unit = {}): MutableEnvironment {
-    val startMs = System.currentTimeMillis()
-    logger.info { "Creating environment" }
-    val systemSource = ValueSource.fromSystem()
-    val actualProfiles = if (profiles.isEmpty()) systemSource.activeProfiles() else profiles.toList()
-    logger.info { "Using profiles: $actualProfiles" }
-    val definition = EnvironmentDefinition().apply(block)
-    return MutableEnvironment(
-        actualProfiles,
-        definition.valueSource,
-        systemSource,
-        *ValueSource.fromClasspath(definition.propertyFilenamePrefix, actualProfiles),
-        ValueSource.fromClasspath(definition.propertyFilenamePrefix)
-    ).also {
-        logger.info { "Created environment in ${System.currentTimeMillis() - startMs}ms" }
-    }
-}
-
-operator fun MutableEnvironment.set(name: String, value: String) {
-    sources.first()[name] = value
-}
-
 operator fun ValueSource.get(name: String) = map[name.normalize()]
-
 operator fun ValueSource.set(name: String, value: String) {
     if (!name.trim().isValidPropertyName()) {
         throw ValueNameException("Invalid property name: '$name'")
@@ -100,7 +50,10 @@ fun ValueSource.Companion.fromClasspath(filenamePrefix: String, profiles: List<S
         .toTypedArray()
 
 fun ValueSource.Companion.fromClasspath(filename: String) = ValueSource().apply {
-    propertiesFromClasspath(this::class, Paths.get("$filename.properties")).forEach { e ->
+    propertiesFromClasspath(
+        this::class,
+        Paths.get("$filename.properties")
+    ).forEach { e ->
         this[e.key.toString()] = e.value.toString()
         logger.debug { e.key.toString() + "=" + e.value.toString() }
     }
@@ -120,7 +73,7 @@ internal fun ValueSource.clear() {
     map.clear()
 }
 
-private fun ValueSource.activeProfiles(): List<String> {
+internal fun ValueSource.activeProfiles(): List<String> {
     return map[ACTIVE_PROFILES]
         ?.split(",")
         ?.map { it.trim() }
@@ -129,8 +82,6 @@ private fun ValueSource.activeProfiles(): List<String> {
 }
 
 private fun String.normalize() = this.replace('_', '.').filter { it != '-' }.toLowerCase().trim()
-
 private val blacklist = "[._]{2}|[._]\$|^[._]".toRegex()
 private val whitelist = "^[a-zA-Z0-9._\\-]+\$".toRegex()
-
 private fun String.isValidPropertyName() = !blacklist.containsMatchIn(this) && whitelist.matches(this)

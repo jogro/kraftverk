@@ -10,6 +10,11 @@ import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrowUnit
 import io.kotlintest.specs.WordSpec
 import io.kotlintest.tables.row
+import io.kraftverk.env.ValueNameException
+import io.kraftverk.env.ValueSource
+import io.kraftverk.env.clear
+import io.kraftverk.env.get
+import io.kraftverk.env.set
 
 class ValueSourceTest : WordSpec() {
 
