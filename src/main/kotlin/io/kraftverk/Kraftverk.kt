@@ -25,7 +25,7 @@ object Kraftverk {
 
 /**
  * A factory function that creates a [Managed] instance of the specified [Module].
-  * ```kotlin
+ * ```kotlin
  * val app: Managed<AppModule> = Kraftverk.manage { AppModule() }
  * ```
  */
@@ -36,16 +36,17 @@ fun <M : Module> Kraftverk.manage(
     module: () -> M
 ): Managed<M> {
     logger.info { "Creating managed module(lazy = $lazy, namespace = '$namespace')" }
-    val runtime = {
-        val container = Container(lazy, env)
-        InternalManaged.Runtime(
-            container = container,
-            module = ModuleCreationContext.use(container, namespace) {
-                module()
-            }
-        )
-    }
-    return Managed(runtime).apply {
+    return Managed(
+        createRuntime = {
+            val container = Container(lazy, env)
+            InternalManaged.Runtime(
+                container = container,
+                module = ModuleCreationContext.use(container, namespace) {
+                    module()
+                }
+            )
+        }
+    ).apply {
         Runtime.getRuntime().addShutdownHook(Thread {
             stop()
         })

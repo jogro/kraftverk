@@ -25,5 +25,5 @@ import io.kraftverk.module.Module
  * ```
  */
 class Managed<M : Module> internal constructor(
-    runtime: () -> Runtime<M>
-) : InternalManaged<M>(runtime)
+    createRuntime: () -> Runtime<M>
+) : InternalManaged<M>(createRuntime)

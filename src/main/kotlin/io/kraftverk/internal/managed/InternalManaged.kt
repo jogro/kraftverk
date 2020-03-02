@@ -9,12 +9,12 @@ import io.kraftverk.internal.module.InternalModule
 import mu.KotlinLogging
 
 open class InternalManaged<M : InternalModule> internal constructor(
-    runtime: () -> Runtime<M>
+    createRuntime: () -> Runtime<M>
 ) {
     internal val logger = KotlinLogging.logger {}
 
     @Volatile
-    internal var state: State<M> = State.Defining(runtime)
+    internal var state: State<M> = State.Defining(createRuntime)
 
     internal sealed class State<out M : InternalModule> {
 
