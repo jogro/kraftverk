@@ -12,6 +12,7 @@ import io.kraftverk.internal.managed.InternalManaged
 import io.kraftverk.internal.module.ModuleCreationContext
 import io.kraftverk.internal.module.use
 import io.kraftverk.managed.Managed
+import io.kraftverk.managed.operations.start
 import io.kraftverk.managed.operations.stop
 import io.kraftverk.module.Module
 import mu.KotlinLogging
@@ -52,3 +53,13 @@ fun <M : Module> Kraftverk.manage(
         })
     }
 }
+
+/**
+ * A shortcut function that starts a managed instance of the specified [Module].
+ */
+fun <M : Module> Kraftverk.start(
+    namespace: String = "",
+    lazy: Boolean = false,
+    env: Environment = environment(),
+    module: () -> M
+): Managed<M> = manage(namespace, lazy, env, module).start()
