@@ -51,6 +51,8 @@ internal class Container(
     }
 }
 
+internal fun createContainer(lazy: Boolean, environment: Environment) = Container(lazy, environment)
+
 internal fun <T : Any> Container.newBean(
     name: String,
     config: BeanConfig<T>

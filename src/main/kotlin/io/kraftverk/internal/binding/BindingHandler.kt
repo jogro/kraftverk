@@ -6,7 +6,7 @@ import io.kraftverk.internal.misc.ProviderFactory
 import io.kraftverk.internal.misc.applyAs
 import io.kraftverk.internal.misc.applyWhen
 
-internal class BindingHandler<T : Any>(
+internal open class BindingHandler<T : Any>(
     createInstance: InstanceFactory<T>,
     createProvider: ProviderFactory<T>
 ) {
@@ -49,9 +49,9 @@ internal fun <T : Any> BindingHandler<T>.onCreate(
     block: (T, Consumer<T>) -> Unit
 ) {
     state.applyAs<BindingHandler.State.Defining<T>> {
-        val consumer = onCreate
+        val nextOnCreate = onCreate
         onCreate = { instance ->
-            block(instance, consumer)
+            block(instance, nextOnCreate)
         }
     }
 }
@@ -60,9 +60,9 @@ internal fun <T : Any> BindingHandler<T>.onDestroy(
     block: (T, Consumer<T>) -> Unit
 ) {
     state.applyAs<BindingHandler.State.Defining<T>> {
-        val consumer = onDestroy
+        val nextOnDestroy = onDestroy
         onDestroy = { instance ->
-            block(instance, consumer)
+            block(instance, nextOnDestroy)
         }
     }
 }

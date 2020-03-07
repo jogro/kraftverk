@@ -12,16 +12,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.managed.Managed
-import io.kraftverk.managed.operations.customize
-import io.kraftverk.managed.operations.get
-import io.kraftverk.managed.operations.invoke
-import io.kraftverk.managed.operations.start
-import io.kraftverk.managed.operations.stop
 import io.kraftverk.module.Module
-import io.kraftverk.module.operations.bean
-import io.kraftverk.module.operations.bind
-import io.kraftverk.module.operations.onCreate
-import io.kraftverk.module.operations.onDestroy
 import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.clearMocks

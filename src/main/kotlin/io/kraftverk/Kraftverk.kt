@@ -7,59 +7,50 @@ package io.kraftverk
 
 import io.kraftverk.env.Environment
 import io.kraftverk.env.environment
-import io.kraftverk.internal.container.Container
-import io.kraftverk.internal.managed.InternalManaged
-import io.kraftverk.internal.module.ModuleCreationContext
-import io.kraftverk.internal.module.use
+import io.kraftverk.internal.module.createRootModule
 import io.kraftverk.managed.Managed
-import io.kraftverk.managed.operations.start
-import io.kraftverk.managed.operations.stop
 import io.kraftverk.module.Module
-import mu.KotlinLogging
 
-/**
- * Bootstrap
- */
 object Kraftverk {
-    internal val logger = KotlinLogging.logger {}
+
+    /**
+     * A factory function that creates a [Managed] instance of the specified [Module].
+     * ```kotlin
+     * val app: Managed<AppModule> = Kraftverk.manage { AppModule() }
+     * ```
+     * The instance can be started by explicitly calling [Managed.start].
+     */
+    fun <M : Module> manage(
+        lazy: Boolean = false,
+        env: Environment = environment(),
+        namespace: String = "",
+        module: () -> M
+    ): Managed<M> {
+        val root = createRootModule(
+            lazy,
+            env,
+            namespace,
+            module
+        )
+        return Managed(root)
+    }
+
 }
 
 /**
- * A factory function that creates a [Managed] instance of the specified [Module].
+ * A shortcut factory function that creates and starts a [Managed] instance of the specified [Module].
+ * in one shot.
+ *
+ * A common use case is to invoke this method directly from the main function.
  * ```kotlin
- * val app: Managed<AppModule> = Kraftverk.manage { AppModule() }
+ * function main() {
+ *     Kraftverk.start { AppModule() }
+ * }
  * ```
  */
-fun <M : Module> Kraftverk.manage(
-    namespace: String = "",
-    lazy: Boolean = false,
-    env: Environment = environment(),
-    module: () -> M
-): Managed<M> {
-    logger.info { "Creating managed module(lazy = $lazy, namespace = '$namespace')" }
-    return Managed(
-        createRuntime = {
-            val container = Container(lazy, env)
-            InternalManaged.Runtime(
-                container = container,
-                module = ModuleCreationContext.use(container, namespace) {
-                    module()
-                }
-            )
-        }
-    ).apply {
-        Runtime.getRuntime().addShutdownHook(Thread {
-            stop()
-        })
-    }
-}
-
-/**
- * A shortcut function that starts a managed instance of the specified [Module].
- */
 fun <M : Module> Kraftverk.start(
-    namespace: String = "",
     lazy: Boolean = false,
     env: Environment = environment(),
+    namespace: String = "",
     module: () -> M
-): Managed<M> = manage(namespace, lazy, env, module).start()
+): Managed<M> = manage(lazy, env, namespace, module).start()

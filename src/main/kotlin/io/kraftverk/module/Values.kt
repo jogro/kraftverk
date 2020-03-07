@@ -1,30 +1,10 @@
-package io.kraftverk.module.operations
+package io.kraftverk.module
 
 import io.kraftverk.component.ValueComponent
 import io.kraftverk.definition.ValueDefinition
-import io.kraftverk.internal.component.ValueConfig
-import io.kraftverk.internal.component.newValueComponent
 import java.net.ServerSocket
 
-inline fun <reified T : Any> value(
-    name: String? = null,
-    default: String? = null,
-    lazy: Boolean? = null,
-    secret: Boolean = false,
-    noinline instance: ValueDefinition.(String) -> T
-): ValueComponent<T> =
-    newValueComponent(
-        name,
-        ValueConfig(
-            T::class,
-            default,
-            lazy,
-            secret,
-            instance
-        )
-    )
-
-fun string(
+fun Module.string(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -37,7 +17,7 @@ fun string(
     secret
 ) { block(it) }
 
-fun int(
+fun Module.int(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -50,7 +30,7 @@ fun int(
     secret
 ) { block(it.toInt()) }
 
-fun long(
+fun Module.long(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -63,7 +43,7 @@ fun long(
     secret
 ) { block(it.toLong()) }
 
-fun boolean(
+fun Module.boolean(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -76,7 +56,7 @@ fun boolean(
     secret
 ) { block(it.toBoolean()) }
 
-fun port(
+fun Module.port(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
