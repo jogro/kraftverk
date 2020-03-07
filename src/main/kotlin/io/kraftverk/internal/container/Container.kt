@@ -16,9 +16,9 @@ import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.env.Environment
 import io.kraftverk.env.get
+import io.kraftverk.internal.binding.BeanHandler
+import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.initialize
-import io.kraftverk.internal.binding.newBeanHandler
-import io.kraftverk.internal.binding.newValueHandler
 import io.kraftverk.internal.binding.start
 import io.kraftverk.internal.binding.stop
 import io.kraftverk.internal.component.BeanConfig
@@ -33,8 +33,7 @@ internal class Container(
 ) {
 
     @Volatile
-    internal var state: State =
-        State.Defining()
+    internal var state: State = State.Defining()
 
     internal sealed class State {
 
@@ -51,17 +50,15 @@ internal class Container(
     }
 }
 
-internal fun createContainer(lazy: Boolean, environment: Environment) = Container(lazy, environment)
-
 internal fun <T : Any> Container.newBean(
     name: String,
     config: BeanConfig<T>
 ) = BeanImpl(
-    newBeanHandler(
+    BeanHandler(
         name = name,
         type = config.type,
         lazy = config.lazy ?: lazy,
-        createInstance = {
+        instanceFactory = {
             state.checkIsRunning()
             config.createInstance(BeanDefinition(environment))
         }
@@ -72,12 +69,12 @@ internal fun <T : Any> Container.newValue(
     name: String,
     config: ValueConfig<T>
 ) = ValueImpl(
-    newValueHandler(
+    ValueHandler(
         name = name,
         secret = config.secret,
         type = config.type,
         lazy = config.lazy ?: lazy,
-        createInstance = {
+        instanceFactory = {
             state.checkIsRunning()
             config.createInstance(
                 ValueDefinition(environment),
@@ -93,24 +90,13 @@ internal fun Container.start() =
             binding.handler.start()
         }
         state = Container.State.Started(bindings.toList())
-        bindings.filterIsInstance<Value<*>>().forEach { value ->
-            value.handler.initialize()
-        }
-        bindings.filterIsInstance<Bean<*>>().forEach { bean ->
-            bean.handler.initialize()
-        }
+        bindings.initialize()
     }
 
 internal fun Container.stop() =
     state.applyWhen<Container.State.Started> {
         state = Container.State.Destroying
-        bindings.filter { binding ->
-            binding.provider.instanceId != null
-        }.sortedByDescending { binding ->
-            binding.provider.instanceId
-        }.forEach { binding ->
-            binding.handler.stop()
-        }
+        bindings.destroy()
         state = Container.State.Destroyed
     }
 
@@ -122,6 +108,25 @@ private fun Container.register(binding: Binding<*>) =
     state.applyAs<Container.State.Defining> {
         bindings.add(binding)
     }
+
+private fun List<Binding<*>>.initialize() {
+    filterIsInstance<Value<*>>().forEach { value ->
+        value.handler.initialize()
+    }
+    filterIsInstance<Bean<*>>().forEach { bean ->
+        bean.handler.initialize()
+    }
+}
+
+private fun List<Binding<*>>.destroy() {
+    filter { binding ->
+        binding.provider.instanceId != null
+    }.sortedByDescending { binding ->
+        binding.provider.instanceId
+    }.forEach { binding ->
+        binding.handler.stop()
+    }
+}
 
 private fun throwValueNotFound(name: String): Nothing =
     throw IllegalStateException("Value '$name' was not found!")

@@ -5,19 +5,12 @@
 
 package io.kraftverk.internal.misc
 
-import io.kraftverk.internal.binding.Provider
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 internal typealias Consumer<T> = (T) -> Unit
 
 internal typealias InstanceFactory<T> = () -> T
-
-internal typealias ProviderFactory<T> = (
-    createInstance: InstanceFactory<T>,
-    onCreate: Consumer<T>,
-    onDestroy: Consumer<T>
-) -> Provider<T>
 
 internal inline fun <reified T : Any> Any.applyWhen(block: T.() -> Unit) {
     contract {

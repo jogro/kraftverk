@@ -1,4 +1,9 @@
-package io.kraftverk.internal.binding
+/*
+ * Copyright 2019 Jonas Grönberg
+ * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
+ */
+
+package io.kraftverk.internal.provider
 
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.InstanceFactory

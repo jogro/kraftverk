@@ -1,3 +1,8 @@
+/*
+ * Copyright 2019 Jonas Grönberg
+ * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
+ */
+
 package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
@@ -10,7 +15,7 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 /**
- * Provides access to and manages [Bean] and [Value] instances in a specified
+ * Provides access to and manages bean and value instances in a specified
  * implementation [M] of [Module].
  *
  * Given a module:
@@ -24,7 +29,7 @@ import kotlin.reflect.KProperty
  *     }
  * }
  * ```
- * Call the [manage] factory function to create a [Managed] instance of the module.
+ * Call the manage factory function to create a [Managed] instance of the module.
  * ```kotlin
  * val app by Kraftverk.manage { AppModule() }
  * ```
@@ -35,13 +40,12 @@ class Managed<M : Module> internal constructor(
 
     /**
      * The [start] function will by default perform the following actions:
-     * 1) All value bindings declared in the [Module] are eagerly looked up using the [Environment] that
+     * 1) All value bindings declared in the [Module] are eagerly looked up using the Environment that
      * was specified at the time the managed instance was created.
      * Should any value be missing an exception is thrown.
-     * 2) All [Bean] bindings are eagerly instantiated.
+     * 2) All Bean bindings are eagerly instantiated.
      *
-     * Call the [Managed.stop] method to destroy the [Managed] instance. Otherwise, shutdown will be performed
-     * by a shutdown hook.
+     * Call the [Managed.stop] method to destroy the [Managed] instance.
      */
     fun start(block: M.() -> Unit = {}): Managed<M> {
         logger.info { "Starting module" }

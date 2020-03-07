@@ -1,3 +1,8 @@
+/*
+ * Copyright 2019 Jonas Grönberg
+ * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
+ */
+
 package io.kraftverk.internal.module
 
 import io.kraftverk.env.Environment
@@ -23,12 +28,9 @@ internal fun <M : BasicModule> createRootModule(
     env: Environment,
     namespace: String,
     createModule: () -> M
-): M {
-    val container = Container(lazy, env)
-    return threadBoundContainer.use(container) {
-        threadBoundNamespace.use(namespace) {
-            createModule()
-        }
+): M = threadBoundContainer.use(Container(lazy, env)) {
+    threadBoundNamespace.use(namespace) {
+        createModule()
     }
 }
 
