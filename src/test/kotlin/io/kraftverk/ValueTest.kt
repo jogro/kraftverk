@@ -48,26 +48,26 @@ class ValueTest : StringSpec() {
     private inner class ValueModule(private val lazy: Boolean? = null) : Module() {
 
         val val2 by value(lazy = this.lazy) {
-            valueObjectFactory.newValue(it, val1())
+            valueObjectFactory.newValue(it.toString(), val1())
         }
 
         val val1 by value(lazy = this.lazy) {
-            valueObjectFactory.newValue(it)
+            valueObjectFactory.newValue(it.toString())
         }
 
         val val3 by value(lazy = this.lazy) {
-            valueObjectFactory.newValue(it)
+            valueObjectFactory.newValue(it.toString())
         }
 
         val val4 by value(
             lazy = this.lazy,
             default = valueObject4.value
         ) {
-            valueObjectFactory.newValue(it)
+            valueObjectFactory.newValue(it.toString())
         }
 
         val val5 by value(lazy = this.lazy, name = "xyz.val5") {
-            valueObjectFactory.newValue(it)
+            valueObjectFactory.newValue(it.toString())
         }
 
         val user by module { UserModule(lazy) }

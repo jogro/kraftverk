@@ -22,5 +22,5 @@ internal data class ValueConfig<T : Any>(
     val default: String?,
     val lazy: Boolean?,
     val secret: Boolean,
-    val createInstance: ValueDefinition.(String) -> T
+    val createInstance: ValueDefinition.(Any) -> T
 )

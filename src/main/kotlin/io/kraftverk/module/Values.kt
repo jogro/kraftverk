@@ -20,7 +20,7 @@ fun Module.string(
     default,
     lazy,
     secret
-) { block(it) }
+) { block(it.toString()) }
 
 fun Module.int(
     name: String? = null,
@@ -33,7 +33,7 @@ fun Module.int(
     default,
     lazy,
     secret
-) { block(it.toInt()) }
+) { block(it.toString().toInt()) }
 
 fun Module.long(
     name: String? = null,
@@ -46,7 +46,7 @@ fun Module.long(
     default,
     lazy,
     secret
-) { block(it.toLong()) }
+) { block(it.toString().toLong()) }
 
 fun Module.boolean(
     name: String? = null,
@@ -59,7 +59,7 @@ fun Module.boolean(
     default,
     lazy,
     secret
-) { block(it.toBoolean()) }
+) { block(it.toString().toBoolean()) }
 
 fun Module.port(
     name: String? = null,
@@ -70,7 +70,7 @@ fun Module.port(
 ): ValueComponent<Int> =
     value(name, default, lazy, secret) { value ->
         block(
-            when (val port = value.toInt()) {
+            when (val port = value.toString().toInt()) {
                 0 -> ServerSocket(0).use { it.localPort }
                 else -> port
             }

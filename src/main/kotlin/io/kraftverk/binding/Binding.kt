@@ -5,7 +5,9 @@
 
 package io.kraftverk.binding
 
+import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.BindingHandler
+import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.provider
 
 sealed class Binding<out T : Any>
@@ -18,8 +20,8 @@ sealed class Value<out T : Any> : Binding<T>() {
     companion object
 }
 
-internal class BeanImpl<T : Any>(val handler: BindingHandler<T>) : Bean<T>()
-internal class ValueImpl<T : Any>(val handler: BindingHandler<T>) : Value<T>()
+internal class BeanImpl<T : Any>(val handler: BeanHandler<T>) : Bean<T>()
+internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
 
 internal val <T : Any> Binding<T>.handler: BindingHandler<T>
     get() = when (this) {

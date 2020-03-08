@@ -48,7 +48,7 @@ abstract class Module : BasicModule() {
         default: String? = null,
         lazy: Boolean? = null,
         secret: Boolean = false,
-        noinline instance: ValueDefinition.(String) -> T
+        noinline instance: ValueDefinition.(Any) -> T
     ): ValueComponent<T> =
         newValueComponent(
             name,

@@ -15,7 +15,6 @@ import io.kraftverk.binding.provider
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.env.Environment
-import io.kraftverk.env.get
 import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.initialize
