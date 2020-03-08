@@ -54,6 +54,7 @@ internal class Singleton<T : Any>(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     fun destroy() {
         synchronized(this) {
             val i = instance

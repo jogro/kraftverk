@@ -8,6 +8,16 @@ import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.module.BeanConfig
 import io.kraftverk.module.ValueConfig
+import io.kraftverk.provider.BeanProvider
+import io.kraftverk.provider.ValueProvider
+
+internal val Container.beanProviders: List<BeanProvider<*>>
+    get() =
+        providers.filterIsInstance<BeanProvider<*>>()
+
+internal val Container.valueProviders: List<ValueProvider<*>>
+    get() =
+        providers.filterIsInstance<ValueProvider<*>>()
 
 internal fun <T : Any> Container.newBean(
     name: String,
@@ -28,7 +38,7 @@ private fun <T : Any> Container.createBeanHandler(
     lazy = config.lazy ?: lazy,
     instanceFactory = {
         checkIsStarted()
-        config.createInstance(BeanDefinition(environment))
+        config.createInstance(BeanDefinition(this))
     }
 )
 
@@ -43,7 +53,7 @@ private fun <T : Any> Container.createValueHandler(
     instanceFactory = {
         checkIsStarted()
         config.createInstance(
-            ValueDefinition(environment),
+            ValueDefinition(this),
             environment[name] ?: config.default
             ?: throwValueNotFound(name)
         )

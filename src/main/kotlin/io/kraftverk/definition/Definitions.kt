@@ -8,40 +8,44 @@ package io.kraftverk.definition
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.provider
-import io.kraftverk.env.Environment
+import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.container.beanProviders
+import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.provider.get
 
-open class ValueDefinition internal constructor(val env: Environment) {
+open class ValueDefinition internal constructor(internal val container: Container) {
+    val valueProviders get() = container.valueProviders
     operator fun <T : Any> Value<T>.invoke(): T = provider.get()
 }
 
 class ValueSupplierDefinition<T> internal constructor(
-    env: Environment,
+    container: Container,
     private val supply: InstanceFactory<T>
-) : ValueDefinition(env) {
+) : ValueDefinition(container) {
     fun next() = supply()
 }
 
-open class BeanDefinition internal constructor(env: Environment) : ValueDefinition(env) {
+open class BeanDefinition internal constructor(container: Container) : ValueDefinition(container) {
+    val beanProviders get() = container.beanProviders
     operator fun <T : Any> Bean<T>.invoke(): T = provider.get()
 }
 
 class BeanSupplierDefinition<T> internal constructor(
-    env: Environment,
+    container: Container,
     val supply: InstanceFactory<T>
-) : BeanDefinition(env) {
+) : BeanDefinition(container) {
     fun next() = supply()
 }
 
 class BeanConsumerDefinition<T> internal constructor(
-    env: Environment,
+    container: Container,
     private val instance: T,
     private val consume: Consumer<T>
-) : BeanDefinition(env) {
+) : BeanDefinition(container) {
     fun next() = consume(instance)
 }
 
-open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.env)
-open class CustomValueDefinition(parent: ValueDefinition) : ValueDefinition(parent.env)
+open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.container)
+open class CustomValueDefinition(parent: ValueDefinition) : ValueDefinition(parent.container)

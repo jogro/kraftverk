@@ -124,7 +124,7 @@ abstract class Module : BasicModule() {
     ) {
         bean.handler.onCreate { instance, nextOnCreate ->
             val definition = BeanConsumerDefinition(
-                container.environment,
+                container,
                 instance,
                 nextOnCreate
             )
@@ -153,7 +153,7 @@ abstract class Module : BasicModule() {
     ) {
         bean.handler.onDestroy { instance, nextOnDestroy ->
             val definition = BeanConsumerDefinition(
-                container.environment,
+                container,
                 instance,
                 nextOnDestroy
             )
@@ -171,7 +171,7 @@ class BeanBinder<T : Any> internal constructor(
 ) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
         bean.handler.onBind { nextBind ->
-            BeanSupplierDefinition(container.environment, nextBind).block()
+            BeanSupplierDefinition(container, nextBind).block()
         }
     }
 }
@@ -185,7 +185,7 @@ class ValueBinder<T : Any> internal constructor(
 ) {
     infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
         value.handler.onBind { nextBind ->
-            ValueSupplierDefinition(container.environment, nextBind).block()
+            ValueSupplierDefinition(container, nextBind).block()
         }
     }
 }

@@ -44,16 +44,12 @@ class Managed<M : Module> internal constructor(
     /**
      * Retrieves all [BeanProvider]s.
      */
-    val beanProviders: List<BeanProvider<*>> by lazy {
-        module.providers.filterIsInstance<BeanProvider<*>>()
-    }
+    val beanProviders: List<BeanProvider<*>> by lazy(module::beanProviders)
 
     /**
      * Retrieves all [ValueProvider]s.
      */
-    val valueProviders: List<ValueProvider<*>> by lazy {
-        module.providers.filterIsInstance<ValueProvider<*>>()
-    }
+    val valueProviders: List<ValueProvider<*>> by lazy(module::valueProviders)
 
     /**
      * The [start] function will by default perform the following actions:

@@ -7,6 +7,8 @@ package io.kraftverk.internal.module
 
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.container.beanProviders
+import io.kraftverk.internal.container.valueProviders
 
 private val threadBoundContainer = ThreadBound<Container>()
 private val threadBoundNamespace = ThreadBound<String>()
@@ -18,7 +20,8 @@ open class BasicModule {
     internal fun start() = container.start()
     internal fun stop() = container.stop()
 
-    internal val providers get() = container.providers
+    internal val beanProviders get() = container.beanProviders
+    internal val valueProviders get() = container.valueProviders
 
     internal companion object
 }
