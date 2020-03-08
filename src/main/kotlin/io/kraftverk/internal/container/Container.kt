@@ -38,9 +38,7 @@ internal class Container(
     }
 
     internal fun start() = state.applyAs<State.Defining> {
-        bindings.forEach { binding ->
-            binding.handler.start()
-        }
+        bindings.start()
         state = State.Started(bindings.toList())
         bindings.initialize()
     }
@@ -58,6 +56,12 @@ internal class Container(
         state = State.Destroying
         bindings.destroy()
         state = State.Destroyed
+    }
+}
+
+private fun List<Binding<*>>.start() {
+    forEach { binding ->
+        binding.handler.start()
     }
 }
 
