@@ -14,6 +14,8 @@ import io.kraftverk.env.Environment
 import io.kraftverk.internal.misc.applyAs
 import io.kraftverk.internal.misc.applyWhen
 import io.kraftverk.internal.misc.narrow
+import io.kraftverk.provider.Provider
+import io.kraftverk.provider.instanceId
 
 internal class Container(
     val lazy: Boolean,
@@ -36,6 +38,13 @@ internal class Container(
         object Destroying : State()
         object Destroyed : State()
     }
+
+    internal val providers: List<Provider<*>>
+        get() {
+            state.applyAs<State.Started> {
+                return bindings.map { it.provider }
+            }
+        }
 
     internal fun start() = state.applyAs<State.Defining> {
         bindings.start()

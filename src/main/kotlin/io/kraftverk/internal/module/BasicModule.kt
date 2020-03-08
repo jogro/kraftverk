@@ -18,6 +18,8 @@ open class BasicModule {
     internal fun start() = container.start()
     internal fun stop() = container.stop()
 
+    internal val providers get() = container.providers
+
     internal companion object
 }
 

@@ -11,6 +11,7 @@ import io.kraftverk.binding.provider
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.InstanceFactory
+import io.kraftverk.provider.get
 
 open class ValueDefinition internal constructor(val env: Environment) {
     operator fun <T : Any> Value<T>.invoke(): T = provider.get()

@@ -11,6 +11,9 @@ import io.kraftverk.internal.managed.BasicManaged
 import io.kraftverk.internal.misc.applyAs
 import io.kraftverk.internal.misc.applyWhen
 import io.kraftverk.module.Module
+import io.kraftverk.provider.BeanProvider
+import io.kraftverk.provider.ValueProvider
+import io.kraftverk.provider.get
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -37,6 +40,20 @@ import kotlin.reflect.KProperty
 class Managed<M : Module> internal constructor(
     module: M
 ) : BasicManaged<M>(module) {
+
+    /**
+     * Retrieves all [BeanProvider]s.
+     */
+    val beanProviders: List<BeanProvider<*>> by lazy {
+        module.providers.filterIsInstance<BeanProvider<*>>()
+    }
+
+    /**
+     * Retrieves all [ValueProvider]s.
+     */
+    val valueProviders: List<ValueProvider<*>> by lazy {
+        module.providers.filterIsInstance<ValueProvider<*>>()
+    }
 
     /**
      * The [start] function will by default perform the following actions:

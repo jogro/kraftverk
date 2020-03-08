@@ -9,7 +9,9 @@ import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.internal.misc.applyAs
 import io.kraftverk.internal.misc.applyWhen
-import io.kraftverk.internal.provider.Provider
+import io.kraftverk.provider.Provider
+import io.kraftverk.provider.destroy
+import io.kraftverk.provider.initialize
 
 internal abstract class BindingHandler<T : Any>(
     initialState: State.Defining<T>

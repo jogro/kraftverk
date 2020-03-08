@@ -13,7 +13,7 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-internal class Provider<T : Any>(
+internal class Singleton<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean,
     private val createInstance: InstanceFactory<T>,

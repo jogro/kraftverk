@@ -6,7 +6,8 @@
 package io.kraftverk.internal.binding
 
 import io.kraftverk.internal.misc.InstanceFactory
-import io.kraftverk.internal.provider.Provider
+import io.kraftverk.internal.provider.Singleton
+import io.kraftverk.provider.ValueProviderImpl
 import kotlin.reflect.KClass
 import mu.KotlinLogging
 
@@ -20,7 +21,10 @@ internal class ValueHandler<T : Any>(
     instanceFactory: InstanceFactory<T>
 ) : BindingHandler<T>(State.Defining(instanceFactory)) {
 
-    override fun createProvider(state: State.Defining<T>) = Provider(
+    override fun createProvider(state: State.Defining<T>): ValueProviderImpl<T> =
+        createSingleton(state).let(::ValueProviderImpl)
+
+    private fun createSingleton(state: State.Defining<T>) = Singleton(
         type = type,
         lazy = lazy,
         createInstance = {
