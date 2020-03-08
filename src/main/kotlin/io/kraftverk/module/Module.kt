@@ -81,6 +81,7 @@ abstract class Module : BasicModule() {
      * class AppModule : Module() {
      *     val rabbit by module { RabbitModule() }
      *     init {
+     *         bind(rabbit.username) to { "testuser" }
      *         bind(rabbit.connectionFactory) to {
      *             MySpecialConnectionFactory()
      *         }
