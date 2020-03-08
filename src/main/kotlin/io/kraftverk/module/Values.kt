@@ -5,7 +5,6 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.component.ValueComponent
 import io.kraftverk.definition.ValueDefinition
 import java.net.ServerSocket
 

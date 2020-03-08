@@ -3,29 +3,53 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk.internal.component
+package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
-import io.kraftverk.component.BeanComponent
-import io.kraftverk.component.SubModuleComponent
-import io.kraftverk.component.ValueComponent
+import io.kraftverk.definition.BeanDefinition
+import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.internal.container.newBean
 import io.kraftverk.internal.container.newValue
-import io.kraftverk.internal.module.BasicModule
 import io.kraftverk.internal.module.createSubModule
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+
+interface Component<out T> {
+    operator fun provideDelegate(thisRef: Module, property: KProperty<*>): ReadOnlyProperty<Module, T>
+}
+
+interface BeanComponent<out T : Any> : Component<Bean<T>>
+interface ValueComponent<out T : Any> : Component<Value<T>>
+interface SubModuleComponent<out T : Module> : Component<T>
+
+@PublishedApi
+internal data class BeanConfig<T : Any>(
+    val type: KClass<T>,
+    val lazy: Boolean?,
+    val createInstance: BeanDefinition.() -> T
+)
+
+@PublishedApi
+internal data class ValueConfig<T : Any>(
+    val type: KClass<T>,
+    val default: String?,
+    val lazy: Boolean?,
+    val secret: Boolean,
+    val createInstance: ValueDefinition.(Any) -> T
+)
 
 @PublishedApi
 internal fun <T : Any> newBeanComponent(
     config: BeanConfig<T>
-): BeanComponent<T> = object : BeanComponent<T> {
+): BeanComponent<T> = object :
+    BeanComponent<T> {
 
     override fun provideDelegate(
-        thisRef: BasicModule,
+        thisRef: Module,
         property: KProperty<*>
-    ): ReadOnlyProperty<BasicModule, Bean<T>> {
+    ): ReadOnlyProperty<Module, Bean<T>> {
         val beanName = property.name.toQualifiedName(thisRef)
         val bean = thisRef.container.newBean(beanName, config)
         return Delegate(bean)
@@ -36,27 +60,29 @@ internal fun <T : Any> newBeanComponent(
 internal fun <T : Any> newValueComponent(
     name: String?,
     config: ValueConfig<T>
-): ValueComponent<T> = object : ValueComponent<T> {
+): ValueComponent<T> = object :
+    ValueComponent<T> {
 
     override fun provideDelegate(
-        thisRef: BasicModule,
+        thisRef: Module,
         property: KProperty<*>
-    ): ReadOnlyProperty<BasicModule, Value<T>> {
+    ): ReadOnlyProperty<Module, Value<T>> {
         val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
         val value = thisRef.container.newValue(valueName, config)
         return Delegate(value)
     }
 }
 
-internal fun <M : BasicModule> newSubModuleComponent(
+internal fun <M : Module> newSubModuleComponent(
     name: String? = null,
     subModule: () -> M
-): SubModuleComponent<M> = object : SubModuleComponent<M> {
+): SubModuleComponent<M> = object :
+    SubModuleComponent<M> {
 
     override fun provideDelegate(
-        thisRef: BasicModule,
+        thisRef: Module,
         property: KProperty<*>
-    ): ReadOnlyProperty<BasicModule, M> {
+    ): ReadOnlyProperty<Module, M> {
         val moduleName = (name ?: property.name).toQualifiedName(thisRef)
         val module = createSubModule(moduleName) { subModule() }
         return Delegate(module)
@@ -64,13 +90,13 @@ internal fun <M : BasicModule> newSubModuleComponent(
 }
 
 private class Delegate<T : Any>(private val t: T) :
-    ReadOnlyProperty<BasicModule, T> {
-    override fun getValue(thisRef: BasicModule, property: KProperty<*>): T {
+    ReadOnlyProperty<Module, T> {
+    override fun getValue(thisRef: Module, property: KProperty<*>): T {
         return t
     }
 }
 
-private fun String.toQualifiedName(module: BasicModule) =
+private fun String.toQualifiedName(module: Module) =
     (if (module.namespace.isBlank()) this else "${module.namespace}.$this")
 
 private val spinalRegex = "([A-Z]+)".toRegex()

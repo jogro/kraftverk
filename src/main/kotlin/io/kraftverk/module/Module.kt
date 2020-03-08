@@ -8,22 +8,11 @@ package io.kraftverk.module
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
-import io.kraftverk.component.BeanComponent
-import io.kraftverk.component.SubModuleComponent
-import io.kraftverk.component.ValueComponent
 import io.kraftverk.definition.BeanConsumerDefinition
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.BeanSupplierDefinition
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.definition.ValueSupplierDefinition
-import io.kraftverk.internal.binding.onBind
-import io.kraftverk.internal.binding.onCreate
-import io.kraftverk.internal.binding.onDestroy
-import io.kraftverk.internal.component.BeanConfig
-import io.kraftverk.internal.component.ValueConfig
-import io.kraftverk.internal.component.newBeanComponent
-import io.kraftverk.internal.component.newSubModuleComponent
-import io.kraftverk.internal.component.newValueComponent
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.module.BasicModule
 

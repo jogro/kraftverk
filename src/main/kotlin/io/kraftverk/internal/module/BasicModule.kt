@@ -7,8 +7,6 @@ package io.kraftverk.internal.module
 
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
-import io.kraftverk.internal.container.start
-import io.kraftverk.internal.container.stop
 
 private val threadBoundContainer = ThreadBound<Container>()
 private val threadBoundNamespace = ThreadBound<String>()

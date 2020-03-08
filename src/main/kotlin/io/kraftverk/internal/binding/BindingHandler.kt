@@ -36,62 +36,62 @@ internal abstract class BindingHandler<T : Any>(
 
         object Destroyed : State<Nothing>()
     }
-}
 
-internal fun <T : Any> BindingHandler<T>.onBind(
-    block: (InstanceFactory<T>) -> T
-) {
-    state.applyAs<BindingHandler.State.Defining<T>> {
-        val next = createInstance
-        createInstance = {
-            block(next)
-        }
-    }
-}
-
-internal fun <T : Any> BindingHandler<T>.onCreate(
-    block: (T, Consumer<T>) -> Unit
-) {
-    state.applyAs<BindingHandler.State.Defining<T>> {
-        val next = onCreate
-        onCreate = { instance ->
-            block(instance, next)
-        }
-    }
-}
-
-internal fun <T : Any> BindingHandler<T>.onDestroy(
-    block: (T, Consumer<T>) -> Unit
-) {
-    state.applyAs<BindingHandler.State.Defining<T>> {
-        val next = onDestroy
-        onDestroy = { instance ->
-            block(instance, next)
-        }
-    }
-}
-
-internal fun <T : Any> BindingHandler<T>.start() {
-    state.applyAs<BindingHandler.State.Defining<T>> {
-        val provider = createProvider(this)
-        state = BindingHandler.State.Started(provider)
-    }
-}
-
-internal fun BindingHandler<*>.initialize() =
-    state.applyAs<BindingHandler.State.Started<*>> {
-        provider.initialize()
-    }
-
-internal val <T : Any> BindingHandler<T>.provider: Provider<T>
-    get() {
-        state.applyAs<BindingHandler.State.Started<T>> {
-            return provider
+    internal fun onBind(
+        block: (InstanceFactory<T>) -> T
+    ) {
+        state.applyAs<State.Defining<T>> {
+            val next = createInstance
+            createInstance = {
+                block(next)
+            }
         }
     }
 
-internal fun BindingHandler<*>.stop() =
-    state.applyWhen<BindingHandler.State.Started<*>> {
-        provider.destroy()
-        state = BindingHandler.State.Destroyed
+    internal fun onCreate(
+        block: (T, Consumer<T>) -> Unit
+    ) {
+        state.applyAs<State.Defining<T>> {
+            val next = onCreate
+            onCreate = { instance ->
+                block(instance, next)
+            }
+        }
     }
+
+    internal fun onDestroy(
+        block: (T, Consumer<T>) -> Unit
+    ) {
+        state.applyAs<State.Defining<T>> {
+            val next = onDestroy
+            onDestroy = { instance ->
+                block(instance, next)
+            }
+        }
+    }
+
+    internal fun start() {
+        state.applyAs<State.Defining<T>> {
+            val provider = createProvider(this)
+            state = State.Started(provider)
+        }
+    }
+
+    internal fun initialize() =
+        state.applyAs<State.Started<*>> {
+            provider.initialize()
+        }
+
+    internal val provider: Provider<T>
+        get() {
+            state.applyAs<State.Started<T>> {
+                return provider
+            }
+        }
+
+    internal fun stop() =
+        state.applyWhen<State.Started<*>> {
+            provider.destroy()
+            state = State.Destroyed
+        }
+}
