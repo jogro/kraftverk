@@ -60,7 +60,7 @@ fun Module.boolean(
     secret
 ) { block(it.toString().toBoolean()) }
 
-fun Module.port(
+fun Module.portNumber(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,

@@ -12,7 +12,7 @@ Kraftverk is a minimalistic dependency injection toolkit written in pure Kotlin.
 <dependency>
     <groupId>io.kraftverk</groupId>
     <artifactId>kraftverk</artifactId>
-    <version>0.8.12</version>
+    <version>0.8.13</version>
 </dependency>
 ```
 
