@@ -19,7 +19,7 @@ Kraftverk is a minimalistic dependency injection toolkit written in pure Kotlin.
 #### Gradle
 
 ```groovy
-compile "io.kraftverk:kraftverk:0.8.12"
+compile "io.kraftverk:kraftverk:0.8.13"
 ```
 
 ### Given some classes
