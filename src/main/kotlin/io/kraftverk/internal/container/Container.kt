@@ -52,36 +52,12 @@ internal class Container(
 internal fun <T : Any> Container.newBean(
     name: String,
     config: BeanConfig<T>
-) = BeanImpl(
-    BeanHandler(
-        name = name,
-        type = config.type,
-        lazy = config.lazy ?: lazy,
-        instanceFactory = {
-            state.checkIsRunning()
-            config.createInstance(BeanDefinition(environment))
-        }
-    )
-).apply(::register)
+) = createBeanHandler(name, config).let(::BeanImpl).apply(::register)
 
 internal fun <T : Any> Container.newValue(
     name: String,
     config: ValueConfig<T>
-) = ValueImpl(
-    ValueHandler(
-        name = name,
-        secret = config.secret,
-        type = config.type,
-        lazy = config.lazy ?: lazy,
-        instanceFactory = {
-            state.checkIsRunning()
-            config.createInstance(
-                ValueDefinition(environment),
-                environment[name] ?: config.default ?: throwValueNotFound(name)
-            )
-        }
-    )
-).apply(::register)
+) = createValueHandler(name, config).let(::ValueImpl).apply(::register)
 
 internal fun Container.start() =
     state.applyAs<Container.State.Defining> {
@@ -98,6 +74,36 @@ internal fun Container.stop() =
         bindings.destroy()
         state = Container.State.Destroyed
     }
+
+private fun <T : Any> Container.createBeanHandler(
+    name: String,
+    config: BeanConfig<T>
+) = BeanHandler(
+    name = name,
+    type = config.type,
+    lazy = config.lazy ?: lazy,
+    instanceFactory = {
+        state.checkIsRunning()
+        config.createInstance(BeanDefinition(environment))
+    }
+)
+
+private fun <T : Any> Container.createValueHandler(
+    name: String,
+    config: ValueConfig<T>
+) = ValueHandler(
+    name = name,
+    secret = config.secret,
+    type = config.type,
+    lazy = config.lazy ?: lazy,
+    instanceFactory = {
+        state.checkIsRunning()
+        config.createInstance(
+            ValueDefinition(environment),
+            environment[name] ?: config.default ?: throwValueNotFound(name)
+        )
+    }
+)
 
 private fun Container.State.checkIsRunning() {
     narrow<Container.State.Started>()
