@@ -11,8 +11,11 @@ import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
+import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.managed.Managed
 import io.kraftverk.module.Module
+import io.kraftverk.provider.get
+import io.kraftverk.provider.type
 import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.clearMocks
@@ -23,6 +26,7 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import kotlin.concurrent.thread
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.full.isSubclassOf
 
 class BeanTest : StringSpec() {
 
@@ -217,7 +221,7 @@ class BeanTest : StringSpec() {
             destroyed should containExactly("b2", "b1", "b0")
         }
 
-        "Trying out managed use case" {
+        "Trying out mock" {
             val module = Kraftverk.manage { Mod0(mutableListOf()) }
             val b0 by module.mock { b0 }
             val b1 by module.mock { b1 }
@@ -226,6 +230,19 @@ class BeanTest : StringSpec() {
             println(b0)
             println(b1)
             println(b2)
+        }
+
+        class Mod1 : Module() {
+            val b0 by bean { 1 }
+            val b1 by bean { 2 }
+            val intList by bean { beans<Int>() }
+        }
+
+        "Trying out bean providers" {
+            val module = Kraftverk.manage { Mod1() }
+            module.start()
+            val intList = module { intList }
+            intList should containExactly(1, 2)
         }
     }
 
@@ -269,4 +286,7 @@ class BeanTest : StringSpec() {
         }
         return get(bean)
     }
+
+    private inline fun <reified T : Any> BeanDefinition.beans(): List<T> =
+        beanProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
 }

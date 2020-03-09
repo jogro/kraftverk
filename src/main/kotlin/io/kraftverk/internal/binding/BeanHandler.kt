@@ -22,7 +22,7 @@ internal class BeanHandler<T : Any>(
 ) : BindingHandler<T>(State.Defining(instanceFactory)) {
 
     override fun createProvider(state: State.Defining<T>): BeanProviderImpl<T> =
-        createSingleton(state).let(::BeanProviderImpl)
+        BeanProviderImpl(name, lazy, createSingleton(state))
 
     private fun createSingleton(
         state: State.Defining<T>

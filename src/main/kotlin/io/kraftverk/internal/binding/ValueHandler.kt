@@ -22,7 +22,7 @@ internal class ValueHandler<T : Any>(
 ) : BindingHandler<T>(State.Defining(instanceFactory)) {
 
     override fun createProvider(state: State.Defining<T>): ValueProviderImpl<T> =
-        createSingleton(state).let(::ValueProviderImpl)
+        ValueProviderImpl(name, lazy, createSingleton(state))
 
     private fun createSingleton(state: State.Defining<T>) = Singleton(
         type = type,

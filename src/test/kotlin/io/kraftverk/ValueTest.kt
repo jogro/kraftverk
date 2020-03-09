@@ -8,17 +8,24 @@ package io.kraftverk
 import io.kotlintest.TestCase
 import io.kotlintest.extensions.system.withEnvironment
 import io.kotlintest.extensions.system.withSystemProperties
+import io.kotlintest.matchers.collections.containExactly
 import io.kotlintest.matchers.collections.shouldContainExactly
+import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
+import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.env.environment
 import io.kraftverk.module.Module
+import io.kraftverk.module.int
 import io.kraftverk.module.string
+import io.kraftverk.provider.get
+import io.kraftverk.provider.type
 import io.mockk.Called
 import io.mockk.clearMocks
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifySequence
+import kotlin.reflect.full.isSubclassOf
 
 class ValueTest : StringSpec() {
 
@@ -224,6 +231,22 @@ class ValueTest : StringSpec() {
             app.start()
             app { principal } shouldBe "jonas"
         }
+
+        class Mod1 : Module() {
+            val v0 by int()
+            val v1 by int()
+            val intList by bean { values<Int>() }
+        }
+
+        "Trying out value providers" {
+            val module = Kraftverk.manage { Mod1() }
+            module.start {
+                bind(v0) to { 9 }
+                bind(v1) to { 10 }
+            }
+            val intList = module { intList }
+            intList should containExactly(9, 10)
+        }
     }
 
     private fun verifyThatNoValuesAreInstantiated() {
@@ -248,4 +271,7 @@ class ValueTest : StringSpec() {
         fun newValue(value: String) = ValueObject(value)
         fun newValue(value: String, parent: ValueObject) = ValueObject(value, parent)
     }
+
+    private inline fun <reified T : Any> ValueDefinition.values(): List<T> =
+        valueProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
 }
