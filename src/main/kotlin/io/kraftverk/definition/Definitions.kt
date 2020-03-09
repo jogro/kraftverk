@@ -8,6 +8,7 @@ package io.kraftverk.definition
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.provider
+import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.valueProviders
@@ -16,6 +17,7 @@ import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.provider.get
 
 open class ValueDefinition internal constructor(internal val container: Container) {
+    val env: Environment get() = container.environment
     val valueProviders get() = container.valueProviders
     operator fun <T : Any> Value<T>.invoke(): T = provider.get()
 }

@@ -29,20 +29,26 @@ class ValueNameException(msg: String) : Exception(msg)
 private val logger = KotlinLogging.logger { }
 
 fun ValueSource.Companion.fromSystem() = ValueSource().apply {
-    logger.info { "Loading environment variables" }
+    logger.info { "Loading environment variables (Enable trace level to see actual entries)" }
     System.getenv().forEach { e ->
         try {
             this[e.key] = e.value
-            logger.debug { e.key + "=" + e.value }
+            logger.trace { e.key + "=" + e.value }
         } catch (ignore: ValueNameException) {
             logger.warn { "Skipping malformed environment variable name: '${e.key}'" }
         }
     }
-    logger.info { "Loading system properties" }
+    logger.info { "Loaded environment variables" }
+    logger.info { "Loading system properties (Enable trace level to see actual entries)" }
     System.getProperties().forEach { e ->
-        this[e.key.toString()] = e.value.toString()
-        logger.debug { e.key.toString() + "=" + e.value.toString() }
+        try {
+            this[e.key.toString()] = e.value.toString()
+            logger.trace { e.key.toString() + "=" + e.value.toString() }
+        } catch (ignore: ValueNameException) {
+            logger.warn { "Skipping malformed system property name: '${e.key}'" }
+        }
     }
+    logger.info { "Loaded system properties" }
 }
 
 fun ValueSource.Companion.fromClasspath(
