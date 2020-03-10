@@ -62,14 +62,13 @@ fun ValueSource.Companion.fromClasspath(
 
 fun ValueSource.Companion.fromClasspath(
     filename: String,
-    parsers: MutableList<ValueParser>
-): List<ValueSource> = parsers.map { parser ->
-    ValueSource().apply {
-        this::class.java.classLoader.getResource("$filename${parser.extension}")?.let {
-            parser.parse(it, this)
-        }
-    }
+    parsers: List<ValueParser>
+): List<ValueSource> = parsers.mapNotNull { parser ->
+    getResource("$filename${parser.extension}")?.let { parser.parse(it) }
 }
+
+private fun ValueSource.Companion.getResource(filename: String) =
+    this::class.java.classLoader.getResource(filename)
 
 internal fun ValueSource.clear() {
     map.clear()
