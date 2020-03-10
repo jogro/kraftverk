@@ -247,6 +247,22 @@ class ValueTest : StringSpec() {
             val intList = module { intList }
             intList should containExactly(9, 10)
         }
+
+        class YamlModule : Module() {
+            val host by string("server.host")
+            val ports by list<Int>("server.ports")
+            val poolSize by int("app.database.pool-size")
+        }
+
+        "Trying out yaml module" {
+            val module = Kraftverk.start { YamlModule() }
+            val host = module { host }
+            val ports = module { ports }
+            val poolSize = module { poolSize }
+            host shouldBe "acme.com"
+            ports should containExactly(80, 8080)
+            poolSize shouldBe 20
+        }
     }
 
     private fun verifyThatNoValuesAreInstantiated() {
@@ -274,4 +290,7 @@ class ValueTest : StringSpec() {
 
     private inline fun <reified T : Any> ValueDefinition.values(): List<T> =
         valueProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Any> Module.list(name: String) = value(name) { v -> v as List<T> }
 }

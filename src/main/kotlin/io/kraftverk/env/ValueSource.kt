@@ -54,7 +54,7 @@ fun ValueSource.Companion.fromSystem() = ValueSource().apply {
 fun ValueSource.Companion.fromClasspath(
     filenamePrefix: String,
     profiles: List<String>,
-    parsers: MutableList<ValueParser>
+    parsers: List<ValueParser>
 ): List<ValueSource> =
     profiles.map { "$filenamePrefix-$it" }.flatMap { filename ->
         ValueSource.fromClasspath(filename, parsers)
@@ -64,11 +64,11 @@ fun ValueSource.Companion.fromClasspath(
     filename: String,
     parsers: List<ValueParser>
 ): List<ValueSource> = parsers.mapNotNull { parser ->
-    getResource("$filename${parser.extension}")?.let { parser.parse(it) }
+    val resource = "$filename${parser.fileSuffix}"
+    this::class.java.classLoader.getResource(resource)?.let { url ->
+        parser.parse(url)
+    }
 }
-
-private fun ValueSource.Companion.getResource(filename: String) =
-    this::class.java.classLoader.getResource(filename)
 
 internal fun ValueSource.clear() {
     map.clear()

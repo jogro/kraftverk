@@ -4,33 +4,65 @@ import io.kraftverk.internal.logging.createLogger
 import java.io.InputStream
 import java.net.URL
 import java.util.Properties
+import org.yaml.snakeyaml.Yaml
 
-abstract class ValueParser(val extension: String) {
-    abstract fun parse(url: URL): ValueSource
+interface ValueParser {
+    val fileSuffix: String
+    fun parse(url: URL): ValueSource
 }
 
-class PropertiesParser(extension: String = ".properties") : ValueParser(extension) {
+abstract class AbstractValueParser(override val fileSuffix: String = ".properties") : ValueParser {
 
     private val logger = createLogger { }
 
     override fun parse(url: URL): ValueSource {
-        logger.info { "Loading properties from $url" }
+        logger.info { "Loading values from $url" }
         val valueSource = ValueSource()
         url.openStream().apply {
             use { inputStream ->
-                valueSource.readProperties(inputStream)
+                valueSource.readFrom(inputStream)
             }
         }
-        logger.info { "Loaded properties from $url" }
+        logger.info { "Loaded values from $url" }
         return valueSource
     }
 
-    private fun ValueSource.readProperties(inputStream: InputStream) {
+    abstract fun ValueSource.readFrom(inputStream: InputStream)
+}
+
+class PropertiesParser(fileSuffix: String = ".properties") : AbstractValueParser(fileSuffix) {
+
+    private val logger = createLogger { }
+
+    override fun ValueSource.readFrom(inputStream: InputStream) {
         val properties = Properties()
         properties.load(inputStream)
         properties.forEach { e ->
             this[e.key.toString()] = e.value
-            logger.debug { e.key.toString() + "=" + e.value.toString() }
+            logger.info { e.key.toString() + "=" + e.value }
+        }
+    }
+}
+
+class YamlParser(fileSuffix: String = ".yaml") : AbstractValueParser(fileSuffix) {
+
+    private val logger = createLogger { }
+
+    override fun ValueSource.readFrom(inputStream: InputStream) =
+        Yaml().loadAll(inputStream)
+            .filterIsInstance<Map<*, *>>()
+            .forEach { obj -> walk("", obj) }
+
+    private fun ValueSource.walk(path: String, obj: Map<*, *>) {
+        obj.forEach { (key, value) ->
+            val name = path + key.toString()
+            when (value) {
+                is CharSequence, is Number, is List<*> -> {
+                    this[name] = value
+                    logger.info { "$name=$value (type: ${value::class.simpleName})" }
+                }
+                is Map<*, *> -> walk("$name.", value)
+            }
         }
     }
 }

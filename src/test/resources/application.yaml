@@ -1,0 +1,9 @@
+server:
+  host: "acme.com"
+  ports:
+    - 80
+    - 8080
+app:
+  name: "app-1"
+  database:
+    pool-size: 20

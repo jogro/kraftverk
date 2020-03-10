@@ -21,7 +21,10 @@ open class Environment(val profiles: List<String>, valueSources: List<ValueSourc
 
 open class EnvironmentDefinition {
     internal val valueSource = ValueSource()
-    val valueParsers: MutableList<ValueParser> = mutableListOf(PropertiesParser())
+    var valueParsers: MutableList<ValueParser> = mutableListOf(
+        PropertiesParser(),
+        YamlParser()
+    )
     var propertyFilenamePrefix: String = "application"
     fun set(name: String, value: String) {
         valueSource[name] = value
