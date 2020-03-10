@@ -11,7 +11,7 @@ interface ValueParser {
     fun parse(url: URL): ValueSource
 }
 
-abstract class AbstractValueParser(override val fileSuffix: String = ".properties") : ValueParser {
+abstract class AbstractValueParser : ValueParser {
 
     private val logger = createLogger { }
 
@@ -30,7 +30,7 @@ abstract class AbstractValueParser(override val fileSuffix: String = ".propertie
     abstract fun ValueSource.readFrom(inputStream: InputStream)
 }
 
-class PropertiesParser(fileSuffix: String = ".properties") : AbstractValueParser(fileSuffix) {
+class PropertiesParser(override val fileSuffix: String = ".properties") : AbstractValueParser() {
 
     private val logger = createLogger { }
 
@@ -44,7 +44,7 @@ class PropertiesParser(fileSuffix: String = ".properties") : AbstractValueParser
     }
 }
 
-class YamlParser(fileSuffix: String = ".yaml") : AbstractValueParser(fileSuffix) {
+class YamlParser(override val fileSuffix: String = ".yaml") : AbstractValueParser() {
 
     private val logger = createLogger { }
 
