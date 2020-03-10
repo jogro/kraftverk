@@ -1,15 +1,15 @@
 package io.kraftverk.env
 
+import io.kraftverk.logging.newLogger
 import java.io.InputStream
 import java.net.URL
 import java.util.Properties
-import mu.KotlinLogging
 
 abstract class ValueParser(val extension: String) {
     abstract fun parse(url: URL, values: ValueSource)
 }
 
-private val logger = KotlinLogging.logger { }
+private val logger = newLogger { }
 
 class PropertiesParser(extension: String = ".properties") : ValueParser(extension) {
 

@@ -7,12 +7,11 @@ package io.kraftverk.internal.binding
 
 import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.internal.provider.Singleton
+import io.kraftverk.logging.newLogger
 import io.kraftverk.provider.BeanProviderImpl
 import kotlin.reflect.KClass
-import kotlin.time.measureTimedValue
-import mu.KotlinLogging
 
-private val logger = KotlinLogging.logger {}
+private val logger = newLogger { }
 
 internal class BeanHandler<T : Any>(
     private val name: String,
@@ -30,11 +29,10 @@ internal class BeanHandler<T : Any>(
         type = type,
         lazy = lazy,
         createInstance = {
-            measureTimedValue {
-                state.createInstance()
-            }.also {
-                logger.info("Bean '$name' is bound to $type (${it.duration})")
-            }.value
+            val startMs = System.currentTimeMillis()
+            state.createInstance().also {
+                logger.info { "Bean '$name' is bound to $type (${System.currentTimeMillis() - startMs}ms)" }
+            }
         },
         onCreate = state.onCreate,
         onDestroy = state.onDestroy

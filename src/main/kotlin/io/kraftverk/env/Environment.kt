@@ -5,7 +5,7 @@
 
 package io.kraftverk.env
 
-import mu.KotlinLogging
+import io.kraftverk.logging.newLogger
 
 open class Environment(val profiles: List<String>, valueSources: List<ValueSource>) {
     private val sources = listOf(ValueSource()) + valueSources
@@ -28,7 +28,7 @@ open class EnvironmentDefinition {
     }
 }
 
-private val logger = KotlinLogging.logger { }
+private val logger = newLogger { }
 
 fun environment(
     vararg profiles: String,

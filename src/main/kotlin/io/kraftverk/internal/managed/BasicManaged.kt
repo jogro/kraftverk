@@ -8,12 +8,12 @@ package io.kraftverk.internal.managed
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.applyAs
 import io.kraftverk.internal.module.BasicModule
-import mu.KotlinLogging
+import io.kraftverk.logging.newLogger
 
 open class BasicManaged<M : BasicModule> internal constructor(
     module: M
 ) {
-    internal val logger = KotlinLogging.logger {}
+    internal val logger = newLogger { }
 
     @Volatile
     internal var state: State<M> = State.Defining(module)

@@ -7,11 +7,11 @@ package io.kraftverk.internal.provider
 
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.InstanceFactory
+import io.kraftverk.logging.newLogger
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
-import mu.KotlinLogging
 
-private val logger = KotlinLogging.logger {}
+private val logger = newLogger { }
 
 internal class Singleton<T : Any>(
     val type: KClass<T>,

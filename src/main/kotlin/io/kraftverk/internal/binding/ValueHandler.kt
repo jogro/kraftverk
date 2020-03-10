@@ -7,11 +7,11 @@ package io.kraftverk.internal.binding
 
 import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.internal.provider.Singleton
+import io.kraftverk.logging.newLogger
 import io.kraftverk.provider.ValueProviderImpl
 import kotlin.reflect.KClass
-import mu.KotlinLogging
 
-private val logger = KotlinLogging.logger {}
+private val logger = newLogger { }
 
 internal class ValueHandler<T : Any>(
     private val name: String,
@@ -30,9 +30,9 @@ internal class ValueHandler<T : Any>(
         createInstance = {
             state.createInstance().also {
                 if (secret) {
-                    logger.info("Value '$name' is bound to '********'")
+                    logger.info { "Value '$name' is bound to '********'" }
                 } else {
-                    logger.info("Value '$name' is bound to '$it'")
+                    logger.info { "Value '$name' is bound to '$it'" }
                 }
             }
         },
