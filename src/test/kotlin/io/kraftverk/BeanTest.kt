@@ -39,11 +39,11 @@ class BeanTest : StringSpec() {
     inner class AppModule(private val lazy: Boolean? = null) : Module() {
 
         val childWidget by bean(lazy = this.lazy) {
-            widgetFactory.newWidget(widget())
+            widgetFactory.createWidget(widget())
         }
 
         val widget by bean(lazy = this.lazy) {
-            widgetFactory.newWidget()
+            widgetFactory.createWidget()
         }
 
         init {
@@ -56,8 +56,8 @@ class BeanTest : StringSpec() {
 
     override fun beforeTest(testCase: TestCase) {
         clearAllMocks()
-        every { widgetFactory.newWidget() } returns widget
-        every { widgetFactory.newWidget(widget) } returns childWidget
+        every { widgetFactory.createWidget() } returns widget
+        every { widgetFactory.createWidget(widget) } returns childWidget
     }
 
     init {
@@ -114,7 +114,7 @@ class BeanTest : StringSpec() {
             app { widget }
 
             verifySequence {
-                widgetFactory.newWidget()
+                widgetFactory.createWidget()
                 widget.start()
             }
         }
@@ -126,9 +126,9 @@ class BeanTest : StringSpec() {
             app.start()
             app { childWidget }
             verifySequence {
-                widgetFactory.newWidget()
+                widgetFactory.createWidget()
                 widget.start()
-                widgetFactory.newWidget(widget)
+                widgetFactory.createWidget(widget)
                 childWidget.start()
             }
         }
@@ -140,7 +140,7 @@ class BeanTest : StringSpec() {
             app.start()
             repeat(3) { app { widget } }
             verifySequence {
-                widgetFactory.newWidget()
+                widgetFactory.createWidget()
                 widget.start()
             }
         }
@@ -161,7 +161,7 @@ class BeanTest : StringSpec() {
                 onCreate(widget) { }
             }
             verify(exactly = 1) {
-                widgetFactory.newWidget()
+                widgetFactory.createWidget()
                 widget wasNot Called
             }
         }
@@ -182,11 +182,11 @@ class BeanTest : StringSpec() {
 
         "Binding a bean does a proper replace" {
             val replacement = mockk<Widget>(relaxed = true)
-            every { widgetFactory.newWidget(widget) } returns replacement
-            every { widgetFactory.newWidget(replacement) } returns childWidget
+            every { widgetFactory.createWidget(widget) } returns replacement
+            every { widgetFactory.createWidget(replacement) } returns childWidget
             val app = Kraftverk.manage {
                 AppModule().apply {
-                    bind(widget) to { widgetFactory.newWidget(next()) }
+                    bind(widget) to { widgetFactory.createWidget(next()) }
                 }
             }
             app.start()
@@ -254,9 +254,9 @@ class BeanTest : StringSpec() {
 
     private fun verifyThatAllBeansAreInstantiated() {
         verifySequence {
-            widgetFactory.newWidget()
+            widgetFactory.createWidget()
             widget.start()
-            widgetFactory.newWidget(widget)
+            widgetFactory.createWidget(widget)
             childWidget.start()
         }
     }
@@ -267,8 +267,8 @@ class BeanTest : StringSpec() {
     }
 
     interface WidgetFactory {
-        fun newWidget(): Widget
-        fun newWidget(parent: Widget): Widget
+        fun createWidget(): Widget
+        fun createWidget(parent: Widget): Widget
     }
 
     private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline bean: M.() -> Bean<T>):

@@ -5,13 +5,13 @@
 
 package io.kraftverk.internal.binding
 
+import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.internal.provider.Singleton
-import io.kraftverk.logging.newLogger
 import io.kraftverk.provider.BeanProviderImpl
 import kotlin.reflect.KClass
 
-private val logger = newLogger { }
+private val logger = createLogger { }
 
 internal class BeanHandler<T : Any>(
     private val name: String,

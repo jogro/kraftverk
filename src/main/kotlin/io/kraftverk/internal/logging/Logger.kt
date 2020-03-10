@@ -3,7 +3,7 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk.logging
+package io.kraftverk.internal.logging
 
 import org.slf4j.Logger as Slf4jLogger
 import org.slf4j.LoggerFactory
@@ -31,10 +31,17 @@ class Logger(private val logger: Slf4jLogger) {
     }
 }
 
-fun newLogger(block: () -> Unit) = Logger(LoggerFactory.getLogger(name(block)))
+fun createLogger(block: () -> Unit) = Logger(
+    LoggerFactory.getLogger(
+        name(block)
+    )
+)
 
-private fun name(func: () -> Unit): String =
-    func.javaClass.name.run {
+/**
+ * Borrowed from KotlinLogging.
+ */
+private fun name(block: () -> Unit): String =
+    block.javaClass.name.run {
         when {
             contains("Kt$") -> substringBefore("Kt$")
             contains("$") -> substringBefore("$")

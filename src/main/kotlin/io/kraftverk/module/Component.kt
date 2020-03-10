@@ -9,8 +9,8 @@ import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.ValueDefinition
-import io.kraftverk.internal.container.newBean
-import io.kraftverk.internal.container.newValue
+import io.kraftverk.internal.container.createBean
+import io.kraftverk.internal.container.createValue
 import io.kraftverk.internal.module.createSubModule
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
@@ -41,7 +41,7 @@ internal data class ValueConfig<T : Any>(
 )
 
 @PublishedApi
-internal fun <T : Any> newBeanComponent(
+internal fun <T : Any> createBeanComponent(
     config: BeanConfig<T>
 ): BeanComponent<T> = object :
     BeanComponent<T> {
@@ -51,13 +51,13 @@ internal fun <T : Any> newBeanComponent(
         property: KProperty<*>
     ): ReadOnlyProperty<Module, Bean<T>> {
         val beanName = property.name.toQualifiedName(thisRef)
-        val bean = thisRef.container.newBean(beanName, config)
+        val bean = thisRef.container.createBean(beanName, config)
         return Delegate(bean)
     }
 }
 
 @PublishedApi
-internal fun <T : Any> newValueComponent(
+internal fun <T : Any> createValueComponent(
     name: String?,
     config: ValueConfig<T>
 ): ValueComponent<T> = object :
@@ -68,12 +68,12 @@ internal fun <T : Any> newValueComponent(
         property: KProperty<*>
     ): ReadOnlyProperty<Module, Value<T>> {
         val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
-        val value = thisRef.container.newValue(valueName, config)
+        val value = thisRef.container.createValue(valueName, config)
         return Delegate(value)
     }
 }
 
-internal fun <M : Module> newSubModuleComponent(
+internal fun <M : Module> createSubModuleComponent(
     name: String? = null,
     subModule: () -> M
 ): SubModuleComponent<M> = object :

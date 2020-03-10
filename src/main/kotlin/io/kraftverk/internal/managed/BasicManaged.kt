@@ -5,15 +5,15 @@
 
 package io.kraftverk.internal.managed
 
+import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.applyAs
 import io.kraftverk.internal.module.BasicModule
-import io.kraftverk.logging.newLogger
 
 open class BasicManaged<M : BasicModule> internal constructor(
     module: M
 ) {
-    internal val logger = newLogger { }
+    internal val logger = createLogger { }
 
     @Volatile
     internal var state: State<M> = State.Defining(module)

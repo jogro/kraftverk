@@ -5,7 +5,7 @@
 
 package io.kraftverk.env
 
-import io.kraftverk.logging.newLogger
+import io.kraftverk.internal.logging.createLogger
 
 open class Environment(val profiles: List<String>, valueSources: List<ValueSource>) {
     private val sources = listOf(ValueSource()) + valueSources
@@ -28,7 +28,7 @@ open class EnvironmentDefinition {
     }
 }
 
-private val logger = newLogger { }
+private val logger = createLogger { }
 
 fun environment(
     vararg profiles: String,

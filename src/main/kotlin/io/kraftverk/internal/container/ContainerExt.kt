@@ -19,12 +19,12 @@ internal val Container.valueProviders: List<ValueProvider<*>>
     get() =
         providers.filterIsInstance<ValueProvider<*>>()
 
-internal fun <T : Any> Container.newBean(
+internal fun <T : Any> Container.createBean(
     name: String,
     config: BeanConfig<T>
 ) = createBeanHandler(name, config).let(::BeanImpl).apply(::register)
 
-internal fun <T : Any> Container.newValue(
+internal fun <T : Any> Container.createValue(
     name: String,
     config: ValueConfig<T>
 ) = createValueHandler(name, config).let(::ValueImpl).apply(::register)

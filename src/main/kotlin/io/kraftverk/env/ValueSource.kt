@@ -5,7 +5,7 @@
 
 package io.kraftverk.env
 
-import io.kraftverk.logging.newLogger
+import io.kraftverk.internal.logging.createLogger
 import java.util.concurrent.ConcurrentHashMap
 
 class ValueSource {
@@ -26,7 +26,7 @@ const val ACTIVE_PROFILES = "kraftverk.active.profiles"
 
 class ValueNameException(msg: String) : Exception(msg)
 
-private val logger = newLogger { }
+private val logger = createLogger { }
 
 fun ValueSource.Companion.fromSystem() = ValueSource().apply {
     logger.info { "Loading environment variables (Enable trace level to see actual entries)" }

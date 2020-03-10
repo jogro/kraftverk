@@ -55,26 +55,26 @@ class ValueTest : StringSpec() {
     private inner class ValueModule(private val lazy: Boolean? = null) : Module() {
 
         val val2 by value(lazy = this.lazy) {
-            valueObjectFactory.newValue(it.toString(), val1())
+            valueObjectFactory.createValue(it.toString(), val1())
         }
 
         val val1 by value(lazy = this.lazy) {
-            valueObjectFactory.newValue(it.toString())
+            valueObjectFactory.createValue(it.toString())
         }
 
         val val3 by value(lazy = this.lazy) {
-            valueObjectFactory.newValue(it.toString())
+            valueObjectFactory.createValue(it.toString())
         }
 
         val val4 by value(
             lazy = this.lazy,
             default = valueObject4.value
         ) {
-            valueObjectFactory.newValue(it.toString())
+            valueObjectFactory.createValue(it.toString())
         }
 
         val val5 by value(lazy = this.lazy, name = "xyz.val5") {
-            valueObjectFactory.newValue(it.toString())
+            valueObjectFactory.createValue(it.toString())
         }
 
         val user by module { UserModule(lazy) }
@@ -133,7 +133,7 @@ class ValueTest : StringSpec() {
             app.start()
             app { values.val1 }
             verifySequence {
-                valueObjectFactory.newValue(valueObject1.value)
+                valueObjectFactory.createValue(valueObject1.value)
             }
         }
 
@@ -144,8 +144,8 @@ class ValueTest : StringSpec() {
             app.start()
             app { values.val2 }
             verifySequence {
-                valueObjectFactory.newValue(valueObject1.value)
-                valueObjectFactory.newValue(valueObject2.value, valueObject1)
+                valueObjectFactory.createValue(valueObject1.value)
+                valueObjectFactory.createValue(valueObject2.value, valueObject1)
             }
         }
 
@@ -156,14 +156,14 @@ class ValueTest : StringSpec() {
             app.start()
             repeat(3) { app { values.val1 } }
             verifySequence {
-                valueObjectFactory.newValue(valueObject1.value)
+                valueObjectFactory.createValue(valueObject1.value)
             }
         }
 
         "Binding a value does a proper replace" {
             val app = Kraftverk.manage {
                 AppModule().apply {
-                    bind(values.val1) to { valueObjectFactory.newValue("Kalle", next()) }
+                    bind(values.val1) to { valueObjectFactory.createValue("Kalle", next()) }
                 }
             }
             app.start()
@@ -193,11 +193,11 @@ class ValueTest : StringSpec() {
                 }
                 app.start()
                 verifySequence {
-                    valueObjectFactory.newValue(valueObject1.value)
-                    valueObjectFactory.newValue("152", valueObject1)
-                    valueObjectFactory.newValue("253")
-                    valueObjectFactory.newValue(valueObject4.value)
-                    valueObjectFactory.newValue(valueObject5.value)
+                    valueObjectFactory.createValue(valueObject1.value)
+                    valueObjectFactory.createValue("152", valueObject1)
+                    valueObjectFactory.createValue("253")
+                    valueObjectFactory.createValue(valueObject4.value)
+                    valueObjectFactory.createValue(valueObject5.value)
                 }
                 env.profiles.shouldContainExactly("prof2", "prof1")
             }
@@ -210,11 +210,11 @@ class ValueTest : StringSpec() {
             }
             app.start()
             verifySequence {
-                valueObjectFactory.newValue(valueObject1.value)
-                valueObjectFactory.newValue("152", valueObject1)
-                valueObjectFactory.newValue("253")
-                valueObjectFactory.newValue(valueObject4.value)
-                valueObjectFactory.newValue(valueObject5.value)
+                valueObjectFactory.createValue(valueObject1.value)
+                valueObjectFactory.createValue("152", valueObject1)
+                valueObjectFactory.createValue("253")
+                valueObjectFactory.createValue(valueObject4.value)
+                valueObjectFactory.createValue(valueObject5.value)
             }
             env.profiles.shouldContainExactly("prof2", "prof1")
         }
@@ -257,19 +257,19 @@ class ValueTest : StringSpec() {
 
     private fun verifyThatAllValuesAreInstantiated() {
         verifySequence {
-            valueObjectFactory.newValue(valueObject1.value)
-            valueObjectFactory.newValue(valueObject2.value, valueObject1)
-            valueObjectFactory.newValue(valueObject3.value)
-            valueObjectFactory.newValue(valueObject4.value)
-            valueObjectFactory.newValue(valueObject5.value)
+            valueObjectFactory.createValue(valueObject1.value)
+            valueObjectFactory.createValue(valueObject2.value, valueObject1)
+            valueObjectFactory.createValue(valueObject3.value)
+            valueObjectFactory.createValue(valueObject4.value)
+            valueObjectFactory.createValue(valueObject5.value)
         }
     }
 
     private data class ValueObject(val value: String, val parent: ValueObject? = null)
 
     private class ValueObjectFactory {
-        fun newValue(value: String) = ValueObject(value)
-        fun newValue(value: String, parent: ValueObject) = ValueObject(value, parent)
+        fun createValue(value: String) = ValueObject(value)
+        fun createValue(value: String, parent: ValueObject) = ValueObject(value, parent)
     }
 
     private inline fun <reified T : Any> ValueDefinition.values(): List<T> =

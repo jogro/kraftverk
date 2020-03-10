@@ -1,6 +1,6 @@
 package io.kraftverk.env
 
-import io.kraftverk.logging.newLogger
+import io.kraftverk.internal.logging.createLogger
 import java.io.InputStream
 import java.net.URL
 import java.util.Properties
@@ -9,7 +9,7 @@ abstract class ValueParser(val extension: String) {
     abstract fun parse(url: URL, values: ValueSource)
 }
 
-private val logger = newLogger { }
+private val logger = createLogger { }
 
 class PropertiesParser(extension: String = ".properties") : ValueParser(extension) {
 
@@ -20,6 +20,7 @@ class PropertiesParser(extension: String = ".properties") : ValueParser(extensio
                 readProperties(inputStream, values)
             }
         }
+        logger.info { "Loaded properties from $url" }
     }
 
     private fun readProperties(inputStream: InputStream, values: ValueSource) {
