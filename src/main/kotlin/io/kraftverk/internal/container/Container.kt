@@ -57,7 +57,7 @@ internal class Container(
             bindings.add(binding)
         }
 
-    internal fun checkIsStarted() {
+    internal fun checkContainerIsRunning() {
         state.narrow<State.Started>()
     }
 

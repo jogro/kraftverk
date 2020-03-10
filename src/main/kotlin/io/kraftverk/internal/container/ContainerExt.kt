@@ -22,12 +22,16 @@ internal val Container.valueProviders: List<ValueProvider<*>>
 internal fun <T : Any> Container.createBean(
     name: String,
     config: BeanConfig<T>
-) = createBeanHandler(name, config).let(::BeanImpl).apply(::register)
+) = createBeanHandler(name, config)
+    .let(::BeanImpl)
+    .apply(::register)
 
 internal fun <T : Any> Container.createValue(
     name: String,
     config: ValueConfig<T>
-) = createValueHandler(name, config).let(::ValueImpl).apply(::register)
+) = createValueHandler(name, config)
+    .let(::ValueImpl)
+    .apply(::register)
 
 private fun <T : Any> Container.createBeanHandler(
     name: String,
@@ -37,7 +41,7 @@ private fun <T : Any> Container.createBeanHandler(
     type = config.type,
     lazy = config.lazy ?: lazy,
     instanceFactory = {
-        checkIsStarted()
+        checkContainerIsRunning()
         config.createInstance(BeanDefinition(this))
     }
 )
@@ -51,11 +55,10 @@ private fun <T : Any> Container.createValueHandler(
     type = config.type,
     lazy = config.lazy ?: lazy,
     instanceFactory = {
-        checkIsStarted()
+        checkContainerIsRunning()
         config.createInstance(
             ValueDefinition(this),
-            environment[name] ?: config.default
-            ?: throwValueNotFound(name)
+            environment[name] ?: config.default ?: throwValueNotFound(name)
         )
     }
 )
