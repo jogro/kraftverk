@@ -6,16 +6,13 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.BeanImpl
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.ValueImpl
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.ValueDefinition
-import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.BindingConfig
-import io.kraftverk.internal.binding.ValueHandler
-import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.container.createBean
 import io.kraftverk.internal.container.createBeanInstance
+import io.kraftverk.internal.container.createValue
 import io.kraftverk.internal.container.createValueInstance
 import io.kraftverk.internal.module.createSubModule
 import kotlin.properties.ReadOnlyProperty
@@ -43,15 +40,12 @@ internal fun <T : Any> Module.createBeanComponent(
     ): ReadOnlyProperty<Module, Bean<T>> {
         val config = BindingConfig(
             name = property.name.toQualifiedName(thisRef),
-            lazy = lazy ?: container.lazy, // container -> module ?
+            lazy = lazy ?: container.lazy,
             secret = false,
             type = type,
-            instance = { container.createBeanInstance(instance) } // container -> module ?
+            instance = { container.createBeanInstance(instance) }
         )
-        return BeanHandler(config)
-            .let(::BeanImpl)
-            .also(container::register)
-            .let(::Delegate)
+        return container.createBean(config).let(::Delegate)
     }
 }
 
@@ -72,26 +66,18 @@ internal fun <T : Any> Module.createValueComponent(
         val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
         val config = BindingConfig(
             name = valueName,
-            lazy = lazy ?: container.lazy, // container -> module ?
+            lazy = lazy ?: container.lazy,
             secret = secret,
             type = type,
-            instance = { container.createValueInstance(valueName, default, instance) } // container -> module ?
+            instance = { container.createValueInstance(valueName, default, instance) }
         )
-        return createValueDelegate(config, container)
+        return container.createValue(config).let(::Delegate)
     }
-
-    private fun createValueDelegate(
-        config: BindingConfig<T>,
-        container: Container
-    ): Delegate<ValueImpl<T>> = ValueHandler(config)
-        .let(::ValueImpl)
-        .also(container::register)
-        .let(::Delegate)
 }
 
 internal fun <M : Module> createSubModuleComponent(
     name: String? = null,
-    subModule: () -> M
+    instance: () -> M
 ): SubModuleComponent<M> = object :
     SubModuleComponent<M> {
 
@@ -100,7 +86,7 @@ internal fun <M : Module> createSubModuleComponent(
         property: KProperty<*>
     ): ReadOnlyProperty<Module, M> {
         val moduleName = (name ?: property.name).toQualifiedName(thisRef)
-        val module = createSubModule(moduleName) { subModule() }
+        val module = createSubModule(moduleName, instance)
         return Delegate(module)
     }
 }

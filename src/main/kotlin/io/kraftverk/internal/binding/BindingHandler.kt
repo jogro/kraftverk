@@ -33,7 +33,7 @@ internal abstract class BindingHandler<T : Any>(config: BindingConfig<T>) {
         object Destroyed : State<Nothing>()
     }
 
-    internal fun onBind(
+    internal fun bind(
         block: (InstanceFactory<T>) -> T
     ) {
         state.applyAs<State.Defining<T>> {

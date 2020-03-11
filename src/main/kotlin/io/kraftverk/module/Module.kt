@@ -14,12 +14,15 @@ import io.kraftverk.definition.BeanSupplierDefinition
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.definition.ValueSupplierDefinition
 import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.module.BasicModule
 
 /**
  * A [Module] is the place where [Bean]s and [Value]s are defined.
  */
 abstract class Module : BasicModule() {
+
+    internal val logger = createLogger { }
 
     inline fun <reified T : Any> bean(
         lazy: Boolean? = null,
@@ -166,7 +169,7 @@ class BeanBinder<T : Any> internal constructor(
     private val bean: Bean<T>
 ) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
-        bean.handler.onBind { nextBind ->
+        bean.handler.bind { nextBind ->
             BeanSupplierDefinition(container, nextBind).block()
         }
     }
@@ -180,7 +183,7 @@ class ValueBinder<T : Any> internal constructor(
     private val value: Value<T>
 ) {
     infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
-        value.handler.onBind { nextBind ->
+        value.handler.bind { nextBind ->
             ValueSupplierDefinition(container, nextBind).block()
         }
     }
