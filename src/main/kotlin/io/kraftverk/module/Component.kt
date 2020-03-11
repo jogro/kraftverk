@@ -6,11 +6,17 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
+import io.kraftverk.binding.BeanImpl
 import io.kraftverk.binding.Value
+import io.kraftverk.binding.ValueImpl
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.ValueDefinition
-import io.kraftverk.internal.container.createBean
-import io.kraftverk.internal.container.createValue
+import io.kraftverk.internal.binding.BeanHandler
+import io.kraftverk.internal.binding.BindingConfig
+import io.kraftverk.internal.binding.ValueHandler
+import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.container.createBeanInstance
+import io.kraftverk.internal.container.createValueInstance
 import io.kraftverk.internal.module.createSubModule
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
@@ -25,52 +31,62 @@ interface ValueComponent<out T : Any> : Component<Value<T>>
 interface SubModuleComponent<out T : Module> : Component<T>
 
 @PublishedApi
-internal data class BeanConfig<T : Any>(
-    val type: KClass<T>,
-    val lazy: Boolean?,
-    val createInstance: BeanDefinition.() -> T
-)
-
-@PublishedApi
-internal data class ValueConfig<T : Any>(
-    val type: KClass<T>,
-    val default: String?,
-    val lazy: Boolean?,
-    val secret: Boolean,
-    val createInstance: ValueDefinition.(Any) -> T
-)
-
-@PublishedApi
-internal fun <T : Any> createBeanComponent(
-    config: BeanConfig<T>
-): BeanComponent<T> = object :
-    BeanComponent<T> {
+internal fun <T : Any> Module.createBeanComponent(
+    type: KClass<T>,
+    lazy: Boolean?,
+    instance: BeanDefinition.() -> T
+): BeanComponent<T> = object : BeanComponent<T> {
 
     override fun provideDelegate(
         thisRef: Module,
         property: KProperty<*>
     ): ReadOnlyProperty<Module, Bean<T>> {
-        val beanName = property.name.toQualifiedName(thisRef)
-        val bean = thisRef.container.createBean(beanName, config)
-        return Delegate(bean)
+        val config = BindingConfig(
+            name = property.name.toQualifiedName(thisRef),
+            lazy = lazy ?: container.lazy, // container -> module ?
+            secret = false,
+            type = type,
+            instance = { container.createBeanInstance(instance) } // container -> module ?
+        )
+        return BeanHandler(config)
+            .let(::BeanImpl)
+            .also(container::register)
+            .let(::Delegate)
     }
 }
 
 @PublishedApi
-internal fun <T : Any> createValueComponent(
+internal fun <T : Any> Module.createValueComponent(
     name: String?,
-    config: ValueConfig<T>
-): ValueComponent<T> = object :
-    ValueComponent<T> {
+    type: KClass<T>,
+    default: String?,
+    lazy: Boolean?,
+    secret: Boolean,
+    instance: ValueDefinition.(Any) -> T
+): ValueComponent<T> = object : ValueComponent<T> {
 
     override fun provideDelegate(
         thisRef: Module,
         property: KProperty<*>
     ): ReadOnlyProperty<Module, Value<T>> {
         val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
-        val value = thisRef.container.createValue(valueName, config)
-        return Delegate(value)
+        val config = BindingConfig(
+            name = valueName,
+            lazy = lazy ?: container.lazy, // container -> module ?
+            secret = secret,
+            type = type,
+            instance = { container.createValueInstance(valueName, default, instance) } // container -> module ?
+        )
+        return createValueDelegate(config, container)
     }
+
+    private fun createValueDelegate(
+        config: BindingConfig<T>,
+        container: Container
+    ): Delegate<ValueImpl<T>> = ValueHandler(config)
+        .let(::ValueImpl)
+        .also(container::register)
+        .let(::Delegate)
 }
 
 internal fun <M : Module> createSubModuleComponent(

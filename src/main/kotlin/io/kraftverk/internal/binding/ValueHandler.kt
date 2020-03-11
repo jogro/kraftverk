@@ -6,37 +6,26 @@
 package io.kraftverk.internal.binding
 
 import io.kraftverk.internal.logging.createLogger
-import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.internal.provider.Singleton
 import io.kraftverk.provider.ValueProviderImpl
-import kotlin.reflect.KClass
 
-private val logger = createLogger { }
+internal class ValueHandler<T : Any>(config: BindingConfig<T>) : BindingHandler<T>(config) {
 
-internal class ValueHandler<T : Any>(
-    private val name: String,
-    private val type: KClass<T>,
-    private val lazy: Boolean,
-    private val secret: Boolean,
-    instanceFactory: InstanceFactory<T>
-) : BindingHandler<T>(State.Defining(instanceFactory)) {
+    private val logger = createLogger { }
 
-    override fun createProvider(state: State.Defining<T>): ValueProviderImpl<T> =
-        ValueProviderImpl(name, lazy, createSingleton(state))
+    override fun createProvider(config: BindingConfig<T>): ValueProviderImpl<T> {
+        val configCopy = config.copy().apply {
+            val next = instance
+            instance = { log(this, next) }
+        }
+        return ValueProviderImpl(config.name, config.lazy, Singleton.of(configCopy))
+    }
 
-    private fun createSingleton(state: State.Defining<T>) = Singleton(
-        type = type,
-        lazy = lazy,
-        createInstance = {
-            state.createInstance().also {
-                if (secret) {
-                    logger.info { "Value '$name' is bound to '********'" }
-                } else {
-                    logger.info { "Value '$name' is bound to '$it'" }
-                }
-            }
-        },
-        onCreate = state.onCreate,
-        onDestroy = state.onDestroy
-    )
+    private fun log(config: BindingConfig<T>, block: () -> T): T = block().also {
+        if (config.secret) {
+            logger.info { "Value '${config.name}' is bound to '********'" }
+        } else {
+            logger.info { "Value '${config.name}' is bound to '$it'" }
+        }
+    }
 }

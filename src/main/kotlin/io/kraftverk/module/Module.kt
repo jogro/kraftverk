@@ -25,11 +25,9 @@ abstract class Module : BasicModule() {
         lazy: Boolean? = null,
         noinline instance: BeanDefinition.() -> T
     ): BeanComponent<T> = createBeanComponent(
-        BeanConfig(
-            T::class,
-            lazy,
-            instance
-        )
+        T::class,
+        lazy,
+        instance
     )
 
     inline fun <reified T : Any> value(
@@ -41,13 +39,11 @@ abstract class Module : BasicModule() {
     ): ValueComponent<T> =
         createValueComponent(
             name,
-            ValueConfig(
-                T::class,
-                default,
-                lazy,
-                secret,
-                instance
-            )
+            T::class,
+            default,
+            lazy,
+            secret,
+            instance
         )
 
     fun <M : Module> module(

@@ -13,24 +13,18 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
 
-internal abstract class BindingHandler<T : Any>(
-    initialState: State.Defining<T>
-) {
+internal abstract class BindingHandler<T : Any>(config: BindingConfig<T>) {
 
     @Volatile
-    internal var state: State<T> = initialState
+    internal var state: State<T> = State.Defining(config.copy())
 
-    abstract fun createProvider(state: State.Defining<T>): Provider<T>
+    abstract fun createProvider(config: BindingConfig<T>): Provider<T>
 
     internal sealed class State<out T : Any> {
 
         class Defining<T : Any>(
-            instanceFactory: InstanceFactory<T>
-        ) : State<T>() {
-            var createInstance: InstanceFactory<T> = instanceFactory
-            var onCreate: Consumer<T> = {}
-            var onDestroy: Consumer<T> = {}
-        }
+            val config: BindingConfig<T>
+        ) : State<T>()
 
         class Started<T : Any>(
             val provider: Provider<T>
@@ -43,8 +37,8 @@ internal abstract class BindingHandler<T : Any>(
         block: (InstanceFactory<T>) -> T
     ) {
         state.applyAs<State.Defining<T>> {
-            val next = createInstance
-            createInstance = {
+            val next = config.instance
+            config.instance = {
                 block(next)
             }
         }
@@ -54,8 +48,8 @@ internal abstract class BindingHandler<T : Any>(
         block: (T, Consumer<T>) -> Unit
     ) {
         state.applyAs<State.Defining<T>> {
-            val next = onCreate
-            onCreate = { instance ->
+            val next = config.onCreate
+            config.onCreate = { instance ->
                 block(instance, next)
             }
         }
@@ -65,8 +59,8 @@ internal abstract class BindingHandler<T : Any>(
         block: (T, Consumer<T>) -> Unit
     ) {
         state.applyAs<State.Defining<T>> {
-            val next = onDestroy
-            onDestroy = { instance ->
+            val next = config.onDestroy
+            config.onDestroy = { instance ->
                 block(instance, next)
             }
         }
@@ -74,7 +68,7 @@ internal abstract class BindingHandler<T : Any>(
 
     internal fun start() {
         state.applyAs<State.Defining<T>> {
-            val provider = createProvider(this)
+            val provider = createProvider(config)
             state = State.Started(provider)
         }
     }

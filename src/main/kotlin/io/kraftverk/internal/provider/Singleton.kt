@@ -5,6 +5,7 @@
 
 package io.kraftverk.internal.provider
 
+import io.kraftverk.internal.binding.BindingConfig
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.InstanceFactory
@@ -70,7 +71,17 @@ internal class Singleton<T : Any>(
     }
 
     companion object {
+
         val currentInstanceId = AtomicInteger()
+
+        fun <T : Any> of(config: BindingConfig<T>) =
+            Singleton(
+                type = config.type,
+                lazy = config.lazy,
+                onCreate = config.onCreate,
+                onDestroy = config.onDestroy,
+                createInstance = config.instance
+            )
     }
 
     data class Instance<T : Any>(val value: T, val id: Int)

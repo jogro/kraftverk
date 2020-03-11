@@ -6,35 +6,28 @@
 package io.kraftverk.internal.binding
 
 import io.kraftverk.internal.logging.createLogger
-import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.internal.provider.Singleton
 import io.kraftverk.provider.BeanProviderImpl
-import kotlin.reflect.KClass
 
-private val logger = createLogger { }
+internal class BeanHandler<T : Any>(config: BindingConfig<T>) : BindingHandler<T>(config) {
 
-internal class BeanHandler<T : Any>(
-    private val name: String,
-    private val type: KClass<T>,
-    private val lazy: Boolean,
-    instanceFactory: InstanceFactory<T>
-) : BindingHandler<T>(State.Defining(instanceFactory)) {
+    private val logger = createLogger { }
 
-    override fun createProvider(state: State.Defining<T>): BeanProviderImpl<T> =
-        BeanProviderImpl(name, lazy, createSingleton(state))
+    override fun createProvider(config: BindingConfig<T>): BeanProviderImpl<T> {
+        val configCopy = config.copy().apply {
+            val next = instance
+            instance = { log(this, next) }
+        }
+        return BeanProviderImpl(config.name, config.lazy, Singleton.of(configCopy))
+    }
 
-    private fun createSingleton(
-        state: State.Defining<T>
-    ) = Singleton(
-        type = type,
-        lazy = lazy,
-        createInstance = {
-            val startMs = System.currentTimeMillis()
-            state.createInstance().also {
-                logger.info { "Bean '$name' is bound to $type (${System.currentTimeMillis() - startMs}ms)" }
+    private fun log(config: BindingConfig<T>, block: () -> T): T {
+        val startMs = System.currentTimeMillis()
+        return block().also {
+            logger.info {
+                val elapsed = System.currentTimeMillis() - startMs
+                "Bean '${config.name}' is bound to $${config.type} (${elapsed}ms)"
             }
-        },
-        onCreate = state.onCreate,
-        onDestroy = state.onDestroy
-    )
+        }
+    }
 }
