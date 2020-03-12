@@ -159,7 +159,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "bean on create inhibits next properly" {
+        "bean on create inhibits 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 onCreate(widget) { }
@@ -170,7 +170,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "bean on destroy invokes next properly" {
+        "bean on destroy invokes 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 onDestroy(widget) { proceed() }
