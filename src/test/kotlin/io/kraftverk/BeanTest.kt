@@ -13,7 +13,6 @@ import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.handler
 import io.kraftverk.binding.provider
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.internal.binding.provider
@@ -307,10 +306,10 @@ class BeanTest : StringSpec() {
                 listOf(widget)
             }
             val anyList: Binding<List<Any>> = beanList
-            val provider: Provider<List<Widget>> = beanList.provider
-            val beanProvider: BeanProvider<List<Widget>> = beanList.handler.provider
+            val beanProvider: BeanProvider<List<Widget>> = beanList.provider
+            val provider1: Provider<List<Widget>> = beanList.provider
+            val provider2: Provider<List<Widget>> = beanProvider
         }
-
     }
 
     private fun verifyThatNoBeansAreInstantiated() {
