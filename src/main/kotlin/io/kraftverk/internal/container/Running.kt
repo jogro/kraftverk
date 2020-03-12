@@ -9,7 +9,6 @@ import io.kraftverk.internal.binding.stop
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
-import io.kraftverk.internal.misc.narrow
 import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
@@ -26,7 +25,7 @@ internal val Container.valueProviders: List<ValueProvider<*>>
 internal fun <T : Any> Container.createBeanInstance(
     instance: BeanDefinition.() -> T
 ): T {
-    checkContainerIsRunning()
+    state.mustBe<State.Running>()
     return BeanDefinition(this).instance()
 }
 
@@ -35,16 +34,12 @@ internal fun <T : Any> Container.createValueInstance(
     default: String?,
     instance: ValueDefinition.(Any) -> T
 ): T {
-    checkContainerIsRunning()
+    state.mustBe<State.Running>()
     val definition = ValueDefinition(this)
     val value = environment[name] ?: default ?: throwValueNotFound(
         name
     )
     return definition.instance(value)
-}
-
-internal fun Container.checkContainerIsRunning() {
-    state.narrow<State.Running>()
 }
 
 internal fun Container.stop() =

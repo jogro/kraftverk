@@ -14,7 +14,7 @@ internal inline fun <reified T : Any> BasicState.mightBe(block: T.() -> Unit) {
     }
 }
 
-internal inline fun <reified T : Any> BasicState.mustBe(block: T.() -> Unit) {
+internal inline fun <reified T : Any> BasicState.mustBe(block: T.() -> Unit = { }) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
