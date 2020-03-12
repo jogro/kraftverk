@@ -8,6 +8,9 @@ import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.BeanSupplierDefinition
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.definition.ValueSupplierDefinition
+import io.kraftverk.internal.binding.bind
+import io.kraftverk.internal.binding.onCreate
+import io.kraftverk.internal.binding.onDestroy
 import io.kraftverk.internal.container.Container
 
 inline fun <reified T : Any> Module.bean(

@@ -8,6 +8,7 @@ package io.kraftverk.binding
 import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.BindingHandler
 import io.kraftverk.internal.binding.ValueHandler
+import io.kraftverk.internal.binding.provider
 
 sealed class Binding<out T : Any>
 

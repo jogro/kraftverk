@@ -8,6 +8,8 @@ package io.kraftverk.internal.module
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.beanProviders
+import io.kraftverk.internal.container.start
+import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders
 
 private val threadBoundContainer = ThreadBound<Container>()
