@@ -28,8 +28,8 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>>(config: Bindi
             val config: BindingConfig<T>
         ) : State<T>()
 
-        class Running<T : Any>(
-            val provider: Provider<T>
+        class Running<T : Any, P : Provider<T>>(
+            val provider: P
         ) : State<T>()
 
         object Destroyed : State<Nothing>()

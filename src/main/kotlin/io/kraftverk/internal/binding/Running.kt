@@ -13,19 +13,19 @@ import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
 
 internal fun BindingHandler<*, Provider<*>>.initialize() =
-    state.mustBe<State.Running<*>> {
+    state.mustBe<State.Running<*, *>> {
         provider.initialize()
     }
 
-internal val <T : Any> BindingHandler<T, Provider<T>>.provider: Provider<T>
+internal val <T : Any, P : Provider<T>> BindingHandler<T, P>.provider: P
     get() {
-        state.mustBe<State.Running<T>> {
+        state.mustBe<State.Running<T, P>> {
             return provider
         }
     }
 
 internal fun BindingHandler<*, Provider<*>>.stop() =
-    state.mightBe<State.Running<*>> {
+    state.mightBe<State.Running<*, *>> {
         provider.destroy()
         state = State.Destroyed
     }

@@ -13,13 +13,18 @@ import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
+import io.kraftverk.binding.handler
+import io.kraftverk.binding.provider
 import io.kraftverk.definition.BeanDefinition
+import io.kraftverk.internal.binding.provider
 import io.kraftverk.managed.Managed
 import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
 import io.kraftverk.module.onCreate
 import io.kraftverk.module.onDestroy
+import io.kraftverk.provider.BeanProvider
+import io.kraftverk.provider.Provider
 import io.kraftverk.provider.get
 import io.kraftverk.provider.type
 import io.mockk.Called
@@ -302,6 +307,8 @@ class BeanTest : StringSpec() {
                 listOf(widget)
             }
             val anyList: Binding<List<Any>> = beanList
+            val provider: Provider<List<Widget>> = beanList.provider
+            val beanProvider: BeanProvider<List<Widget>> = beanList.handler.provider
         }
 
     }
