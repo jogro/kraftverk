@@ -38,8 +38,10 @@ internal fun <T : Any> Module.createBeanComponent(
         thisRef: Module,
         property: KProperty<*>
     ): ReadOnlyProperty<Module, Bean<T>> {
+        val beanName = property.name.toQualifiedName(thisRef)
+        logger.debug { "Creating bean '$beanName'" }
         val config = BindingConfig(
-            name = property.name.toQualifiedName(thisRef),
+            name = beanName,
             lazy = lazy ?: container.lazy,
             secret = false,
             type = type,
@@ -64,6 +66,7 @@ internal fun <T : Any> Module.createValueComponent(
         property: KProperty<*>
     ): ReadOnlyProperty<Module, Value<T>> {
         val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
+        logger.debug { "Creating value '$valueName'" }
         val config = BindingConfig(
             name = valueName,
             lazy = lazy ?: container.lazy,
@@ -75,7 +78,7 @@ internal fun <T : Any> Module.createValueComponent(
     }
 }
 
-internal fun <M : Module> createSubModuleComponent(
+internal fun <M : Module> Module.createSubModuleComponent(
     name: String? = null,
     instance: () -> M
 ): SubModuleComponent<M> = object :
@@ -86,7 +89,9 @@ internal fun <M : Module> createSubModuleComponent(
         property: KProperty<*>
     ): ReadOnlyProperty<Module, M> {
         val moduleName = (name ?: property.name).toQualifiedName(thisRef)
+        logger.debug { "Creating sub module '$moduleName'" }
         val module = createSubModule(moduleName, instance)
+        logger.debug { "Created sub module '$moduleName'" }
         return Delegate(module)
     }
 }

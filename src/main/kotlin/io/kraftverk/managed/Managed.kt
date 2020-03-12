@@ -61,7 +61,7 @@ class Managed<M : Module> internal constructor(
      * Call the [Managed.stop] method to destroy the [Managed] instance.
      */
     fun start(block: M.() -> Unit = {}): Managed<M> {
-        logger.info { "Starting module" }
+        logger.info { "Starting root module" }
         val startMs = System.currentTimeMillis()
         customize(block)
         state.applyAs<State.Defining<M>> {
@@ -72,7 +72,7 @@ class Managed<M : Module> internal constructor(
         Runtime.getRuntime().addShutdownHook(Thread {
             stop()
         })
-        logger.info { "Started module in ${System.currentTimeMillis() - startMs}ms" }
+        logger.info { "Started root module in ${System.currentTimeMillis() - startMs}ms" }
         return this
     }
 
