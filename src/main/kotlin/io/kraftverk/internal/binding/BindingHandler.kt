@@ -9,16 +9,18 @@ import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.intercept
 import io.kraftverk.internal.provider.Singleton
+import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.BeanProviderImpl
 import io.kraftverk.provider.Provider
+import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.ValueProviderImpl
 
-internal sealed class BindingHandler<T : Any>(config: BindingConfig<T>) {
+internal sealed class BindingHandler<T : Any, out P : Provider<T>>(config: BindingConfig<T>) {
 
     @Volatile
     internal var state: State<T> = State.UnderConstruction(config.copy())
 
-    abstract fun createProvider(config: BindingConfig<T>): Provider<T>
+    abstract fun createProvider(config: BindingConfig<T>): P
 
     internal sealed class State<out T : Any> : BasicState {
 
@@ -34,7 +36,7 @@ internal sealed class BindingHandler<T : Any>(config: BindingConfig<T>) {
     }
 }
 
-internal class BeanHandler<T : Any>(config: BindingConfig<T>) : BindingHandler<T>(config) {
+internal class BeanHandler<T : Any>(config: BindingConfig<T>) : BindingHandler<T, BeanProvider<T>>(config) {
 
     private val logger = createLogger { }
 
@@ -61,7 +63,7 @@ internal class BeanHandler<T : Any>(config: BindingConfig<T>) : BindingHandler<T
         }
 }
 
-internal class ValueHandler<T : Any>(config: BindingConfig<T>) : BindingHandler<T>(config) {
+internal class ValueHandler<T : Any>(config: BindingConfig<T>) : BindingHandler<T, ValueProvider<T>>(config) {
 
     private val logger = createLogger { }
 

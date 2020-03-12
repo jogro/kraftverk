@@ -10,8 +10,9 @@ import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.internal.misc.intercept
 import io.kraftverk.internal.misc.mustBe
+import io.kraftverk.provider.Provider
 
-internal fun <T : Any> BindingHandler<T>.bind(
+internal fun <T : Any> BindingHandler<T, Provider<T>>.bind(
     block: (InstanceFactory<T>) -> T
 ) {
     state.mustBe<State.UnderConstruction<T>> {
@@ -19,7 +20,7 @@ internal fun <T : Any> BindingHandler<T>.bind(
     }
 }
 
-internal fun <T : Any> BindingHandler<T>.onCreate(
+internal fun <T : Any> BeanHandler<T>.onCreate(
     block: (T, Consumer<T>) -> Unit
 ) {
     state.mustBe<State.UnderConstruction<T>> {
@@ -27,7 +28,7 @@ internal fun <T : Any> BindingHandler<T>.onCreate(
     }
 }
 
-internal fun <T : Any> BindingHandler<T>.onDestroy(
+internal fun <T : Any> BeanHandler<T>.onDestroy(
     block: (T, Consumer<T>) -> Unit
 ) {
     state.mustBe<State.UnderConstruction<T>> {
@@ -35,7 +36,7 @@ internal fun <T : Any> BindingHandler<T>.onDestroy(
     }
 }
 
-internal fun <T : Any> BindingHandler<T>.start() {
+internal fun <T : Any> BindingHandler<T, Provider<T>>.start() {
     state.mustBe<State.UnderConstruction<T>> {
         val provider = createProvider(config)
         state = State.Running(provider)
