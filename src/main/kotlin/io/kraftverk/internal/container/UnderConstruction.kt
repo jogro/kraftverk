@@ -12,10 +12,10 @@ import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.initialize
 import io.kraftverk.internal.binding.start
 import io.kraftverk.internal.container.Container.State
-import io.kraftverk.internal.misc.applyAs
+import io.kraftverk.internal.misc.mustBe
 
 internal fun Container.register(binding: Binding<*>) =
-    state.applyAs<State.UnderConstruction> {
+    state.mustBe<State.UnderConstruction> {
         bindings.add(binding)
     }
 
@@ -33,9 +33,9 @@ internal fun <T : Any> Container.createValue(
     .also(this::register)
 
 internal fun Container.start() =
-    state.applyAs<State.UnderConstruction> {
+    state.mustBe<State.UnderConstruction> {
         bindings.start()
-        state = State.Started(bindings.toList())
+        state = State.Running(bindings.toList())
         bindings.initialize()
     }
 

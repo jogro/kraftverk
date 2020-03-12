@@ -8,8 +8,8 @@ package io.kraftverk.managed
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
 import io.kraftverk.internal.managed.BasicManaged
-import io.kraftverk.internal.misc.applyAs
-import io.kraftverk.internal.misc.applyWhen
+import io.kraftverk.internal.misc.mightBe
+import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
 import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.ValueProvider
@@ -64,10 +64,10 @@ class Managed<M : Module> internal constructor(
         logger.info { "Starting root module" }
         val startMs = System.currentTimeMillis()
         customize(block)
-        state.applyAs<State.UnderConstruction<M>> {
+        state.mustBe<State.UnderConstruction<M>> {
             onStart(module)
             module.start()
-            state = State.Started(module)
+            state = State.Running(module)
         }
         Runtime.getRuntime().addShutdownHook(Thread {
             stop()
@@ -83,7 +83,7 @@ class Managed<M : Module> internal constructor(
      * ```
      */
     operator fun <T : Any> invoke(binding: M.() -> Binding<T>): T {
-        state.applyAs<State.Started<M>> {
+        state.mustBe<State.Running<M>> {
             return module.binding().provider.get()
         }
     }
@@ -102,7 +102,7 @@ class Managed<M : Module> internal constructor(
         }
 
     fun customize(block: M.() -> Unit): Managed<M> {
-        state.applyAs<State.UnderConstruction<M>> {
+        state.mustBe<State.UnderConstruction<M>> {
             val previousOnStart = onStart
             onStart = { instance ->
                 previousOnStart(instance)
@@ -116,7 +116,7 @@ class Managed<M : Module> internal constructor(
      * Stops this instance meaning that all beans will be destroyed.
      */
     fun stop() {
-        state.applyWhen<State.Started<*>> {
+        state.mightBe<State.Running<*>> {
             state = State.Destroying
             module.stop()
             state = State.Destroyed

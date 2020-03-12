@@ -24,7 +24,7 @@ open class BasicManaged<M : BasicModule> internal constructor(
             var onStart: Consumer<M> = {}
         ) : State<M>()
 
-        class Started<M : BasicModule>(
+        class Running<M : BasicModule>(
             val module: M
         ) : State<M>()
 

@@ -12,7 +12,7 @@ internal typealias Consumer<T> = (T) -> Unit
 
 internal typealias InstanceFactory<T> = () -> T
 
-internal inline fun <reified T : Any> Any.applyWhen(block: T.() -> Unit) {
+internal inline fun <reified T : Any> Any.mightBe(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
@@ -21,7 +21,7 @@ internal inline fun <reified T : Any> Any.applyWhen(block: T.() -> Unit) {
     }
 }
 
-internal inline fun <reified T : Any> Any.applyAs(block: T.() -> Unit) {
+internal inline fun <reified T : Any> Any.mustBe(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

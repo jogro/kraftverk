@@ -6,8 +6,9 @@ import io.kraftverk.binding.provider
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.internal.binding.stop
-import io.kraftverk.internal.misc.applyAs
-import io.kraftverk.internal.misc.applyWhen
+import io.kraftverk.internal.container.Container.State
+import io.kraftverk.internal.misc.mightBe
+import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.internal.misc.narrow
 import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.Provider
@@ -43,19 +44,19 @@ internal fun <T : Any> Container.createValueInstance(
 }
 
 internal fun Container.checkContainerIsRunning() {
-    state.narrow<Container.State.Started>()
+    state.narrow<State.Running>()
 }
 
 internal fun Container.stop() =
-    state.applyWhen<Container.State.Started> {
-        state = Container.State.Destroying
+    state.mightBe<State.Running> {
+        state = State.Destroying
         bindings.destroy()
-        state = Container.State.Destroyed
+        state = State.Destroyed
     }
 
 private val Container.providers: List<Provider<*>>
     get() {
-        state.applyAs<Container.State.Started> {
+        state.mustBe<State.Running> {
             return bindings.map { it.provider }
         }
     }

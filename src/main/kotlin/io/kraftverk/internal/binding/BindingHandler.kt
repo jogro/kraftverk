@@ -25,7 +25,7 @@ internal sealed class BindingHandler<T : Any>(config: BindingConfig<T>) {
             val config: BindingConfig<T>
         ) : State<T>()
 
-        class Started<T : Any>(
+        class Running<T : Any>(
             val provider: Provider<T>
         ) : State<T>()
 

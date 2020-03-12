@@ -22,7 +22,7 @@ internal class Container(
             val bindings = mutableListOf<Binding<*>>()
         }
 
-        class Started(
+        class Running(
             val bindings: List<Binding<*>>
         ) : State()
 
