@@ -96,32 +96,27 @@ class ValueTest : StringSpec() {
     init {
 
         "Value instantiation is eager by default" {
-            val app = Kraftverk.manage { AppModule() }
-            app.start()
+            Kraftverk.start { AppModule() }
             verifyThatAllValuesAreInstantiated()
         }
 
         "Value instantiation is lazy when specified for the container" {
-            val app = Kraftverk.manage(lazy = true) { AppModule() }
-            app.start()
+            Kraftverk.start(lazy = true) { AppModule() }
             verifyThatNoValuesAreInstantiated()
         }
 
         "Value instantiation is eager when specified for the values" {
-            val app = Kraftverk.manage { AppModule(lazy = false) }
-            app.start()
+            Kraftverk.start { AppModule(lazy = false) }
             verifyThatAllValuesAreInstantiated()
         }
 
         "Value instantiation is lazy when specified for the values" {
-            val app = Kraftverk.manage { AppModule(lazy = true) }
-            app.start()
+            Kraftverk.start { AppModule(lazy = true) }
             verifyThatNoValuesAreInstantiated()
         }
 
         "Extracting a value returns expected value" {
-            val app = Kraftverk.manage { AppModule() }
-            app.start()
+            val app = Kraftverk.start { AppModule() }
             app { principal } shouldBe principal
             app { values.val1 } shouldBe valueObject1
             app { values.val2 } shouldBe valueObject2
@@ -133,8 +128,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value does not propagate to other values if not necessary" {
-            val app = Kraftverk.manage { AppModule(lazy = true) }
-            app.start()
+            val app = Kraftverk.start { AppModule(lazy = true) }
             app { values.val1 }
             verifySequence {
                 valueObjectFactory.createValue(valueObject1.value)
@@ -142,10 +136,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value propagates to other values if necessary" {
-            val app = Kraftverk.manage {
-                AppModule(lazy = true)
-            }
-            app.start()
+            val app = Kraftverk.start { AppModule(lazy = true) }
             app { values.val2 }
             verifySequence {
                 valueObjectFactory.createValue(valueObject1.value)
@@ -154,10 +145,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value results in one instantiation even if many invocations" {
-            val app = Kraftverk.manage {
-                AppModule(lazy = true)
-            }
-            app.start()
+            val app = Kraftverk.start { AppModule(lazy = true) }
             repeat(3) { app { values.val1 } }
             verifySequence {
                 valueObjectFactory.createValue(valueObject1.value)
@@ -165,12 +153,10 @@ class ValueTest : StringSpec() {
         }
 
         "Binding a value does a proper replace" {
-            val app = Kraftverk.manage {
-                AppModule().apply {
-                    bind(values.val1) to { valueObjectFactory.createValue("Kalle", proceed()) }
-                }
+            val app = Kraftverk.manage { AppModule() }
+            app.start {
+                bind(values.val1) to { valueObjectFactory.createValue("Kalle", proceed()) }
             }
-            app.start()
             app { values.val1 } shouldBe ValueObject("Kalle", valueObject1)
         }
 
@@ -179,8 +165,7 @@ class ValueTest : StringSpec() {
             val po2 = ValueObject("SET2", po1)
             withEnvironment("VALUES_VAL1" to po1.value) {
                 withSystemProperties("values.val2" to po2.value) {
-                    val app = Kraftverk.manage { AppModule() }
-                    app.start()
+                    val app = Kraftverk.start { AppModule() }
                     val val1 by app.get { values.val1 }
                     val val2 by app.get { values.val2 }
                     val1 shouldBe po1
@@ -192,10 +177,9 @@ class ValueTest : StringSpec() {
         "Values should be overridden when using profiles 1" {
             withSystemProperties("kraftverk.active.profiles" to "prof2, prof1") {
                 val env = environment()
-                val app = Kraftverk.manage(env = env) {
+                Kraftverk.start(env = env) {
                     AppModule()
                 }
-                app.start()
                 verifySequence {
                     valueObjectFactory.createValue(valueObject1.value)
                     valueObjectFactory.createValue("152", valueObject1)
@@ -209,10 +193,9 @@ class ValueTest : StringSpec() {
 
         "Values should be overridden when using profiles 2" {
             val env = environment("prof2", "prof1")
-            val app = Kraftverk.manage(env = env) {
+            Kraftverk.start(env = env) {
                 AppModule()
             }
-            app.start()
             verifySequence {
                 valueObjectFactory.createValue(valueObject1.value)
                 valueObjectFactory.createValue("152", valueObject1)
@@ -224,7 +207,7 @@ class ValueTest : StringSpec() {
         }
 
         "Using environment set method should update properties" {
-            val app = Kraftverk.manage(
+            val app = Kraftverk.start(
                 env = environment {
                     set("principal", "jonas")
                 },
@@ -232,7 +215,6 @@ class ValueTest : StringSpec() {
                     AppModule()
                 }
             )
-            app.start()
             app { principal } shouldBe "jonas"
         }
 
@@ -248,8 +230,7 @@ class ValueTest : StringSpec() {
                 bind(v0) to { 9 }
                 bind(v1) to { 10 }
             }
-            val intList = module { intList }
-            intList should containExactly(9, 10)
+            module { intList } should containExactly(9, 10)
         }
 
         class YamlModule : Module() {
@@ -260,12 +241,9 @@ class ValueTest : StringSpec() {
 
         "Trying out yaml module" {
             val module = Kraftverk.start { YamlModule() }
-            val host = module { host }
-            val ports = module { ports }
-            val poolSize = module { poolSize }
-            host shouldBe "acme.com"
-            ports should containExactly(80, 8080)
-            poolSize shouldBe 20
+            module { host } shouldBe "acme.com"
+            module { ports } should containExactly(80, 8080)
+            module { poolSize } shouldBe 20
         }
     }
 

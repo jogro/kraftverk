@@ -67,34 +67,30 @@ class BeanTest : StringSpec() {
     init {
 
         "bean instantiation is eager by default" {
-            val app = Kraftverk.manage {
+            Kraftverk.start {
                 AppModule()
             }
-            app.start()
             verifyThatAllBeansAreInstantiated()
         }
 
         "bean instantiation is eager when specified for the dsl" {
-            val app = Kraftverk.manage(lazy = true) {
+            Kraftverk.start(lazy = true) {
                 AppModule(lazy = false)
             }
-            app.start()
             verifyThatAllBeansAreInstantiated()
         }
 
         "bean instantiation is lazy when managed lazily" {
-            val app = Kraftverk.manage(lazy = true) {
+            Kraftverk.start(lazy = true) {
                 AppModule()
             }
-            app.start()
             verifyThatNoBeansAreInstantiated()
         }
 
         "bean instantiation is lazy when specified for the dsl" {
-            val app = Kraftverk.manage {
+            Kraftverk.start {
                 AppModule(lazy = true)
             }
-            app.start()
             verifyThatNoBeansAreInstantiated()
         }
 
@@ -111,10 +107,9 @@ class BeanTest : StringSpec() {
         }
 
         "Extracting a bean does not propagate to other dsl if not necessary" {
-            val app = Kraftverk.manage(lazy = true) {
+            val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
-            app.start()
             app { widget }
 
             verifySequence {
@@ -124,10 +119,9 @@ class BeanTest : StringSpec() {
         }
 
         "Extracting a bean propagates to other dsl if necessary" {
-            val app = Kraftverk.manage(lazy = true) {
+            val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
-            app.start()
             app { childWidget }
             verifySequence {
                 widgetFactory.createWidget()
@@ -138,10 +132,9 @@ class BeanTest : StringSpec() {
         }
 
         "Extracting a bean results in one instantiation even if many invocations" {
-            val app = Kraftverk.manage(lazy = true) {
+            val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
-            app.start()
             repeat(3) { app { widget } }
             verifySequence {
                 widgetFactory.createWidget()
@@ -215,10 +208,9 @@ class BeanTest : StringSpec() {
 
         "Destruction when creation is ongoing" {
             val destroyed = mutableListOf<String>()
-            val mod0 = Kraftverk.manage(lazy = true) {
+            val mod0 = Kraftverk.start(lazy = true) {
                 Mod0(destroyed)
             }
-            mod0.start()
             thread { mod0 { b2 } } // Will take 2000 ms to instantiate
             Thread.sleep(500)
             mod0.stop()
