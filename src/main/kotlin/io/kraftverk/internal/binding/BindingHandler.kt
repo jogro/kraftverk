@@ -15,13 +15,13 @@ import io.kraftverk.provider.ValueProviderImpl
 internal sealed class BindingHandler<T : Any>(config: BindingConfig<T>) {
 
     @Volatile
-    internal var state: State<T> = State.Defining(config.copy())
+    internal var state: State<T> = State.UnderConstruction(config.copy())
 
     abstract fun createProvider(config: BindingConfig<T>): Provider<T>
 
     internal sealed class State<out T : Any> {
 
-        class Defining<T : Any>(
+        class UnderConstruction<T : Any>(
             val config: BindingConfig<T>
         ) : State<T>()
 

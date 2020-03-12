@@ -11,10 +11,11 @@ import io.kraftverk.internal.binding.BindingConfig
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.initialize
 import io.kraftverk.internal.binding.start
+import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.applyAs
 
 internal fun Container.register(binding: Binding<*>) =
-    state.applyAs<Container.State.Defining> {
+    state.applyAs<State.UnderConstruction> {
         bindings.add(binding)
     }
 
@@ -31,11 +32,12 @@ internal fun <T : Any> Container.createValue(
     .let(::ValueImpl)
     .also(this::register)
 
-internal fun Container.start() = state.applyAs<Container.State.Defining> {
-    bindings.start()
-    state = Container.State.Started(bindings.toList())
-    bindings.initialize()
-}
+internal fun Container.start() =
+    state.applyAs<State.UnderConstruction> {
+        bindings.start()
+        state = State.Started(bindings.toList())
+        bindings.initialize()
+    }
 
 private fun List<Binding<*>>.start() {
     forEach { binding ->

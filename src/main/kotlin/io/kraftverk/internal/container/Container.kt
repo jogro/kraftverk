@@ -14,11 +14,11 @@ internal class Container(
 ) {
 
     @Volatile
-    internal var state: State = State.Defining()
+    internal var state: State = State.UnderConstruction()
 
     internal sealed class State {
 
-        class Defining : State() {
+        class UnderConstruction : State() {
             val bindings = mutableListOf<Binding<*>>()
         }
 
