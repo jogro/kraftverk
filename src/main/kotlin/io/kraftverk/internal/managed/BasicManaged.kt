@@ -7,7 +7,6 @@ package io.kraftverk.internal.managed
 
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.Consumer
-import io.kraftverk.internal.misc.applyAs
 import io.kraftverk.internal.module.BasicModule
 
 open class BasicManaged<M : BasicModule> internal constructor(
@@ -16,11 +15,11 @@ open class BasicManaged<M : BasicModule> internal constructor(
     internal val logger = createLogger { }
 
     @Volatile
-    internal var state: State<M> = State.Defining(module)
+    internal var state: State<M> = State.UnderConstruction(module)
 
     internal sealed class State<out M : BasicModule> {
 
-        class Defining<M : BasicModule>(
+        class UnderConstruction<M : BasicModule>(
             val module: M,
             var onStart: Consumer<M> = {}
         ) : State<M>()
@@ -33,13 +32,6 @@ open class BasicManaged<M : BasicModule> internal constructor(
 
         object Destroyed : State<Nothing>()
     }
-
-    internal val module: M
-        get() {
-            state.applyAs<State.Started<M>> {
-                return module
-            }
-        }
 
     internal companion object
 }

@@ -64,7 +64,7 @@ class Managed<M : Module> internal constructor(
         logger.info { "Starting root module" }
         val startMs = System.currentTimeMillis()
         customize(block)
-        state.applyAs<State.Defining<M>> {
+        state.applyAs<State.UnderConstruction<M>> {
             onStart(module)
             module.start()
             state = State.Started(module)
@@ -83,7 +83,9 @@ class Managed<M : Module> internal constructor(
      * ```
      */
     operator fun <T : Any> invoke(binding: M.() -> Binding<T>): T {
-        return module.binding().provider.get()
+        state.applyAs<State.Started<M>> {
+            return module.binding().provider.get()
+        }
     }
 
     /**
@@ -100,7 +102,7 @@ class Managed<M : Module> internal constructor(
         }
 
     fun customize(block: M.() -> Unit): Managed<M> {
-        state.applyAs<State.Defining<M>> {
+        state.applyAs<State.UnderConstruction<M>> {
             val previousOnStart = onStart
             onStart = { instance ->
                 previousOnStart(instance)
