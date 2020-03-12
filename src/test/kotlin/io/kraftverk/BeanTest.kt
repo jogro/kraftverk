@@ -300,15 +300,12 @@ class BeanTest : StringSpec() {
             ex.message shouldBe "Expected state to be 'UnderConstruction' but was 'Running'"
         }
 
-        // This declaration is to ensure that we don't break binding covariance
+        // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
-            val beanList: Bean<List<Widget>> by bean {
-                listOf(widget)
-            }
-            val anyList: Binding<List<Any>> = beanList
-            val beanProvider: BeanProvider<List<Widget>> = beanList.provider
-            val provider1: Provider<List<Widget>> = beanList.provider
-            val provider2: Provider<List<Widget>> = beanProvider
+            val bean0: Bean<Widget> by bean { widget }
+            val binding0: Binding<Widget> = bean0
+            val beanProvider: BeanProvider<Widget> = bean0.provider
+            val provider: Provider<Widget> = beanProvider
         }
     }
 
