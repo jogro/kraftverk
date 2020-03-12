@@ -12,6 +12,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
+import io.kraftverk.binding.Binding
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.managed.Managed
 import io.kraftverk.module.Module
@@ -294,6 +295,15 @@ class BeanTest : StringSpec() {
             }
             ex.message shouldBe "Expected state to be 'UnderConstruction' but was 'Running'"
         }
+
+        // This declaration is to ensure that we don't break binding covariance
+        class CovariantModule : Module() {
+            val beanList: Bean<List<Widget>> by bean {
+                listOf(widget)
+            }
+            val anyList: Binding<List<Any>> = beanList
+        }
+
     }
 
     private fun verifyThatNoBeansAreInstantiated() {
