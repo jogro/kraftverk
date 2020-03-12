@@ -107,11 +107,11 @@ fun <T : Any> Module.onCreate(
     bean: Bean<T>,
     block: BeanConsumerDefinition<T>.(T) -> Unit
 ) {
-    bean.handler.onCreate { instance, nextOnCreate ->
+    bean.handler.onCreate { instance, proceed ->
         val definition = BeanConsumerDefinition(
             container,
             instance,
-            nextOnCreate
+            proceed
         )
         definition.block(instance)
     }
@@ -136,11 +136,11 @@ fun <T : Any> Module.onDestroy(
     bean: Bean<T>,
     block: BeanConsumerDefinition<T>.(T) -> Unit
 ) {
-    bean.handler.onDestroy { instance, nextOnDestroy ->
+    bean.handler.onDestroy { instance, proceed ->
         val definition = BeanConsumerDefinition(
             container,
             instance,
-            nextOnDestroy
+            proceed
         )
         definition.block(instance)
     }
@@ -154,8 +154,8 @@ class BeanBinder<T : Any> internal constructor(
     private val bean: Bean<T>
 ) {
     infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
-        bean.handler.bind { nextBind ->
-            BeanSupplierDefinition(container, nextBind).block()
+        bean.handler.bind { proceed ->
+            BeanSupplierDefinition(container, proceed).block()
         }
     }
 }

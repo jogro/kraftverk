@@ -167,7 +167,7 @@ class ValueTest : StringSpec() {
         "Binding a value does a proper replace" {
             val app = Kraftverk.manage {
                 AppModule().apply {
-                    bind(values.val1) to { valueObjectFactory.createValue("Kalle", next()) }
+                    bind(values.val1) to { valueObjectFactory.createValue("Kalle", proceed()) }
                 }
             }
             app.start()

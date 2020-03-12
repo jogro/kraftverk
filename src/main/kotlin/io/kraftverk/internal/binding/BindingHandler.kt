@@ -9,6 +9,7 @@ import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.InstanceFactory
 import io.kraftverk.internal.misc.applyAs
 import io.kraftverk.internal.misc.applyWhen
+import io.kraftverk.internal.misc.intercept
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
@@ -37,10 +38,7 @@ internal abstract class BindingHandler<T : Any>(config: BindingConfig<T>) {
         block: (InstanceFactory<T>) -> T
     ) {
         state.applyAs<State.Defining<T>> {
-            val next = config.instance
-            config.instance = {
-                block(next)
-            }
+            config.instance = intercept(config.instance, block)
         }
     }
 
@@ -48,9 +46,8 @@ internal abstract class BindingHandler<T : Any>(config: BindingConfig<T>) {
         block: (T, Consumer<T>) -> Unit
     ) {
         state.applyAs<State.Defining<T>> {
-            val next = config.onCreate
-            config.onCreate = { instance ->
-                block(instance, next)
+            state.applyAs<State.Defining<T>> {
+                config.onCreate = intercept(config.onCreate, block)
             }
         }
     }
@@ -59,10 +56,7 @@ internal abstract class BindingHandler<T : Any>(config: BindingConfig<T>) {
         block: (T, Consumer<T>) -> Unit
     ) {
         state.applyAs<State.Defining<T>> {
-            val next = config.onDestroy
-            config.onDestroy = { instance ->
-                block(instance, next)
-            }
+            config.onDestroy = intercept(config.onDestroy, block)
         }
     }
 

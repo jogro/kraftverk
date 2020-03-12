@@ -32,3 +32,17 @@ internal inline fun <reified T : Any> Any.narrow(): T {
     check(this is T) { "Expected this to be ${T::class} but was ${this::class}" }
     return this
 }
+
+internal inline fun <T : Any> intercept(
+    noinline supplier: () -> T,
+    crossinline block: (() -> T) -> T
+): () -> T = {
+    block(supplier)
+}
+
+internal inline fun <T : Any> intercept(
+    noinline consumer: (T) -> Unit,
+    crossinline block: (T, (T) -> Unit) -> Unit
+): (T) -> Unit = { t ->
+    block(t, consumer)
+}

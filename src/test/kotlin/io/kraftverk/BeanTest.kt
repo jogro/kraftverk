@@ -152,7 +152,7 @@ class BeanTest : StringSpec() {
         "bean on create invokes next properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                onCreate(widget) { next() }
+                onCreate(widget) { proceed() }
             }
             verifySequence {
                 widget.start()
@@ -173,8 +173,8 @@ class BeanTest : StringSpec() {
         "bean on destroy invokes next properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                onDestroy(widget) { next() }
-                onDestroy(childWidget) { next() }
+                onDestroy(widget) { proceed() }
+                onDestroy(childWidget) { proceed() }
             }
             clearMocks(widget, childWidget)
             app.stop()
@@ -190,7 +190,7 @@ class BeanTest : StringSpec() {
             every { widgetFactory.createWidget(replacement) } returns childWidget
             val app = Kraftverk.manage {
                 AppModule().apply {
-                    bind(widget) to { widgetFactory.createWidget(next()) }
+                    bind(widget) to { widgetFactory.createWidget(proceed()) }
                 }
             }
             app.start()
@@ -286,7 +286,7 @@ class BeanTest : StringSpec() {
     private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline bean: M.() -> Bean<T>):
             ReadOnlyProperty<Any?, T> {
         customize {
-            bind(bean()) to { spyk(next()) }
+            bind(bean()) to { spyk(proceed()) }
         }
         return get(bean)
     }
