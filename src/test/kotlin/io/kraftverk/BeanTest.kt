@@ -14,6 +14,10 @@ import io.kraftverk.binding.Bean
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.managed.Managed
 import io.kraftverk.module.Module
+import io.kraftverk.module.bean
+import io.kraftverk.module.bind
+import io.kraftverk.module.onCreate
+import io.kraftverk.module.onDestroy
 import io.kraftverk.provider.get
 import io.kraftverk.provider.type
 import io.mockk.Called

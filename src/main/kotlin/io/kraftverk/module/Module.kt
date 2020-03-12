@@ -7,15 +7,19 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.handler
-import io.kraftverk.definition.BeanConsumerDefinition
 import io.kraftverk.definition.BeanDefinition
-import io.kraftverk.definition.BeanSupplierDefinition
 import io.kraftverk.definition.ValueDefinition
-import io.kraftverk.definition.ValueSupplierDefinition
-import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.binding.BindingConfig
+import io.kraftverk.internal.container.createBean
+import io.kraftverk.internal.container.createBeanInstance
+import io.kraftverk.internal.container.createValue
+import io.kraftverk.internal.container.createValueInstance
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.module.BasicModule
+import io.kraftverk.internal.module.createSubModule
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 /**
  * A [Module] is the place where [Bean]s and [Value]s are defined.
@@ -24,167 +28,85 @@ abstract class Module : BasicModule() {
 
     internal val logger = createLogger { }
 
-    inline fun <reified T : Any> bean(
-        lazy: Boolean? = null,
-        noinline instance: BeanDefinition.() -> T
-    ): BeanComponent<T> = createBeanComponent(
-        T::class,
-        lazy,
-        instance
-    )
+    @PublishedApi
+    internal fun <T : Any> createBeanComponent(
+        type: KClass<T>,
+        lazy: Boolean?,
+        instance: BeanDefinition.() -> T
+    ): BeanComponent<T> = object : BeanComponent<T> {
 
-    inline fun <reified T : Any> value(
-        name: String? = null,
-        default: String? = null,
-        lazy: Boolean? = null,
-        secret: Boolean = false,
-        noinline instance: ValueDefinition.(Any) -> T
-    ): ValueComponent<T> =
-        createValueComponent(
-            name,
-            T::class,
-            default,
-            lazy,
-            secret,
-            instance
-        )
-
-    fun <M : Module> module(
-        name: String? = null,
-        module: () -> M
-    ): SubModuleComponent<M> =
-        createSubModuleComponent(
-            name,
-            module
-        )
-
-    /**
-     * The [bind] method binds an existing [Bean] to a new implementation.
-     *
-     * It is useful when doing tests, for example when mocking:
-     * ```kotlin
-     * val app = Kraftverk.manage { AppModule() }
-     * app.start { // this: AppModule
-     *     bind(repository) to { mockk() }
-     * }
-     * ```
-     * Or when creating a spy:
-     * ```kotlin
-     * val app = Kraftverk.manage { AppModule() }
-     * app.start { // this: AppModule
-     *     bind(repository) to { spyk(next()) } // Use next() to get hold of the actual instance
-     * }
-     * ```
-     * Another use case is reconfiguration of a sub module:
-     * ```kotlin
-     * class AppModule : Module() {
-     *     val rabbit by module { RabbitModule() }
-     *     init {
-     *         bind(rabbit.username) to { "testuser" }
-     *         bind(rabbit.connectionFactory) to {
-     *             MySpecialConnectionFactory()
-     *         }
-     *     }
-     * }
-     * ```
-     */
-    fun <T : Any> bind(bean: Bean<T>) = BeanBinder(container, bean)
-
-    /**
-     * Binds a configured [Value] to a new value, for example:
-     * ```kotlin
-     * val app = Kraftverk.manage { AppModule() }
-     * app.start { // this: AppModule
-     *     bind(rabbit.username) to { "testuser" }
-     * }
-     * ```
-     * The provided value will override any other values.
-     */
-    fun <T : Any> bind(value: Value<T>) = ValueBinder(container, value)
-
-    /**
-     * A lifecycle method that makes it possible to perform som operations
-     * when a [bean] instance is created, for example:
-     * ```kotlin
-     * class AppModule : Module() {
-     *     val server by bean { Server() }
-     *     init {
-     *         onCreate(server) { // this: BeanConsumerDefinition
-     *             it.start()
-     *         }
-     *         [...]
-     *     }
-     * }
-     * ```
-     */
-    fun <T : Any> onCreate(
-        bean: Bean<T>,
-        block: BeanConsumerDefinition<T>.(T) -> Unit
-    ) {
-        bean.handler.onCreate { instance, nextOnCreate ->
-            val definition = BeanConsumerDefinition(
-                container,
-                instance,
-                nextOnCreate
+        override fun provideDelegate(
+            thisRef: Module,
+            property: KProperty<*>
+        ): ReadOnlyProperty<Module, Bean<T>> {
+            val beanName = property.name.toQualifiedName(thisRef)
+            logger.debug { "Creating bean '$beanName'" }
+            val config = BindingConfig(
+                name = beanName,
+                lazy = lazy ?: container.lazy,
+                secret = false,
+                type = type,
+                instance = { container.createBeanInstance(instance) }
             )
-            definition.block(instance)
+            return container.createBean(config).let(::Delegate)
         }
     }
 
-    /**
-     * A lifecycle method that makes it possible to perform som operations
-     * when a [bean] instance is destroyed, for example:
-     * ```kotlin
-     * class AppModule : Module() {
-     *     val server by bean { Server() }
-     *     init {
-     *         [...]
-     *         onDestroy(server) { // this: BeanConsumerDefinition
-     *             it.stop()
-     *         }
-     *     }
-     * }
-     * ```
-     */
-    fun <T : Any> onDestroy(
-        bean: Bean<T>,
-        block: BeanConsumerDefinition<T>.(T) -> Unit
-    ) {
-        bean.handler.onDestroy { instance, nextOnDestroy ->
-            val definition = BeanConsumerDefinition(
-                container,
-                instance,
-                nextOnDestroy
+    @PublishedApi
+    internal fun <T : Any> createValueComponent(
+        name: String?,
+        type: KClass<T>,
+        default: String?,
+        lazy: Boolean?,
+        secret: Boolean,
+        instance: ValueDefinition.(Any) -> T
+    ): ValueComponent<T> = object : ValueComponent<T> {
+
+        override fun provideDelegate(
+            thisRef: Module,
+            property: KProperty<*>
+        ): ReadOnlyProperty<Module, Value<T>> {
+            val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
+            logger.debug { "Creating value '$valueName'" }
+            val config = BindingConfig(
+                name = valueName,
+                lazy = lazy ?: container.lazy,
+                secret = secret,
+                type = type,
+                instance = { container.createValueInstance(valueName, default, instance) }
             )
-            definition.block(instance)
+            return container.createValue(config).let(::Delegate)
+        }
+    }
+
+    internal fun <M : Module> createSubModuleComponent(
+        name: String? = null,
+        instance: () -> M
+    ): SubModuleComponent<M> = object :
+        SubModuleComponent<M> {
+
+        override fun provideDelegate(
+            thisRef: Module,
+            property: KProperty<*>
+        ): ReadOnlyProperty<Module, M> {
+            val moduleName = (name ?: property.name).toQualifiedName(thisRef)
+            logger.debug { "Creating sub module '$moduleName'" }
+            val module = createSubModule(moduleName, instance)
+            logger.debug { "Created sub module '$moduleName'" }
+            return Delegate(module)
         }
     }
 }
 
-/**
- * Helper class for the [Module.bind] method.
- */
-class BeanBinder<T : Any> internal constructor(
-    private val container: Container,
-    private val bean: Bean<T>
-) {
-    infix fun to(block: BeanSupplierDefinition<T>.() -> T) {
-        bean.handler.bind { nextBind ->
-            BeanSupplierDefinition(container, nextBind).block()
-        }
+private class Delegate<T : Any>(private val t: T) : ReadOnlyProperty<Module, T> {
+    override fun getValue(thisRef: Module, property: KProperty<*>): T {
+        return t
     }
 }
 
-/**
- * Helper class for the [Module.bind] method.
- */
-class ValueBinder<T : Any> internal constructor(
-    private val container: Container,
-    private val value: Value<T>
-) {
-    infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
-        value.handler.bind { nextBind ->
-            ValueSupplierDefinition(container, nextBind).block()
-        }
-    }
-}
+private fun String.toQualifiedName(module: Module) =
+    (if (module.namespace.isBlank()) this else "${module.namespace}.$this")
+
+private val spinalRegex = "([A-Z]+)".toRegex()
+
+private fun String.toSpinalCase() = replace(spinalRegex, "\\-$1").toLowerCase()

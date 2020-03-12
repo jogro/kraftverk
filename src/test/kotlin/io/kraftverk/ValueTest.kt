@@ -16,8 +16,12 @@ import io.kotlintest.specs.StringSpec
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.env.environment
 import io.kraftverk.module.Module
+import io.kraftverk.module.bean
+import io.kraftverk.module.bind
 import io.kraftverk.module.int
+import io.kraftverk.module.module
 import io.kraftverk.module.string
+import io.kraftverk.module.value
 import io.kraftverk.provider.get
 import io.kraftverk.provider.type
 import io.mockk.Called
