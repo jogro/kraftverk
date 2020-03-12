@@ -24,9 +24,9 @@ open class ValueDefinition internal constructor(internal val container: Containe
 
 class ValueSupplierDefinition<T> internal constructor(
     container: Container,
-    private val _proceed: InstanceFactory<T>
+    private val supply: InstanceFactory<T>
 ) : ValueDefinition(container) {
-    fun proceed() = _proceed()
+    fun proceed() = supply()
 }
 
 open class BeanDefinition internal constructor(container: Container) : ValueDefinition(container) {
@@ -36,17 +36,17 @@ open class BeanDefinition internal constructor(container: Container) : ValueDefi
 
 class BeanSupplierDefinition<T> internal constructor(
     container: Container,
-    private val _proceed: InstanceFactory<T>
+    private val supply: InstanceFactory<T>
 ) : BeanDefinition(container) {
-    fun proceed() = _proceed()
+    fun proceed() = supply()
 }
 
 class BeanConsumerDefinition<T> internal constructor(
     container: Container,
     private val instance: T,
-    private val _proceed: Consumer<T>
+    private val supply: Consumer<T>
 ) : BeanDefinition(container) {
-    fun proceed() = _proceed(instance)
+    fun proceed() = supply(instance)
 }
 
 open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.container)
