@@ -14,23 +14,22 @@ import io.kraftverk.internal.binding.start
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
-internal fun Container.register(binding: Binding<*>) =
-    state.mustBe<State.UnderConstruction> {
-        bindings.add(binding)
-    }
-
 internal fun <T : Any> Container.createBean(
     config: BindingConfig<T>
-): BeanImpl<T> =
-    BeanHandler(config)
-        .let(::BeanImpl)
-        .also(this::register)
+): BeanImpl<T> = BeanHandler(config)
+    .let(::BeanImpl)
+    .also(this::register)
 
 internal fun <T : Any> Container.createValue(
     config: BindingConfig<T>
 ): ValueImpl<T> = ValueHandler(config)
     .let(::ValueImpl)
     .also(this::register)
+
+internal fun Container.register(binding: Binding<*>) =
+    state.mustBe<State.UnderConstruction> {
+        bindings.add(binding)
+    }
 
 internal fun Container.start() =
     state.mustBe<State.UnderConstruction> {
