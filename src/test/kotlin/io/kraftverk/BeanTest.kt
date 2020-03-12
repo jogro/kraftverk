@@ -9,6 +9,7 @@ import io.kotlintest.TestCase
 import io.kotlintest.matchers.collections.containExactly
 import io.kotlintest.should
 import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.definition.BeanDefinition
@@ -67,13 +68,11 @@ class BeanTest : StringSpec() {
     init {
 
         "bean instantiation is eager by default" {
-            Kraftverk.start {
-                AppModule()
-            }
+            Kraftverk.start { AppModule() }
             verifyThatAllBeansAreInstantiated()
         }
 
-        "bean instantiation is eager when specified for the dsl" {
+        "bean instantiation is eager when specified for the bean" {
             Kraftverk.start(lazy = true) {
                 AppModule(lazy = false)
             }
@@ -87,18 +86,24 @@ class BeanTest : StringSpec() {
             verifyThatNoBeansAreInstantiated()
         }
 
-        "bean instantiation is lazy when specified for the dsl" {
-            Kraftverk.start {
-                AppModule(lazy = true)
-            }
+        "bean instantiation is lazy when specified for the bean" {
+            Kraftverk.start { AppModule(lazy = true) }
             verifyThatNoBeansAreInstantiated()
         }
 
         "Extracting a bean returns expected value" {
+            val app = Kraftverk.start { AppModule() }
+            app { widget } shouldBe widget
+            app { childWidget } shouldBe childWidget
+        }
+
+        "Beans provided by 'get' should not be instantiated until referenced" {
             val app = Kraftverk.manage { AppModule() }
 
             val w by app.get { widget }
             val c by app.get { childWidget }
+
+            verifyThatNoBeansAreInstantiated()
 
             app.start()
 
@@ -106,19 +111,33 @@ class BeanTest : StringSpec() {
             c shouldBe childWidget
         }
 
-        "Extracting a bean does not propagate to other dsl if not necessary" {
+        "Extracting a bean does not propagate to other beans if not necessary" {
             val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
             app { widget }
-
             verifySequence {
                 widgetFactory.createWidget()
                 widget.start()
             }
         }
 
-        "Extracting a bean propagates to other dsl if necessary" {
+        "Customize can be used to replace a bean and inhibit its onCreate" {
+            val app = Kraftverk.manage(lazy = true) { AppModule() }
+            val replacement = mockk<Widget>(relaxed = true)
+            app.customize {
+                bind(widget) to { replacement }
+                onCreate(widget) { }
+            }
+            app.start()
+            verifySequence {
+                widgetFactory wasNot Called
+                replacement wasNot Called
+            }
+            app { widget } shouldBe replacement
+        }
+
+        "Extracting a bean propagates to other beans if necessary" {
             val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
@@ -142,7 +161,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "bean on create invokes next properly" {
+        "bean on create invokes 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 onCreate(widget) { proceed() }
@@ -177,18 +196,27 @@ class BeanTest : StringSpec() {
             }
         }
 
+        "bean on destroy inhibits 'proceed' properly" {
+            val app = Kraftverk.manage { AppModule() }
+            app.start {
+                onDestroy(widget) { }
+                onDestroy(childWidget) { }
+            }
+            clearMocks(widget, childWidget)
+            app.stop()
+            verifySequence {
+                childWidget wasNot Called
+                widget wasNot Called
+            }
+        }
+
         "Binding a bean does a proper replace" {
             val replacement = mockk<Widget>(relaxed = true)
-            every { widgetFactory.createWidget(widget) } returns replacement
-            every { widgetFactory.createWidget(replacement) } returns childWidget
-            val app = Kraftverk.manage {
-                AppModule().apply {
-                    bind(widget) to { widgetFactory.createWidget(proceed()) }
-                }
+            val app = Kraftverk.manage(lazy = true) { AppModule() }
+            app.start {
+                bind(widget) to { replacement }
             }
-            app.start()
-            val widget by app.get { widget }
-            widget shouldBe replacement
+            app { widget } shouldBe replacement
         }
 
         class Mod0(val destroyed: MutableList<String>) : Module() {
@@ -235,10 +263,36 @@ class BeanTest : StringSpec() {
         }
 
         "Trying out bean providers" {
+            val module = Kraftverk.start { Mod1() }
+            module { intList } should containExactly(1, 2)
+        }
+
+        "Getting a bean before the module has been started should fail" {
             val module = Kraftverk.manage { Mod1() }
-            module.start()
-            val intList = module { intList }
-            intList should containExactly(1, 2)
+            val ex = shouldThrow<IllegalStateException> {
+                module { b0 }
+            }
+            ex.message shouldBe "Expected state to be 'Running' but was 'UnderConstruction'"
+        }
+
+        "Customizing the module after it has been started should fail" {
+            val module = Kraftverk.start { Mod1() }
+            val ex = shouldThrow<IllegalStateException> {
+                module.customize { }
+            }
+            ex.message shouldBe "Expected state to be 'UnderConstruction' but was 'Running'"
+        }
+
+        "A nested construction operation like 'OnCreate' should fail if the module has been started" {
+            val module = Kraftverk.start { Mod1() }
+            val ex = shouldThrow<IllegalStateException> {
+                module.start {
+                    onCreate(b0) {
+                        onCreate(b1) {} // <-- Should fail
+                    }
+                }
+            }
+            ex.message shouldBe "Expected state to be 'UnderConstruction' but was 'Running'"
         }
     }
 

@@ -6,6 +6,7 @@
 package io.kraftverk.internal.managed
 
 import io.kraftverk.internal.logging.createLogger
+import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.module.BasicModule
 
@@ -17,7 +18,7 @@ open class BasicManaged<M : BasicModule> internal constructor(
     @Volatile
     internal var state: State<M> = State.UnderConstruction(module)
 
-    internal sealed class State<out M : BasicModule> {
+    internal sealed class State<out M : BasicModule> : BasicState {
 
         class UnderConstruction<M : BasicModule>(
             val module: M,

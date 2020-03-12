@@ -5,33 +5,9 @@
 
 package io.kraftverk.internal.misc
 
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
-
 internal typealias Consumer<T> = (T) -> Unit
 
 internal typealias InstanceFactory<T> = () -> T
-
-internal inline fun <reified T : Any> Any.mightBe(block: T.() -> Unit) {
-    contract {
-        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
-    }
-    if (this is T) {
-        this.block()
-    }
-}
-
-internal inline fun <reified T : Any> Any.mustBe(block: T.() -> Unit) {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-    }
-    this.narrow<T>().block()
-}
-
-internal inline fun <reified T : Any> Any.narrow(): T {
-    check(this is T) { "Expected this to be ${T::class} but was ${this::class}" }
-    return this
-}
 
 internal inline fun <T : Any> intercept(
     noinline supplier: () -> T,

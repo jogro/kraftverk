@@ -7,6 +7,7 @@ package io.kraftverk.internal.container
 
 import io.kraftverk.binding.Binding
 import io.kraftverk.env.Environment
+import io.kraftverk.internal.misc.BasicState
 
 internal class Container(
     val lazy: Boolean,
@@ -16,7 +17,7 @@ internal class Container(
     @Volatile
     internal var state: State = State.UnderConstruction()
 
-    internal sealed class State {
+    internal sealed class State : BasicState {
 
         class UnderConstruction : State() {
             val bindings = mutableListOf<Binding<*>>()

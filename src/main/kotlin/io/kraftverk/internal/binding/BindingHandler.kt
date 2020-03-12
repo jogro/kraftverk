@@ -6,6 +6,7 @@
 package io.kraftverk.internal.binding
 
 import io.kraftverk.internal.logging.createLogger
+import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.intercept
 import io.kraftverk.internal.provider.Singleton
 import io.kraftverk.provider.BeanProviderImpl
@@ -19,7 +20,7 @@ internal sealed class BindingHandler<T : Any>(config: BindingConfig<T>) {
 
     abstract fun createProvider(config: BindingConfig<T>): Provider<T>
 
-    internal sealed class State<out T : Any> {
+    internal sealed class State<out T : Any> : BasicState {
 
         class UnderConstruction<T : Any>(
             val config: BindingConfig<T>
