@@ -44,9 +44,9 @@ class BeanSupplierDefinition<T> internal constructor(
 class BeanConsumerDefinition<T> internal constructor(
     container: Container,
     private val instance: T,
-    private val supply: Consumer<T>
+    private val consume: Consumer<T>
 ) : BeanDefinition(container) {
-    fun proceed() = supply(instance)
+    fun proceed() = consume(instance)
 }
 
 open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.container)
