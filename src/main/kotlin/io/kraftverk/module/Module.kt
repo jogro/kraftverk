@@ -7,106 +7,71 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
-import io.kraftverk.definition.BeanDefinition
-import io.kraftverk.definition.ValueDefinition
-import io.kraftverk.internal.binding.BindingConfig
-import io.kraftverk.internal.container.createBean
-import io.kraftverk.internal.container.createBeanInstance
-import io.kraftverk.internal.container.createValue
-import io.kraftverk.internal.container.createValueInstance
+import io.kraftverk.env.Environment
+import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.container.beanProviders
+import io.kraftverk.internal.container.start
+import io.kraftverk.internal.container.stop
+import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.logging.createLogger
-import io.kraftverk.internal.module.BasicModule
-import io.kraftverk.internal.module.createSubModule
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty
+
+private val threadBoundContainer = ThreadBound<Container>()
+private val threadBoundNamespace = ThreadBound<String>()
 
 /**
  * A [Module] is the place where [Bean]s and [Value]s are defined.
  */
-abstract class Module : BasicModule() {
+open class Module {
 
     internal val logger = createLogger { }
 
-    @PublishedApi
-    internal fun <T : Any> createBeanComponent(
-        type: KClass<T>,
-        lazy: Boolean?,
-        instance: BeanDefinition.() -> T
-    ): BeanComponent<T> = object : BeanComponent<T> {
+    internal val container: Container = threadBoundContainer.get()
+    internal val namespace: String = threadBoundNamespace.get()
 
-        override fun provideDelegate(
-            thisRef: Module,
-            property: KProperty<*>
-        ): ReadOnlyProperty<Module, Bean<T>> {
-            val beanName = property.name.toQualifiedName(thisRef)
-            logger.debug { "Creating bean '$beanName'" }
-            val config = BindingConfig(
-                name = beanName,
-                lazy = lazy ?: container.lazy,
-                secret = false,
-                type = type,
-                instance = { container.createBeanInstance(instance) }
-            )
-            return container.createBean(config).let(::Delegate)
-        }
-    }
+    internal fun start() = container.start()
+    internal fun stop() = container.stop()
 
-    @PublishedApi
-    internal fun <T : Any> createValueComponent(
-        name: String?,
-        type: KClass<T>,
-        default: String?,
-        lazy: Boolean?,
-        secret: Boolean,
-        instance: ValueDefinition.(Any) -> T
-    ): ValueComponent<T> = object : ValueComponent<T> {
+    internal val beanProviders get() = container.beanProviders
+    internal val valueProviders get() = container.valueProviders
 
-        override fun provideDelegate(
-            thisRef: Module,
-            property: KProperty<*>
-        ): ReadOnlyProperty<Module, Value<T>> {
-            val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
-            logger.debug { "Creating value '$valueName'" }
-            val config = BindingConfig(
-                name = valueName,
-                lazy = lazy ?: container.lazy,
-                secret = secret,
-                type = type,
-                instance = { container.createValueInstance(valueName, default, instance) }
-            )
-            return container.createValue(config).let(::Delegate)
-        }
-    }
+    internal companion object
+}
 
-    internal fun <M : Module> createSubModuleComponent(
-        name: String? = null,
-        instance: () -> M
-    ): SubModuleComponent<M> = object :
-        SubModuleComponent<M> {
-
-        override fun provideDelegate(
-            thisRef: Module,
-            property: KProperty<*>
-        ): ReadOnlyProperty<Module, M> {
-            val moduleName = (name ?: property.name).toQualifiedName(thisRef)
-            logger.debug { "Creating sub module '$moduleName'" }
-            val module = createSubModule(moduleName, instance)
-            logger.debug { "Created sub module '$moduleName'" }
-            return Delegate(module)
-        }
+internal fun <M : Module> createRootModule(
+    lazy: Boolean = false,
+    env: Environment,
+    namespace: String,
+    createModule: () -> M
+): M = threadBoundContainer.use(Container(lazy, env)) {
+    threadBoundNamespace.use(namespace) {
+        createModule()
     }
 }
 
-private class Delegate<T : Any>(private val t: T) : ReadOnlyProperty<Module, T> {
-    override fun getValue(thisRef: Module, property: KProperty<*>): T {
-        return t
-    }
+internal fun <M : Module> createSubModule(
+    namespace: String,
+    moduleFun: () -> M
+): M = threadBoundNamespace.use(namespace) {
+    moduleFun()
 }
 
-private fun String.toQualifiedName(module: Module) =
-    (if (module.namespace.isBlank()) this else "${module.namespace}.$this")
+private class ThreadBound<T> {
 
-private val spinalRegex = "([A-Z]+)".toRegex()
+    private val threadLocal = ThreadLocal<T>()
 
-private fun String.toSpinalCase() = replace(spinalRegex, "\\-$1").toLowerCase()
+    fun get(): T = threadLocal.get() ?: throw IllegalStateException()
+
+    fun <R> use(value: T, block: () -> R): R {
+        val previous: T? = threadLocal.get()
+        threadLocal.set(value)
+        try {
+            return block()
+        } finally {
+            if (previous == null) {
+                threadLocal.remove()
+            } else {
+                threadLocal.set(previous)
+            }
+        }
+    }
+}
