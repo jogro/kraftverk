@@ -32,6 +32,7 @@ import io.mockk.clearMocks
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifySequence
+import java.time.LocalDate
 import kotlin.reflect.full.isSubclassOf
 
 class ValueTest : StringSpec() {
@@ -222,24 +223,22 @@ class ValueTest : StringSpec() {
         }
 
         class Mod1 : Module() {
-            val v0 by int()
-            val v1 by int()
+            val v0 by int(default = 9)
+            val v1 by int(default = 10)
             val intList by bean { values<Int>() }
         }
 
         "Trying out value providers" {
-            val module = Kraftverk.manage { Mod1() }
-            module.start {
-                bind(v0) to { 9 }
-                bind(v1) to { 10 }
-            }
+            val module = Kraftverk.start { Mod1() }
             module { intList } should containExactly(9, 10)
         }
 
         class YamlModule : Module() {
             val host by string("server.host")
             val ports by list<Int>("server.ports")
-            val poolSize by int("app.database.pool-size")
+            val poolSize by int("app.database.pool-size", default = 99)
+            val startDate by localDate("app.start-date")
+            val endDate by localDate("app.end-date", default = LocalDate.of(2020, 12, 12))
         }
 
         "Trying out yaml module" {
@@ -247,6 +246,8 @@ class ValueTest : StringSpec() {
             module { host } shouldBe "acme.com"
             module { ports } should containExactly(80, 8080)
             module { poolSize } shouldBe 20
+            module { startDate } shouldBe LocalDate.of(2020, 2, 2)
+            module { endDate } shouldBe LocalDate.of(2020, 12, 12)
         }
     }
 
@@ -278,4 +279,9 @@ class ValueTest : StringSpec() {
 
     @Suppress("UNCHECKED_CAST")
     private fun <T : Any> Module.list(name: String) = value(name) { v -> v as List<T> }
+
+    private fun Module.localDate(name: String? = null, default: LocalDate? = null) =
+        value(name, default = default) { value ->
+            if (value is LocalDate) value else LocalDate.parse(value.toString())
+        }
 }

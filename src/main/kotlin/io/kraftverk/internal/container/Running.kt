@@ -31,7 +31,7 @@ internal fun <T : Any> Container.createBeanInstance(
 
 internal fun <T : Any> Container.createValueInstance(
     name: String,
-    default: String?,
+    default: T?,
     instance: ValueDefinition.(Any) -> T
 ): T {
     state.mustBe<State.Running>()

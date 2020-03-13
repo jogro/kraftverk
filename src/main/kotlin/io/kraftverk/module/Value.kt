@@ -9,11 +9,11 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 // TODO Make this configurable
-private val valueParamsTransformer = defaultValueParamsTransformer()
+private val valueParamsProcessor = defaultValueParamsProcessor()
 
 inline fun <reified T : Any> Module.value(
     name: String? = null,
-    default: String? = null,
+    default: T? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
     noinline instance: ValueDefinition.(Any) -> T
@@ -36,16 +36,18 @@ internal fun <T : Any> Module.createValueComponent(params: ValueParams<T>): Valu
             property: KProperty<*>
         ): ReadOnlyProperty<Module, Value<T>> {
 
-            val transformed = valueParamsTransformer.transform(namespace, property.name, params)
+            val processed = valueParamsProcessor.process(namespace, property.name, params)
 
-            val valueName = qualifyName(transformed.name ?: property.name).toSpinalCase()
+            val valueName = qualifyName(processed.name ?: property.name).toSpinalCase()
             logger.debug { "Creating value '$valueName'" }
             val config = ValueConfig(
                 name = valueName,
-                lazy = transformed.lazy ?: container.lazy,
-                secret = transformed.secret,
-                type = transformed.type,
-                instance = { container.createValueInstance(valueName, transformed.default, transformed.instance) }
+                lazy = processed.lazy ?: container.lazy,
+                secret = processed.secret,
+                type = processed.type,
+                instance = {
+                    container.createValueInstance(valueName, processed.default, processed.instance)
+                }
             )
             return container.createValue(config).let(::Delegate)
         }

@@ -7,3 +7,4 @@ app:
   name: "app-1"
   database:
     pool-size: 20
+  start-date: "2020-02-02"

@@ -10,35 +10,35 @@ class BeanParams<T : Any>(
     val instance: BeanDefinition.() -> T
 )
 
-fun defaultBeanParamsTransformer() = object : BeanParamsTransformer {
-    override fun <T : Any> transform(
+fun defaultBeanParamsProcessor() = object : BeanParamsProcessor {
+    override fun <T : Any> process(
         namespace: String,
         propertyName: String,
         params: BeanParams<T>
     ) = params
 }
 
-interface BeanParamsTransformer {
-    fun <T : Any> transform(namespace: String, propertyName: String, params: BeanParams<T>): BeanParams<T>
+interface BeanParamsProcessor {
+    fun <T : Any> process(namespace: String, propertyName: String, params: BeanParams<T>): BeanParams<T>
 }
 
 class ValueParams<T : Any>(
     val name: String? = null,
     val type: KClass<T>,
-    val default: String? = null,
+    val default: T? = null,
     val lazy: Boolean? = null,
     val secret: Boolean = false,
     val instance: ValueDefinition.(Any) -> T
 )
 
-fun defaultValueParamsTransformer() = object : ValueParamsTransformer {
-    override fun <T : Any> transform(
+fun defaultValueParamsProcessor() = object : ValueParamsProcessor {
+    override fun <T : Any> process(
         namespace: String,
         propertyName: String,
         params: ValueParams<T>
     ) = params
 }
 
-interface ValueParamsTransformer {
-    fun <T : Any> transform(namespace: String, propertyName: String, params: ValueParams<T>): ValueParams<T>
+interface ValueParamsProcessor {
+    fun <T : Any> process(namespace: String, propertyName: String, params: ValueParams<T>): ValueParams<T>
 }

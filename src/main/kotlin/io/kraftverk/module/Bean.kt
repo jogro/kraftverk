@@ -9,7 +9,7 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 // TODO Make this configurable
-private val beanParamsTransformer = defaultBeanParamsTransformer()
+private val beanParamsProcessor = defaultBeanParamsProcessor()
 
 inline fun <reified T : Any> Module.bean(
     lazy: Boolean? = null,
@@ -18,10 +18,9 @@ inline fun <reified T : Any> Module.bean(
     T::class,
     lazy,
     instance
-).let(::createBeanComponent)
+).let(::bean)
 
-@PublishedApi
-internal fun <T : Any> Module.createBeanComponent(
+fun <T : Any> Module.bean(
     params: BeanParams<T>
 ): BeanComponent<T> = object : BeanComponent<T> {
 
@@ -30,15 +29,15 @@ internal fun <T : Any> Module.createBeanComponent(
         property: KProperty<*>
     ): ReadOnlyProperty<Module, Bean<T>> {
 
-        val transformed = beanParamsTransformer.transform(namespace, property.name, params)
+        val processed = beanParamsProcessor.process(namespace, property.name, params)
 
         val beanName = qualifyName(property.name)
         logger.debug { "Creating bean '$beanName'" }
         val config = BeanConfig(
             name = beanName,
-            lazy = transformed.lazy ?: container.lazy,
-            type = transformed.type,
-            instance = { container.createBeanInstance(transformed.instance) }
+            lazy = processed.lazy ?: container.lazy,
+            type = processed.type,
+            instance = { container.createBeanInstance(processed.instance) }
         )
         return container.createBean(config).let(::Delegate)
     }

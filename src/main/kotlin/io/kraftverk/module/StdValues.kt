@@ -23,7 +23,7 @@ fun Module.string(
 
 fun Module.int(
     name: String? = null,
-    default: String? = null,
+    default: Int? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
@@ -36,7 +36,7 @@ fun Module.int(
 
 fun Module.long(
     name: String? = null,
-    default: String? = null,
+    default: Long? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Long) -> Long = { it }
@@ -49,7 +49,7 @@ fun Module.long(
 
 fun Module.boolean(
     name: String? = null,
-    default: String? = null,
+    default: Boolean? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Boolean) -> Boolean = { it }
@@ -62,16 +62,16 @@ fun Module.boolean(
 
 fun Module.portNumber(
     name: String? = null,
-    default: String? = null,
+    default: Int? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
     block: ValueDefinition.(Int) -> Int = { it }
 ): ValueComponent<Int> =
-    value(name, default, lazy, secret) { value ->
+    int(name, default, lazy, secret) { value ->
         block(
-            when (val port = value.toString().toInt()) {
+            when (value) {
                 0 -> ServerSocket(0).use { it.localPort }
-                else -> port
+                else -> value
             }
         )
     }
