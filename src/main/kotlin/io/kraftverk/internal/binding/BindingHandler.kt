@@ -9,7 +9,6 @@ import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.Supplier
-import io.kraftverk.internal.misc.intercept
 import io.kraftverk.internal.provider.Singleton
 import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.BeanProviderImpl
@@ -59,9 +58,9 @@ internal class BeanHandler<T : Any>(
         )
     )
 
-    private fun loggingInterceptor(block: () -> T) = intercept(block) { proceed ->
+    private fun loggingInterceptor(block: () -> T): () -> T = {
         val startMs = System.currentTimeMillis()
-        val t = proceed()
+        val t = block()
         val elapsed = System.currentTimeMillis() - startMs
         logger.info {
             "Bean '${config.name}' is bound to ${config.type} (${elapsed}ms)"
@@ -87,8 +86,8 @@ internal class ValueHandler<T : Any>(
         )
     )
 
-    private fun loggingInterceptor(block: () -> T) = intercept(block) { proceed ->
-        val t = proceed()
+    private fun loggingInterceptor(block: () -> T): () -> T = {
+        val t = block()
         if (config.secret) {
             logger.info { "Value '${config.name}' is bound to '********'" }
         } else {
