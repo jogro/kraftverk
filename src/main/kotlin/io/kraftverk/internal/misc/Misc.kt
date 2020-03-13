@@ -7,7 +7,7 @@ package io.kraftverk.internal.misc
 
 internal typealias Consumer<T> = (T) -> Unit
 
-internal typealias InstanceFactory<T> = () -> T
+internal typealias Supplier<T> = () -> T
 
 internal inline fun <T : Any> intercept(
     noinline supplier: () -> T,

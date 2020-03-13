@@ -15,6 +15,9 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.env.environment
+import io.kraftverk.managed.get
+import io.kraftverk.managed.invoke
+import io.kraftverk.managed.start
 import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind

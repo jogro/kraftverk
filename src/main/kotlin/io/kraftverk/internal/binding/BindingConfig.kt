@@ -5,26 +5,27 @@
 
 package io.kraftverk.internal.binding
 
-import io.kraftverk.internal.misc.Consumer
-import io.kraftverk.internal.misc.InstanceFactory
-import io.kraftverk.internal.provider.Singleton
+import io.kraftverk.internal.misc.Supplier
 import kotlin.reflect.KClass
 
-internal data class BindingConfig<T : Any>(
-    val name: String,
-    val type: KClass<T>,
-    val lazy: Boolean,
-    val secret: Boolean,
-    var instance: InstanceFactory<T>,
-    var onCreate: Consumer<T> = { },
-    var onDestroy: Consumer<T> = { }
-)
+interface BindingConfig<T : Any> {
+    val name: String
+    val type: KClass<T>
+    val lazy: Boolean
+    val instance: Supplier<T>
+}
 
-internal fun <T : Any> Singleton.Companion.of(config: BindingConfig<T>) =
-    Singleton(
-        type = config.type,
-        lazy = config.lazy,
-        onCreate = config.onCreate,
-        onDestroy = config.onDestroy,
-        createInstance = config.instance
-    )
+internal data class ValueConfig<T : Any>(
+    override val name: String,
+    override val type: KClass<T>,
+    override val lazy: Boolean,
+    val secret: Boolean,
+    override val instance: Supplier<T>
+) : BindingConfig<T>
+
+internal data class BeanConfig<T : Any>(
+    override val name: String,
+    override val type: KClass<T>,
+    override val lazy: Boolean,
+    override val instance: Supplier<T>
+) : BindingConfig<T>

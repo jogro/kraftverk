@@ -8,6 +8,7 @@ package io.kraftverk
 import io.kraftverk.env.Environment
 import io.kraftverk.env.environment
 import io.kraftverk.managed.Managed
+import io.kraftverk.managed.start
 import io.kraftverk.module.Module
 import io.kraftverk.module.createRootModule
 

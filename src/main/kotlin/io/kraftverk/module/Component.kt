@@ -9,7 +9,8 @@ import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.definition.ValueDefinition
-import io.kraftverk.internal.binding.BindingConfig
+import io.kraftverk.internal.binding.BeanConfig
+import io.kraftverk.internal.binding.ValueConfig
 import io.kraftverk.internal.container.createBean
 import io.kraftverk.internal.container.createBeanInstance
 import io.kraftverk.internal.container.createValue
@@ -39,10 +40,9 @@ internal fun <T : Any> Module.createBeanComponent(
     ): ReadOnlyProperty<Module, Bean<T>> {
         val beanName = property.name.toQualifiedName(thisRef)
         logger.debug { "Creating bean '$beanName'" }
-        val config = BindingConfig(
+        val config = BeanConfig(
             name = beanName,
             lazy = lazy ?: container.lazy,
-            secret = false,
             type = type,
             instance = { container.createBeanInstance(instance) }
         )
@@ -66,7 +66,7 @@ internal fun <T : Any> Module.createValueComponent(
     ): ReadOnlyProperty<Module, Value<T>> {
         val valueName = (name ?: property.name).toQualifiedName(thisRef).toSpinalCase()
         logger.debug { "Creating value '$valueName'" }
-        val config = BindingConfig(
+        val config = ValueConfig(
             name = valueName,
             lazy = lazy ?: container.lazy,
             secret = secret,

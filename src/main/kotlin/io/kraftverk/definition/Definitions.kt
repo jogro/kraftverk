@@ -13,7 +13,7 @@ import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.Consumer
-import io.kraftverk.internal.misc.InstanceFactory
+import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.provider.get
 
 open class ValueDefinition internal constructor(internal val container: Container) {
@@ -24,7 +24,7 @@ open class ValueDefinition internal constructor(internal val container: Containe
 
 class ValueSupplierDefinition<T> internal constructor(
     container: Container,
-    private val supply: InstanceFactory<T>
+    private val supply: Supplier<T>
 ) : ValueDefinition(container) {
     fun proceed() = supply()
 }
@@ -36,7 +36,7 @@ open class BeanDefinition internal constructor(container: Container) : ValueDefi
 
 class BeanSupplierDefinition<T> internal constructor(
     container: Container,
-    private val supply: InstanceFactory<T>
+    private val supply: Supplier<T>
 ) : BeanDefinition(container) {
     fun proceed() = supply()
 }

@@ -5,17 +5,12 @@
 
 package io.kraftverk.managed
 
-import io.kraftverk.binding.Binding
-import io.kraftverk.binding.provider
-import io.kraftverk.internal.managed.BasicManaged
-import io.kraftverk.internal.misc.mightBe
-import io.kraftverk.internal.misc.mustBe
+import io.kraftverk.internal.logging.createLogger
+import io.kraftverk.internal.misc.BasicState
+import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.module.Module
 import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.ValueProvider
-import io.kraftverk.provider.get
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 /**
  * Provides access to and manages bean and value instances in a specified
@@ -37,9 +32,30 @@ import kotlin.reflect.KProperty
  * val app by Kraftverk.manage { AppModule() }
  * ```
  */
-class Managed<M : Module> internal constructor(
-    module: M
-) : BasicManaged<M>(module) {
+class Managed<M : Module> internal constructor(module: M) {
+
+    internal val logger = createLogger { }
+
+    @Volatile
+    internal var state: State<M> = State.UnderConstruction(module)
+
+    internal sealed class State<out M : Module> : BasicState {
+
+        class UnderConstruction<M : Module>(
+            val module: M,
+            var onStart: Consumer<M> = {}
+        ) : State<M>()
+
+        class Running<M : Module>(
+            val module: M
+        ) : State<M>()
+
+        object Destroying : State<Nothing>()
+
+        object Destroyed : State<Nothing>()
+    }
+
+    internal companion object
 
     /**
      * Retrieves all [BeanProvider]s.
@@ -50,76 +66,4 @@ class Managed<M : Module> internal constructor(
      * Retrieves all [ValueProvider]s.
      */
     val valueProviders: List<ValueProvider<*>> by lazy(module::valueProviders)
-
-    /**
-     * The [start] function will by default perform the following actions:
-     * 1) All value bindings declared in the [Module] are eagerly looked up using the Environment that
-     * was specified at the time the managed instance was created.
-     * Should any value be missing an exception is thrown.
-     * 2) All Bean bindings are eagerly instantiated.
-     *
-     * Call the [Managed.stop] method to destroy the [Managed] instance.
-     */
-    fun start(block: M.() -> Unit = {}): Managed<M> {
-        logger.info { "Starting root module" }
-        val startMs = System.currentTimeMillis()
-        customize(block)
-        state.mustBe<State.UnderConstruction<M>> {
-            onStart(module)
-            module.start()
-            state = State.Running(module)
-        }
-        Runtime.getRuntime().addShutdownHook(Thread {
-            stop()
-        })
-        logger.info { "Started root module in ${System.currentTimeMillis() - startMs}ms" }
-        return this
-    }
-
-    /**
-     * Extraction of instance [T] from the specified [Binding] in [Module] M.
-     * ```kotlin
-     * val someService = app { someService }
-     * ```
-     */
-    operator fun <T : Any> invoke(binding: M.() -> Binding<T>): T {
-        state.mustBe<State.Running<M>> {
-            return module.binding().provider.get()
-        }
-    }
-
-    /**
-     * Lazy extraction of instance [T] from the specified [Binding] in [Module] M.
-     * ```kotlin
-     * val someService by app.get { someService }
-     * ```
-     */
-    fun <T : Any> get(binding: M.() -> Binding<T>) =
-        object : ReadOnlyProperty<Any?, T> {
-            override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-                return invoke(binding)
-            }
-        }
-
-    fun customize(block: M.() -> Unit): Managed<M> {
-        state.mustBe<State.UnderConstruction<M>> {
-            val previousOnStart = onStart
-            onStart = { instance ->
-                previousOnStart(instance)
-                block(instance)
-            }
-        }
-        return this
-    }
-
-    /**
-     * Stops this instance meaning that all beans will be destroyed.
-     */
-    fun stop() {
-        state.mightBe<State.Running<*>> {
-            state = State.Destroying
-            module.stop()
-            state = State.Destroyed
-        }
-    }
 }

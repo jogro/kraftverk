@@ -17,6 +17,11 @@ import io.kraftverk.binding.provider
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.internal.binding.provider
 import io.kraftverk.managed.Managed
+import io.kraftverk.managed.customize
+import io.kraftverk.managed.get
+import io.kraftverk.managed.invoke
+import io.kraftverk.managed.start
+import io.kraftverk.managed.stop
 import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind

@@ -7,7 +7,7 @@ package io.kraftverk.internal.provider
 
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.Consumer
-import io.kraftverk.internal.misc.InstanceFactory
+import io.kraftverk.internal.misc.Supplier
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
@@ -16,7 +16,7 @@ private val logger = createLogger { }
 internal class Singleton<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean,
-    private val createInstance: InstanceFactory<T>,
+    private val createInstance: Supplier<T>,
     private val onCreate: Consumer<T>,
     private val onDestroy: Consumer<T>
 ) {
