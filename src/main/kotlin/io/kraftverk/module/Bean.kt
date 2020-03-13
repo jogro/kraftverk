@@ -6,25 +6,25 @@ import io.kraftverk.internal.binding.BeanConfig
 import io.kraftverk.internal.container.createBean
 import io.kraftverk.internal.container.createBeanInstance
 import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+
+private val beanParamsTransformer = defaultBeanParamsTransformer()
 
 inline fun <reified T : Any> Module.bean(
     lazy: Boolean? = null,
     noinline instance: BeanDefinition.() -> T
-): BeanComponent<T> = createBeanComponent(
+): BeanComponent<T> = BeanParams(
     T::class,
     lazy,
     instance
-)
+).let(::createBeanComponent)
 
 @PublishedApi
 internal fun <T : Any> Module.createBeanComponent(
-    type: KClass<T>,
-    lazy: Boolean?,
-    instance: BeanDefinition.() -> T
-): BeanComponent<T> = object :
-    BeanComponent<T> {
+    params: BeanParams<T>
+): BeanComponent<T> = object : BeanComponent<T> {
+
+    val transformed = beanParamsTransformer.transform(params)
 
     override fun provideDelegate(
         thisRef: Module,
@@ -34,9 +34,9 @@ internal fun <T : Any> Module.createBeanComponent(
         logger.debug { "Creating bean '$beanName'" }
         val config = BeanConfig(
             name = beanName,
-            lazy = lazy ?: container.lazy,
-            type = type,
-            instance = { container.createBeanInstance(instance) }
+            lazy = transformed.lazy ?: container.lazy,
+            type = transformed.type,
+            instance = { container.createBeanInstance(transformed.instance) }
         )
         return container.createBean(config).let(::Delegate)
     }
