@@ -8,6 +8,7 @@ import io.kraftverk.internal.container.createValueInstance
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
+// TODO Make this configurable
 private val valueParamsTransformer = defaultValueParamsTransformer()
 
 inline fun <reified T : Any> Module.value(
@@ -30,12 +31,12 @@ inline fun <reified T : Any> Module.value(
 internal fun <T : Any> Module.createValueComponent(params: ValueParams<T>): ValueComponent<T> =
     object : ValueComponent<T> {
 
-        val transformed = valueParamsTransformer.transform(params)
-
         override fun provideDelegate(
             thisRef: Module,
             property: KProperty<*>
         ): ReadOnlyProperty<Module, Value<T>> {
+
+            val transformed = valueParamsTransformer.transform(namespace, property.name, params)
 
             val valueName = qualifyName(transformed.name ?: property.name).toSpinalCase()
             logger.debug { "Creating value '$valueName'" }

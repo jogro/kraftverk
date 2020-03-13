@@ -11,11 +11,15 @@ class BeanParams<T : Any>(
 )
 
 fun defaultBeanParamsTransformer() = object : BeanParamsTransformer {
-    override fun <T : Any> transform(params: BeanParams<T>) = params
+    override fun <T : Any> transform(
+        namespace: String,
+        propertyName: String,
+        params: BeanParams<T>
+    ) = params
 }
 
 interface BeanParamsTransformer {
-    fun <T : Any> transform(params: BeanParams<T>): BeanParams<T>
+    fun <T : Any> transform(namespace: String, propertyName: String, params: BeanParams<T>): BeanParams<T>
 }
 
 class ValueParams<T : Any>(
@@ -28,9 +32,13 @@ class ValueParams<T : Any>(
 )
 
 fun defaultValueParamsTransformer() = object : ValueParamsTransformer {
-    override fun <T : Any> transform(params: ValueParams<T>) = params
+    override fun <T : Any> transform(
+        namespace: String,
+        propertyName: String,
+        params: ValueParams<T>
+    ) = params
 }
 
 interface ValueParamsTransformer {
-    fun <T : Any> transform(params: ValueParams<T>): ValueParams<T>
+    fun <T : Any> transform(namespace: String, propertyName: String, params: ValueParams<T>): ValueParams<T>
 }

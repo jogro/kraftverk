@@ -8,6 +8,7 @@ import io.kraftverk.internal.container.createBeanInstance
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
+// TODO Make this configurable
 private val beanParamsTransformer = defaultBeanParamsTransformer()
 
 inline fun <reified T : Any> Module.bean(
@@ -24,12 +25,13 @@ internal fun <T : Any> Module.createBeanComponent(
     params: BeanParams<T>
 ): BeanComponent<T> = object : BeanComponent<T> {
 
-    val transformed = beanParamsTransformer.transform(params)
-
     override fun provideDelegate(
         thisRef: Module,
         property: KProperty<*>
     ): ReadOnlyProperty<Module, Bean<T>> {
+
+        val transformed = beanParamsTransformer.transform(namespace, property.name, params)
+
         val beanName = qualifyName(property.name)
         logger.debug { "Creating bean '$beanName'" }
         val config = BeanConfig(
