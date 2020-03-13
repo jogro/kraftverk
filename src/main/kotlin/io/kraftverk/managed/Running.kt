@@ -2,6 +2,7 @@ package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
+import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
@@ -40,7 +41,7 @@ fun <T : Any, M : Module> Managed<M>.get(binding: M.() -> Binding<T>) =
 fun <M : Module> Managed<M>.stop() {
     state.mightBe<Managed.State.Running<*>> {
         state = Managed.State.Destroying
-        module.stop()
+        module.container.stop()
         state = Managed.State.Destroyed
     }
 }

@@ -1,5 +1,6 @@
 package io.kraftverk.managed
 
+import io.kraftverk.internal.container.start
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
 
@@ -18,7 +19,7 @@ fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
     customize(block)
     state.mustBe<Managed.State.UnderConstruction<M>> {
         onStart(module)
-        module.start()
+        module.container.start()
         state = Managed.State.Running(module)
     }
     Runtime.getRuntime().addShutdownHook(Thread {

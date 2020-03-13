@@ -9,10 +9,6 @@ import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
-import io.kraftverk.internal.container.beanProviders
-import io.kraftverk.internal.container.start
-import io.kraftverk.internal.container.stop
-import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.logging.createLogger
 
 private val threadBoundContainer = ThreadBound<Container>()
@@ -28,14 +24,11 @@ open class Module {
     internal val container: Container = threadBoundContainer.get()
     internal val namespace: String = threadBoundNamespace.get()
 
-    internal fun start() = container.start()
-    internal fun stop() = container.stop()
-
-    internal val beanProviders get() = container.beanProviders
-    internal val valueProviders get() = container.valueProviders
-
     internal companion object
 }
+
+internal fun Module.qualifyName(name: String) =
+    if (namespace.isBlank()) name else "$namespace.$name"
 
 internal fun <M : Module> createRootModule(
     lazy: Boolean = false,

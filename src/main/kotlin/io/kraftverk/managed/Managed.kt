@@ -5,6 +5,8 @@
 
 package io.kraftverk.managed
 
+import io.kraftverk.internal.container.beanProviders
+import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Consumer
@@ -34,6 +36,16 @@ import io.kraftverk.provider.ValueProvider
  */
 class Managed<M : Module> internal constructor(module: M) {
 
+    /**
+     * Retrieves all [BeanProvider]s.
+     */
+    val beanProviders: List<BeanProvider<*>> by lazy { module.container.beanProviders }
+
+    /**
+     * Retrieves all [ValueProvider]s.
+     */
+    val valueProviders: List<ValueProvider<*>> by lazy { module.container.valueProviders }
+
     internal val logger = createLogger { }
 
     @Volatile
@@ -56,14 +68,4 @@ class Managed<M : Module> internal constructor(module: M) {
     }
 
     internal companion object
-
-    /**
-     * Retrieves all [BeanProvider]s.
-     */
-    val beanProviders: List<BeanProvider<*>> by lazy(module::beanProviders)
-
-    /**
-     * Retrieves all [ValueProvider]s.
-     */
-    val valueProviders: List<ValueProvider<*>> by lazy(module::valueProviders)
 }
