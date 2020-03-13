@@ -76,8 +76,8 @@ class ValueBinder<T : Any> internal constructor(
     private val value: Value<T>
 ) {
     infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
-        value.handler.bind { process ->
-            ValueSupplierDefinition(container, process).block()
+        value.handler.bind { proceed ->
+            ValueSupplierDefinition(container, proceed).block()
         }
     }
 }
