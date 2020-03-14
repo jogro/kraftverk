@@ -3,7 +3,7 @@ package io.kraftverk.module
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-internal fun <M : Module> Module.module(
+fun <M : Module> Module.module(
     name: String? = null,
     instance: () -> M
 ): SubModuleComponent<M> = object :
