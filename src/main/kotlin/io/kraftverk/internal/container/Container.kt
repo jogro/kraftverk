@@ -5,21 +5,31 @@
 
 package io.kraftverk.internal.container
 
+import io.kraftverk.binding.BeanProcessor
 import io.kraftverk.binding.Binding
+import io.kraftverk.binding.ValueProcessor
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.misc.BasicState
 
 internal class Container(
     val lazy: Boolean,
-    val environment: Environment
+    val environment: Environment,
+    beanProcessors: List<BeanProcessor>,
+    valueProcessors: List<ValueProcessor>
 ) {
 
     @Volatile
-    internal var state: State = State.UnderConstruction()
+    internal var state: State = State.Configurable(
+        beanProcessors,
+        valueProcessors
+    )
 
     internal sealed class State : BasicState {
 
-        class UnderConstruction : State() {
+        class Configurable(
+            val beanProcessors: List<BeanProcessor>,
+            val valueProcessors: List<ValueProcessor>
+        ) : State() {
             val bindings = mutableListOf<Binding<*>>()
         }
 

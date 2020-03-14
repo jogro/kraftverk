@@ -5,6 +5,9 @@
 
 package io.kraftverk.internal.binding
 
+import io.kraftverk.binding.BeanConfig
+import io.kraftverk.binding.BindingConfig
+import io.kraftverk.binding.ValueConfig
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Consumer
@@ -21,13 +24,13 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
 ) {
 
     @Volatile
-    internal var state: State<T> = State.UnderConstruction(instance)
+    internal var state: State<T> = State.Configurable(instance)
 
-    abstract fun createProvider(state: State.UnderConstruction<T>): P
+    abstract fun createProvider(state: State.Configurable<T>): P
 
     internal sealed class State<out T : Any> : BasicState {
 
-        data class UnderConstruction<T : Any>(
+        data class Configurable<T : Any>(
             var instance: Supplier<T>,
             var onCreate: Consumer<T> = { },
             var onDestroy: Consumer<T> = { }
@@ -47,7 +50,7 @@ internal class BeanHandler<T : Any>(
 
     private val logger = createLogger { }
 
-    override fun createProvider(state: State.UnderConstruction<T>) = BeanProviderImpl(
+    override fun createProvider(state: State.Configurable<T>) = BeanProviderImpl(
         config.name,
         config.lazy,
         createSingleton(
@@ -75,7 +78,7 @@ internal class ValueHandler<T : Any>(
 
     private val logger = createLogger { }
 
-    override fun createProvider(state: State.UnderConstruction<T>) = ValueProviderImpl(
+    override fun createProvider(state: State.Configurable<T>) = ValueProviderImpl(
         config.name,
         config.lazy,
         createSingleton(
@@ -99,7 +102,7 @@ internal class ValueHandler<T : Any>(
 
 private fun <T : Any> createSingleton(
     config: BindingConfig<T>,
-    state: BindingHandler.State.UnderConstruction<T>
+    state: BindingHandler.State.Configurable<T>
 ): Singleton<T> = Singleton(
     type = config.type,
     lazy = config.lazy,

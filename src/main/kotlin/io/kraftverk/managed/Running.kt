@@ -2,13 +2,27 @@ package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
+import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.stop
+import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
+import io.kraftverk.provider.BeanProvider
+import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.get
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
+
+/**
+ * Retrieves all [BeanProvider]s.
+ */
+val Managed<*>.beanProviders: List<BeanProvider<*>> get() = module.container.beanProviders
+
+/**
+ * Retrieves all [ValueProvider]s.
+ */
+val Managed<*>.valueProviders: List<ValueProvider<*>> get() = module.container.valueProviders
 
 /**
  * Extraction of instance [T] from the specified [Binding] in [Module] M.
@@ -45,3 +59,10 @@ fun <M : Module> Managed<M>.stop() {
         state = Managed.State.Destroyed
     }
 }
+
+internal val <M : Module> Managed<M>.module: Module
+    get() {
+        state.mustBe<Managed.State.Running<M>> {
+            return module
+        }
+    }

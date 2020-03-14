@@ -3,7 +3,7 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk.internal.binding
+package io.kraftverk.binding
 
 import io.kraftverk.internal.misc.Supplier
 import kotlin.reflect.KClass
@@ -15,7 +15,7 @@ interface BindingConfig<T : Any> {
     val instance: Supplier<T>
 }
 
-internal data class ValueConfig<T : Any>(
+data class ValueConfig<T : Any>(
     override val name: String,
     override val type: KClass<T>,
     override val lazy: Boolean,
@@ -23,9 +23,17 @@ internal data class ValueConfig<T : Any>(
     override val instance: Supplier<T>
 ) : BindingConfig<T>
 
-internal data class BeanConfig<T : Any>(
+data class BeanConfig<T : Any>(
     override val name: String,
     override val type: KClass<T>,
     override val lazy: Boolean,
     override val instance: Supplier<T>
 ) : BindingConfig<T>
+
+interface BeanProcessor {
+    fun <T : Any> process(bean: BeanConfig<T>): BeanConfig<T>
+}
+
+interface ValueProcessor {
+    fun <T : Any> process(value: ValueConfig<T>): ValueConfig<T>
+}

@@ -10,7 +10,6 @@ import io.kraftverk.env.environment
 import io.kraftverk.managed.Managed
 import io.kraftverk.managed.start
 import io.kraftverk.module.Module
-import io.kraftverk.module.createRootModule
 
 object Kraftverk {
 
@@ -45,12 +44,13 @@ object Kraftverk {
         namespace: String = "",
         module: () -> M
     ): Managed<M> {
-        val root = createRootModule(
-            lazy,
-            env,
-            namespace,
-            module
-        )
-        return Managed(root)
+        return Managed(lazy, env, namespace, module)
     }
 }
+
+data class ManagedParams<M : Module>(
+    val lazy: Boolean = false,
+    val env: Environment,
+    val namespace: String,
+    val instance: () -> M
+)

@@ -15,7 +15,7 @@ import io.kraftverk.provider.Provider
 internal fun <T : Any> BindingHandler<T, Provider<T>>.bind(
     block: (Supplier<T>) -> T
 ) {
-    state.mustBe<State.UnderConstruction<T>> {
+    state.mustBe<State.Configurable<T>> {
         instance = intercept(instance, block)
     }
 }
@@ -23,7 +23,7 @@ internal fun <T : Any> BindingHandler<T, Provider<T>>.bind(
 internal fun <T : Any> BeanHandler<T>.onCreate(
     block: (T, Consumer<T>) -> Unit
 ) {
-    state.mustBe<State.UnderConstruction<T>> {
+    state.mustBe<State.Configurable<T>> {
         onCreate = intercept(onCreate, block)
     }
 }
@@ -31,13 +31,13 @@ internal fun <T : Any> BeanHandler<T>.onCreate(
 internal fun <T : Any> BeanHandler<T>.onDestroy(
     block: (T, Consumer<T>) -> Unit
 ) {
-    state.mustBe<State.UnderConstruction<T>> {
+    state.mustBe<State.Configurable<T>> {
         onDestroy = intercept(onDestroy, block)
     }
 }
 
 internal fun <T : Any> BindingHandler<T, Provider<T>>.start() {
-    state.mustBe<State.UnderConstruction<T>> {
+    state.mustBe<State.Configurable<T>> {
         val provider = createProvider(this)
         state = State.Running(provider)
     }

@@ -5,14 +5,13 @@
 
 package io.kraftverk.managed
 
-import io.kraftverk.internal.container.beanProviders
-import io.kraftverk.internal.container.valueProviders
+import io.kraftverk.binding.BeanProcessor
+import io.kraftverk.binding.ValueProcessor
+import io.kraftverk.env.Environment
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.module.Module
-import io.kraftverk.provider.BeanProvider
-import io.kraftverk.provider.ValueProvider
 
 /**
  * Provides access to and manages bean and value instances in a specified
@@ -34,29 +33,35 @@ import io.kraftverk.provider.ValueProvider
  * val app by Kraftverk.manage { AppModule() }
  * ```
  */
-class Managed<M : Module> internal constructor(module: M) {
-
-    /**
-     * Retrieves all [BeanProvider]s.
-     */
-    val beanProviders: List<BeanProvider<*>> by lazy { module.container.beanProviders }
-
-    /**
-     * Retrieves all [ValueProvider]s.
-     */
-    val valueProviders: List<ValueProvider<*>> by lazy { module.container.valueProviders }
+class Managed<M : Module> internal constructor(
+    lazy: Boolean = false,
+    env: Environment,
+    namespace: String,
+    moduleFun: () -> M
+) {
 
     internal val logger = createLogger { }
 
     @Volatile
-    internal var state: State<M> = State.UnderConstruction(module)
+    internal var state: State<M> = State.Configurable(
+        moduleFun,
+        lazy,
+        env,
+        namespace
+    )
 
     internal sealed class State<out M : Module> : BasicState {
 
-        class UnderConstruction<M : Module>(
-            val module: M,
+        class Configurable<M : Module>(
+            val moduleFun: () -> M,
+            var lazy: Boolean = false,
+            var env: Environment,
+            var namespace: String
+        ) : State<M>() {
+            val beanProcessors = mutableListOf<BeanProcessor>()
+            val valueProcessors = mutableListOf<ValueProcessor>()
             var onStart: Consumer<M> = {}
-        ) : State<M>()
+        }
 
         class Running<M : Module>(
             val module: M

@@ -12,14 +12,16 @@ import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
+import io.kraftverk.binding.BeanConfig
+import io.kraftverk.binding.BeanProcessor
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
 import io.kraftverk.definition.BeanDefinition
-import io.kraftverk.internal.binding.provider
 import io.kraftverk.managed.Managed
 import io.kraftverk.managed.customize
 import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
+import io.kraftverk.managed.registerProcessor
 import io.kraftverk.managed.start
 import io.kraftverk.managed.stop
 import io.kraftverk.module.Module
@@ -277,12 +279,19 @@ class BeanTest : StringSpec() {
             module { intList } should containExactly(1, 2)
         }
 
+        "Trying out bean processors" {
+            val module = Kraftverk.manage { Mod1() }
+            module.addTransformer<Int> { it + 7 }
+            module.start()
+            module { intList } should containExactly(8, 9)
+        }
+
         "Getting a bean before the module has been started should fail" {
             val module = Kraftverk.manage { Mod1() }
             val ex = shouldThrow<IllegalStateException> {
                 module { b0 }
             }
-            ex.message shouldBe "Expected state to be 'Running' but was 'UnderConstruction'"
+            ex.message shouldBe "Expected state to be 'Running' but was 'Configurable'"
         }
 
         "Customizing the module after it has been started should fail" {
@@ -290,7 +299,7 @@ class BeanTest : StringSpec() {
             val ex = shouldThrow<IllegalStateException> {
                 module.customize { }
             }
-            ex.message shouldBe "Expected state to be 'UnderConstruction' but was 'Running'"
+            ex.message shouldBe "Expected state to be 'Configurable' but was 'Running'"
         }
 
         "A nested construction operation like 'OnCreate' should fail if the module has been started" {
@@ -302,7 +311,7 @@ class BeanTest : StringSpec() {
                     }
                 }
             }
-            ex.message shouldBe "Expected state to be 'UnderConstruction' but was 'Running'"
+            ex.message shouldBe "Expected state to be 'Configurable' but was 'Running'"
         }
 
         // This declaration is to ensure that we don't break binding and provider covariance
@@ -357,4 +366,19 @@ class BeanTest : StringSpec() {
 
     private inline fun <reified T : Any> BeanDefinition.beans(): List<T> =
         beanProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
+
+    @Suppress("UNCHECKED_CAST")
+    private inline fun <reified T : Any> Managed<*>.addTransformer(crossinline block: (T) -> T) {
+        val processor = object : BeanProcessor {
+            override fun <A : Any> process(bean: BeanConfig<A>) =
+                if (bean.type.isSubclassOf(T::class)) {
+                    bean.copy {
+                        val t: T = bean.instance() as T
+                        val a: T = block(t)
+                        a as A
+                    }
+                } else bean
+        }
+        registerProcessor(processor)
+    }
 }

@@ -6,7 +6,9 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
+import io.kraftverk.binding.BeanProcessor
 import io.kraftverk.binding.Value
+import io.kraftverk.binding.ValueProcessor
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
@@ -34,8 +36,10 @@ internal fun <M : Module> createRootModule(
     lazy: Boolean = false,
     env: Environment,
     namespace: String,
+    beanProcessors: List<BeanProcessor>,
+    valueProcessors: List<ValueProcessor>,
     createModule: () -> M
-): M = threadBoundContainer.use(Container(lazy, env)) {
+): M = threadBoundContainer.use(Container(lazy, env, beanProcessors, valueProcessors)) {
     threadBoundNamespace.use(namespace) {
         createModule()
     }
