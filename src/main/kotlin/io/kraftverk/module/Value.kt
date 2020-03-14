@@ -16,7 +16,7 @@ inline fun <reified T : Any> Module.value(
     secret: Boolean = false,
     noinline instance: ValueDefinition.(Any) -> T
 ): ValueComponent<T> =
-    bean(
+    value(
         name,
         T::class,
         default,
@@ -25,8 +25,7 @@ inline fun <reified T : Any> Module.value(
         instance
     )
 
-@PublishedApi
-internal fun <T : Any> Module.bean(
+fun <T : Any> Module.value(
     name: String? = null,
     type: KClass<T>,
     default: T? = null,
