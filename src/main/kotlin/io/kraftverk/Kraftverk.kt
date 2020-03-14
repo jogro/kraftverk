@@ -47,10 +47,3 @@ object Kraftverk {
         return Managed(lazy, env, namespace, module)
     }
 }
-
-data class ManagedParams<M : Module>(
-    val lazy: Boolean = false,
-    val env: Environment,
-    val namespace: String,
-    val instance: () -> M
-)

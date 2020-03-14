@@ -1,7 +1,7 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.ValueConfig
+import io.kraftverk.common.ValueConfig
 import io.kraftverk.definition.ValueDefinition
 import io.kraftverk.internal.container.createValue
 import io.kraftverk.internal.container.createValueInstance

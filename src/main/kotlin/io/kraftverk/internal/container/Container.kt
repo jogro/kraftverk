@@ -5,9 +5,9 @@
 
 package io.kraftverk.internal.container
 
-import io.kraftverk.binding.BeanProcessor
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.ValueProcessor
+import io.kraftverk.common.BeanProcessor
+import io.kraftverk.common.ValueProcessor
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.misc.BasicState
 

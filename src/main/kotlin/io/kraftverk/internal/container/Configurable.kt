@@ -1,13 +1,13 @@
 package io.kraftverk.internal.container
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.BeanConfig
 import io.kraftverk.binding.BeanImpl
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.ValueConfig
 import io.kraftverk.binding.ValueImpl
 import io.kraftverk.binding.handler
+import io.kraftverk.common.BeanConfig
+import io.kraftverk.common.ValueConfig
 import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.initialize

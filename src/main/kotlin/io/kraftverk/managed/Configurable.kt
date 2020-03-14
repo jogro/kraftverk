@@ -1,7 +1,7 @@
 package io.kraftverk.managed
 
-import io.kraftverk.binding.BeanProcessor
-import io.kraftverk.binding.ValueProcessor
+import io.kraftverk.common.BeanProcessor
+import io.kraftverk.common.ValueProcessor
 import io.kraftverk.internal.container.start
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module

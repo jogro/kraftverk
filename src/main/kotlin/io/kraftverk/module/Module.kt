@@ -6,9 +6,9 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.BeanProcessor
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.ValueProcessor
+import io.kraftverk.common.BeanProcessor
+import io.kraftverk.common.ValueProcessor
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger

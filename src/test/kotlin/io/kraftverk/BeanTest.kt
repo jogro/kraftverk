@@ -7,17 +7,19 @@ package io.kraftverk
 
 import io.kotlintest.TestCase
 import io.kotlintest.matchers.collections.containExactly
+import io.kotlintest.matchers.collections.shouldHaveSize
 import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.BeanConfig
-import io.kraftverk.binding.BeanProcessor
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
+import io.kraftverk.common.BeanConfig
+import io.kraftverk.common.BeanProcessor
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.managed.Managed
+import io.kraftverk.managed.beanProviders
 import io.kraftverk.managed.customize
 import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
@@ -31,6 +33,7 @@ import io.kraftverk.module.onCreate
 import io.kraftverk.module.onDestroy
 import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.Provider
+import io.kraftverk.provider.config
 import io.kraftverk.provider.get
 import io.kraftverk.provider.type
 import io.mockk.Called
@@ -222,13 +225,26 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Binding a bean does a proper replace" {
+        "Binding a bean does a proper replace 1" {
             val replacement = mockk<Widget>(relaxed = true)
             val app = Kraftverk.manage(lazy = true) { AppModule() }
             app.start {
                 bind(widget) to { replacement }
             }
             app { widget } shouldBe replacement
+
+            verifyThatNoBeansAreInstantiated()
+        }
+
+        "Binding a bean does a proper replace 2" {
+            val replacement = mockk<Widget>(relaxed = true)
+            val app = Kraftverk.manage(lazy = true) { AppModule() }
+            app.start {
+                bind(childWidget) to { replacement }
+            }
+            app { childWidget } shouldBe replacement
+
+            verifyThatNoBeansAreInstantiated()
         }
 
         class Mod0(val destroyed: MutableList<String>) : Module() {
@@ -274,14 +290,35 @@ class BeanTest : StringSpec() {
             val intList by bean { beans<Int>() }
         }
 
-        "Trying out bean providers" {
+        "Trying out bean providers 1" {
             val module = Kraftverk.start { Mod1() }
             module { intList } should containExactly(1, 2)
         }
 
+        "Trying out bean providers 2" {
+            val module = Kraftverk.start { Mod1() }
+            val configs = module.beanProviders.map { it.config }
+            configs shouldHaveSize 3
+            with(configs[0]) {
+                name shouldBe "b0"
+                lazy shouldBe false
+                this.type shouldBe Int::class
+            }
+            with(configs[1]) {
+                name shouldBe "b1"
+                lazy shouldBe false
+                this.type shouldBe Int::class
+            }
+            with(configs[2]) {
+                name shouldBe "intList"
+                lazy shouldBe false
+                this.type shouldBe List::class
+            }
+        }
+
         "Trying out bean processors" {
             val module = Kraftverk.manage { Mod1() }
-            module.addTransformer<Int> { it + 7 }
+            module.registerBeanTransformer<Int> { it + 7 }
             module.start()
             module { intList } should containExactly(8, 9)
         }
@@ -368,7 +405,7 @@ class BeanTest : StringSpec() {
         beanProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
 
     @Suppress("UNCHECKED_CAST")
-    private inline fun <reified T : Any> Managed<*>.addTransformer(crossinline block: (T) -> T) {
+    private inline fun <reified T : Any> Managed<*>.registerBeanTransformer(crossinline block: (T) -> T) {
         val processor = object : BeanProcessor {
             override fun <A : Any> process(bean: BeanConfig<A>) =
                 if (bean.type.isSubclassOf(T::class)) {

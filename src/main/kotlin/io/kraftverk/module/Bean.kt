@@ -1,7 +1,7 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.BeanConfig
+import io.kraftverk.common.BeanConfig
 import io.kraftverk.definition.BeanDefinition
 import io.kraftverk.internal.container.createBean
 import io.kraftverk.internal.container.createBeanInstance

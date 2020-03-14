@@ -5,9 +5,9 @@
 
 package io.kraftverk.internal.binding
 
-import io.kraftverk.binding.BeanConfig
-import io.kraftverk.binding.BindingConfig
-import io.kraftverk.binding.ValueConfig
+import io.kraftverk.common.BeanConfig
+import io.kraftverk.common.BindingConfig
+import io.kraftverk.common.ValueConfig
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Consumer
@@ -51,8 +51,7 @@ internal class BeanHandler<T : Any>(
     private val logger = createLogger { }
 
     override fun createProvider(state: State.Configurable<T>) = BeanProviderImpl(
-        config.name,
-        config.lazy,
+        config,
         createSingleton(
             config,
             state.copy(
@@ -79,8 +78,7 @@ internal class ValueHandler<T : Any>(
     private val logger = createLogger { }
 
     override fun createProvider(state: State.Configurable<T>) = ValueProviderImpl(
-        config.name,
-        config.lazy,
+        config,
         createSingleton(
             config,
             state.copy(

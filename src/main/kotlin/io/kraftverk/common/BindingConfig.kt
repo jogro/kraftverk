@@ -3,7 +3,7 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk.binding
+package io.kraftverk.common
 
 import io.kraftverk.internal.misc.Supplier
 import kotlin.reflect.KClass
