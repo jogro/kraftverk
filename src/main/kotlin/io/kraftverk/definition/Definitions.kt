@@ -6,6 +6,7 @@
 package io.kraftverk.definition
 
 import io.kraftverk.binding.Bean
+import io.kraftverk.binding.BeanRef
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.provider
 import io.kraftverk.env.Environment
@@ -32,6 +33,7 @@ class ValueSupplierDefinition<T> internal constructor(
 open class BeanDefinition internal constructor(container: Container) : ValueDefinition(container) {
     val beanProviders get() = container.beanProviders
     operator fun <T : Any> Bean<T>.invoke(): T = provider.get()
+    operator fun <T : Any> BeanRef<T>.invoke(): T = instance()
 }
 
 class BeanSupplierDefinition<T> internal constructor(

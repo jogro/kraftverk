@@ -14,12 +14,12 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
-inline fun <reified T : Any> Module.bean(
+inline fun <reified T : Any> ModuleSupport.bean(
     lazy: Boolean? = null,
     noinline instance: BeanDefinition.() -> T
 ): BeanComponent<T> = bean(T::class, lazy, instance)
 
-fun <T : Any> Module.bean(
+fun <T : Any> ModuleSupport.bean(
     type: KClass<T>,
     lazy: Boolean? = null,
     instance: BeanDefinition.() -> T
@@ -27,9 +27,9 @@ fun <T : Any> Module.bean(
 ): BeanComponent<T> = object : BeanComponent<T> {
 
     override fun provideDelegate(
-        thisRef: Module,
+        thisRef: ModuleSupport,
         property: KProperty<*>
-    ): ReadOnlyProperty<Module, Bean<T>> {
+    ): ReadOnlyProperty<ModuleSupport, Bean<T>> {
         val beanName = qualifyName(property.name)
         logger.debug { "Creating bean '$beanName'" }
         val config = BeanConfig(

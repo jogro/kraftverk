@@ -19,10 +19,13 @@ import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
 import io.kraftverk.managed.start
 import io.kraftverk.module.Module
+import io.kraftverk.module.PartitionOf
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
+import io.kraftverk.module.inject
 import io.kraftverk.module.int
 import io.kraftverk.module.module
+import io.kraftverk.module.partition
 import io.kraftverk.module.string
 import io.kraftverk.module.value
 import io.kraftverk.provider.get
@@ -249,6 +252,10 @@ class ValueTest : StringSpec() {
             module { startDate } shouldBe LocalDate.of(2020, 2, 2)
             module { endDate } shouldBe LocalDate.of(2020, 12, 12)
         }
+
+        "Trying out sub modules" {
+            Kraftverk.start { Mod3() }
+        }
     }
 
     private fun verifyThatNoValuesAreInstantiated() {
@@ -266,6 +273,20 @@ class ValueTest : StringSpec() {
             valueObjectFactory.createValue(valueObject5.value)
         }
     }
+
+    class Mod3 : Module() {
+        val b1 by bean { 1 }
+        val sm1 by partition { Sub1() }
+        // val sm2 by subModule { Sub2() }
+    }
+
+    class Mod4 : Module()
+
+    class Sub1 : PartitionOf<Mod3>() {
+        val i1 by inject { b1 }
+    }
+
+    class Sub2 : PartitionOf<Mod4>()
 
     private data class ValueObject(val value: String, val parent: ValueObject? = null)
 

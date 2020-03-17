@@ -6,31 +6,40 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
+import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
+import io.kraftverk.binding.provider
 import io.kraftverk.common.BeanProcessor
 import io.kraftverk.common.ValueProcessor
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
+import io.kraftverk.provider.get
 
+private val threadBoundSubModuleRoot = ThreadBound<ModuleSupport>()
 private val threadBoundContainer = ThreadBound<Container>()
 private val threadBoundNamespace = ThreadBound<String>()
 
-/**
- * A [Module] is the place where [Bean]s and [Value]s are defined.
- */
-open class Module {
-
+sealed class ModuleSupport {
     internal val logger = createLogger { }
 
     internal val container: Container = threadBoundContainer.get()
     internal val namespace: String = threadBoundNamespace.get()
-
-    internal companion object
 }
 
-internal fun Module.qualifyName(name: String) =
-    if (namespace.isBlank()) name else "$namespace.$name"
+/**
+ * A [Module] is the place where [Bean]s and [Value]s are defined.
+ */
+open class Module : ModuleSupport()
+
+open class PartitionOf<M : ModuleSupport> : ModuleSupport() {
+
+    @Suppress("UNCHECKED_CAST")
+    private val root: M = threadBoundSubModuleRoot.get() as M
+
+    @PublishedApi
+    internal fun <T : Any, B : Binding<T>> getInstance(binding: M.() -> B): T = root.binding().provider.get()
+}
 
 internal fun <M : Module> createRootModule(
     lazy: Boolean = false,
@@ -45,12 +54,23 @@ internal fun <M : Module> createRootModule(
     }
 }
 
-internal fun <M : Module> createSubModule(
+internal fun <M : Module> ModuleSupport.createModule(
     namespace: String,
     moduleFun: () -> M
 ): M = threadBoundNamespace.use(namespace) {
     moduleFun()
 }
+
+internal fun <M : ModuleSupport, SM : PartitionOf<M>> ModuleSupport.createPartition(
+    namespace: String,
+    moduleFun: () -> SM
+): SM = threadBoundSubModuleRoot.use(this) {
+    threadBoundNamespace.use(namespace) {
+        moduleFun()
+    }
+}
+
+internal fun ModuleSupport.qualifyName(name: String) = if (namespace.isBlank()) name else "$namespace.$name"
 
 private class ThreadBound<T> {
 

@@ -26,7 +26,7 @@ import io.kraftverk.internal.binding.onDestroy
  * }
  * ```
  */
-fun <T : Any> Module.onCreate(
+fun <T : Any> ModuleSupport.onCreate(
     bean: Bean<T>,
     block: BeanConsumerDefinition<T>.(T) -> Unit
 ) {
@@ -55,7 +55,7 @@ fun <T : Any> Module.onCreate(
  * }
  * ```
  */
-fun <T : Any> Module.onDestroy(
+fun <T : Any> ModuleSupport.onDestroy(
     bean: Bean<T>,
     block: BeanConsumerDefinition<T>.(T) -> Unit
 ) {

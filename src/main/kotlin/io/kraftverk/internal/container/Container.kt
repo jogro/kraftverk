@@ -23,7 +23,7 @@ internal class Container(
 
     internal sealed class State : BasicState {
 
-        class Configurable() : State() {
+        class Configurable : State() {
             val bindings = mutableListOf<Binding<*>>()
         }
 
