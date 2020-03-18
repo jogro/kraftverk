@@ -1,3 +1,8 @@
+/*
+ * Copyright 2019 Jonas Grönberg
+ * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
+ */
+
 package io.kraftverk.common
 
 import io.kraftverk.module.Modular
