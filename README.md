@@ -1,27 +1,39 @@
 # Kraftverk
 
-Kraftverk is a minimalistic dependency injection toolkit written in pure Kotlin. 
+Kraftverk is a dependency injection toolkit written in pure Kotlin. 
 
 ## Quickstart
-
-### Add dependency
-
-#### Maven
-
+### Maven
+Add dependency
 ```xml
 <dependency>
     <groupId>io.kraftverk</groupId>
     <artifactId>kraftverk</artifactId>
-    <version>0.9.1</version>
+    <version>0.9.3</version>
 </dependency>
 ```
-
-#### Gradle
-
-```groovy
-compile "io.kraftverk:kraftverk:0.9.1"
+Add repository
+```xml
+<repositories>
+    <repository>
+        <id>jcenter</id>
+        <name>jcenter</name>
+        <url>https://jcenter.bintray.com</url>
+    </repository>
+</repositories>
 ```
-
+### Gradle
+Add dependency
+```groovy
+compile "io.kraftverk:kraftverk:0.9.3"
+```
+Add repository
+```groovy
+repositories {
+    //[...]
+    jcenter()
+}
+```
 ### Given some classes
 ```kotlin
 class Service(val repo: Repository)
