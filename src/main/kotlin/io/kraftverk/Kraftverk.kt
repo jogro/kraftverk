@@ -36,7 +36,7 @@ object Kraftverk {
      * ```kotlin
      * val app: Managed<AppModule> = Kraftverk.manage { AppModule() }
      * ```
-     * The instance can be started by explicitly calling [Managed.start].
+     * The instance can be started by calling [Managed.start].
      */
     fun <M : Module> manage(
         lazy: Boolean = false,
