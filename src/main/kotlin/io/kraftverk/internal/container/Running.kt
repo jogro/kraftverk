@@ -19,6 +19,8 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.instanceId
 
+internal class ValueNotFoundException(message: String, val valueName: String) : Exception(message)
+
 internal val Container.beanProviders: List<BeanProvider<*>>
     get() =
         providers.filterIsInstance<BeanProvider<*>>()
@@ -62,7 +64,7 @@ private val Container.providers: List<Provider<*>>
     }
 
 private fun throwValueNotFound(name: String): Nothing =
-    throw IllegalStateException("Value '$name' was not found!")
+    throw ValueNotFoundException("Value '$name' was not found!", name)
 
 private fun List<Binding<*>>.destroy() {
     filter { binding ->

@@ -73,9 +73,26 @@ private fun List<Binding<*>>.start() {
 }
 
 private fun List<Binding<*>>.initialize() {
+    val valueNotFoundExceptions = mutableListOf<ValueNotFoundException>()
     filterIsInstance<Value<*>>().forEach { value ->
-        value.handler.initialize()
+        try {
+            value.handler.initialize()
+        } catch (e: ValueNotFoundException) {
+            valueNotFoundExceptions += e
+        }
     }
+    valueNotFoundExceptions.takeIf { it.isNotEmpty() }
+        ?.joinToString(separator = "\n") { "      - " + it.valueName }
+        ?.let { errorMsg ->
+            val exceptionMessage = """
+
+
+Couldn't initialize the container since the following values seem to be missing:
+$errorMsg
+
+                """.trimIndent()
+            throw IllegalStateException(exceptionMessage)
+        }
     filterIsInstance<Bean<*>>().forEach { bean ->
         bean.handler.initialize()
     }
