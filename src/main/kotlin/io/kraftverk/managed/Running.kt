@@ -59,9 +59,11 @@ fun <T : Any, M : Module> Managed<M>.get(binding: M.() -> Binding<T>) =
  */
 fun <M : Module> Managed<M>.stop() {
     state.mightBe<Managed.State.Running<*>> {
+        logger.info { "Stopping managed module" }
         state = Managed.State.Destroying
         module.container.stop()
         state = Managed.State.Destroyed
+        logger.info { "Stopped managed module" }
     }
 }
 

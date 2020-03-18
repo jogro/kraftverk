@@ -22,7 +22,7 @@ import io.kraftverk.module.createRootModule
  * Call the [Managed.stop] method to destroy the [Managed] instance.
  */
 fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
-    logger.info { "Starting root module" }
+    logger.info { "Starting managed module" }
     val startMs = System.currentTimeMillis()
     customize(block)
     state.mustBe<Managed.State.Configurable<M>> {
@@ -34,7 +34,7 @@ fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
     Runtime.getRuntime().addShutdownHook(Thread {
         stop()
     })
-    logger.info { "Started root module in ${System.currentTimeMillis() - startMs}ms" }
+    logger.info { "Started managed module in ${System.currentTimeMillis() - startMs}ms" }
     return this
 }
 
