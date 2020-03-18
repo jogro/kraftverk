@@ -8,7 +8,9 @@ package io.kraftverk.module
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.handler
 import io.kraftverk.definition.BeanConsumerDefinition
+import io.kraftverk.definition.BeanConsumerInterceptorDefinition
 import io.kraftverk.internal.binding.onCreate
+import io.kraftverk.internal.binding.onCustomize
 import io.kraftverk.internal.binding.onDestroy
 
 /**
@@ -28,10 +30,10 @@ import io.kraftverk.internal.binding.onDestroy
  */
 fun <T : Any> Modular.onCreate(
     bean: Bean<T>,
-    block: BeanConsumerDefinition<T>.(T) -> Unit
+    block: BeanConsumerInterceptorDefinition<T>.(T) -> Unit
 ) {
     bean.handler.onCreate { instance, proceed ->
-        val definition = BeanConsumerDefinition(
+        val definition = BeanConsumerInterceptorDefinition(
             container,
             instance,
             proceed
@@ -57,13 +59,43 @@ fun <T : Any> Modular.onCreate(
  */
 fun <T : Any> Modular.onDestroy(
     bean: Bean<T>,
-    block: BeanConsumerDefinition<T>.(T) -> Unit
+    block: BeanConsumerInterceptorDefinition<T>.(T) -> Unit
 ) {
     bean.handler.onDestroy { instance, proceed ->
-        val definition = BeanConsumerDefinition(
+        val definition = BeanConsumerInterceptorDefinition(
             container,
             instance,
             proceed
+        )
+        definition.block(instance)
+    }
+}
+
+/**
+ * A helper method for customization of a bean after it has been declared, for example:
+ * ```kotlin
+ * class JdbcModule : Module() {
+ *     [...]
+ *     val config by bean { HikariConfig() }
+ *     val dataSource by bean { HikariDataSource(config()) }
+ *     init {
+ *         customize(config) { c ->
+ *             c.jdbcUrl = [...]
+ *             c.username = [...]
+ *             c.password = [...]
+ *         }
+ *     }
+ * }
+ * ```
+ */
+fun <T : Any> Modular.customize(
+    bean: Bean<T>,
+    block: BeanConsumerDefinition<T>.(T) -> Unit
+) {
+    bean.handler.onCustomize { instance ->
+        val definition = BeanConsumerDefinition(
+            container,
+            instance
         )
         definition.block(instance)
     }

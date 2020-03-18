@@ -39,14 +39,19 @@ open class BeanDefinition internal constructor(container: Container) : ValueDefi
     operator fun <M : Modular> ModuleRef<M>.invoke(): M = instance()
 }
 
-class BeanSupplierDefinition<T> internal constructor(
+class BeanConsumerDefinition<T> internal constructor(
+    container: Container,
+    val instance: T
+) : BeanDefinition(container)
+
+class BeanSupplierInterceptorDefinition<T> internal constructor(
     container: Container,
     private val supply: Supplier<T>
 ) : BeanDefinition(container) {
     fun proceed() = supply()
 }
 
-class BeanConsumerDefinition<T> internal constructor(
+class BeanConsumerInterceptorDefinition<T> internal constructor(
     container: Container,
     private val instance: T,
     private val consume: Consumer<T>

@@ -17,6 +17,7 @@ internal class Singleton<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean,
     private val createInstance: Supplier<T>,
+    private val onCustomize: Consumer<T> = { },
     private val onCreate: Consumer<T>,
     private val onDestroy: Consumer<T>
 ) {
@@ -47,6 +48,7 @@ internal class Singleton<T : Any>(
                     createInstance(),
                     currentInstanceId.incrementAndGet()
                 )
+                onCustomize(i3.value)
                 onCreate(i3.value)
                 instance = i3
                 i3.value

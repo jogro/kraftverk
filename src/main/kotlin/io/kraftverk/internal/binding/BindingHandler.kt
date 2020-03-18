@@ -32,6 +32,7 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
 
         data class Configurable<T : Any>(
             var instance: Supplier<T>,
+            var onCustomize: Consumer<T> = { },
             var onCreate: Consumer<T> = { },
             var onDestroy: Consumer<T> = { }
         ) : State<T>()
@@ -105,6 +106,7 @@ private fun <T : Any> createSingleton(
     type = config.type,
     lazy = config.lazy,
     createInstance = state.instance,
+    onCustomize = state.onCustomize,
     onCreate = state.onCreate,
     onDestroy = state.onDestroy
 )
