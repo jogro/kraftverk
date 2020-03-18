@@ -22,10 +22,11 @@ import io.kraftverk.module.Module
 import io.kraftverk.module.PartitionOf
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
-import io.kraftverk.module.inject
+import io.kraftverk.module.import
 import io.kraftverk.module.int
 import io.kraftverk.module.module
 import io.kraftverk.module.partition
+import io.kraftverk.module.ref
 import io.kraftverk.module.string
 import io.kraftverk.module.value
 import io.kraftverk.provider.get
@@ -283,7 +284,8 @@ class ValueTest : StringSpec() {
     class Mod4 : Module()
 
     class Sub1 : PartitionOf<Mod3>() {
-        val i1 by inject { b1 }
+        val i1 by ref { b1 }
+        val m by import { sm1 }
     }
 
     class Sub2 : PartitionOf<Mod4>()

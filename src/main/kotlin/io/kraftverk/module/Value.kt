@@ -14,7 +14,7 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
-inline fun <reified T : Any> ModuleSupport.value(
+inline fun <reified T : Any> Modular.value(
     name: String? = null,
     default: T? = null,
     lazy: Boolean? = null,
@@ -30,7 +30,7 @@ inline fun <reified T : Any> ModuleSupport.value(
         instance
     )
 
-fun <T : Any> ModuleSupport.value(
+fun <T : Any> Modular.value(
     name: String? = null,
     type: KClass<T>,
     default: T? = null,
@@ -42,9 +42,9 @@ fun <T : Any> ModuleSupport.value(
     object : ValueComponent<T> {
 
         override fun provideDelegate(
-            thisRef: ModuleSupport,
+            thisRef: Modular,
             property: KProperty<*>
-        ): ReadOnlyProperty<ModuleSupport, Value<T>> {
+        ): ReadOnlyProperty<Modular, Value<T>> {
             val valueName = qualifyName(name ?: property.name).toSpinalCase()
             logger.debug { "Creating value '$valueName'" }
             val config = ValueConfig(

@@ -8,7 +8,7 @@ package io.kraftverk.module
 import io.kraftverk.definition.ValueDefinition
 import java.net.ServerSocket
 
-fun ModuleSupport.string(
+fun Modular.string(
     name: String? = null,
     default: String? = null,
     lazy: Boolean? = null,
@@ -21,7 +21,7 @@ fun ModuleSupport.string(
     secret
 ) { block(it.toString()) }
 
-fun ModuleSupport.int(
+fun Modular.int(
     name: String? = null,
     default: Int? = null,
     lazy: Boolean? = null,
@@ -34,7 +34,7 @@ fun ModuleSupport.int(
     secret
 ) { block(it.toString().toInt()) }
 
-fun ModuleSupport.long(
+fun Modular.long(
     name: String? = null,
     default: Long? = null,
     lazy: Boolean? = null,
@@ -47,7 +47,7 @@ fun ModuleSupport.long(
     secret
 ) { block(it.toString().toLong()) }
 
-fun ModuleSupport.boolean(
+fun Modular.boolean(
     name: String? = null,
     default: Boolean? = null,
     lazy: Boolean? = null,
@@ -60,7 +60,7 @@ fun ModuleSupport.boolean(
     secret
 ) { block(it.toString().toBoolean()) }
 
-fun ModuleSupport.port(
+fun Modular.port(
     name: String? = null,
     default: Int? = null,
     lazy: Boolean? = null,
