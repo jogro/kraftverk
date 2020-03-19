@@ -29,7 +29,7 @@ Add dependency
     <version>0.9.3</version>
 </dependency>
 ```
-Add repository
+If Maven can't find the dependency add this repository to the POM file.
 ```xml
 <repositories>
     <repository>
