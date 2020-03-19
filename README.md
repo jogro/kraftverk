@@ -1,6 +1,28 @@
 # Kraftverk
 
-Kraftverk is a dependency injection toolkit written in pure Kotlin. 
+Kraftverk is a configuration and dependency injection toolkit written in pure Kotlin.
+
+Example component:
+```kotlin
+class JdbcModule : Module() {
+
+    val url by string()
+    val username by string()
+    val password by string(secret = true)
+
+    val dataSource by bean { HikariDataSource() }
+
+    init {
+        customize(dataSource) { ds ->
+            ds.jdbcUrl = url()
+            ds.username = username()
+            ds.password = password()
+        }
+    }
+}
+```
+
+  
 
 ## Quickstart
 ### Maven
