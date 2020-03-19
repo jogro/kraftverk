@@ -1,30 +1,25 @@
 # Kraftverk
 
-Kraftverk is a configuration and dependency injection toolkit written in pure Kotlin.
+Kraftverk is a dependency injection toolkit written in pure Kotlin. It has one slogan:
 
-Example component:
-```kotlin
-class JdbcModule : Module() {
+"Dependency resolution should be done at compile time". 
 
-    val url by string()
-    val username by string()
-    val password by string(secret = true)
+With Kraftverk application startup is really fast. It employs no classpath scanning or 
+time consuming reflective inspection of constructor or method signatures to wire your components.
+The wiring has already been resolved at compile time. The days when you are having "a bad container day" might 
+be over.
 
-    val dataSource by bean { HikariDataSource() }
+The project is under heavy development and more documentation is to come. Until then have a look at the 
+sample files below and start experimenting.
 
-    init {
-        customize(dataSource) { ds ->
-            ds.jdbcUrl = url()
-            ds.username = username()
-            ds.password = password()
-        }
-    }
-}
-```
+[AppModule0](https://github.com/jogro/kotlin-javalin-realworld-example-app/blob/master/src/main/kotlin/io/realworld/app/AppModule0.kt)
 
-  
 
-## Quickstart
+[AppModule1](https://github.com/jogro/kotlin-javalin-realworld-example-app/blob/master/src/main/kotlin/io/realworld/app/AppModule1.kt)
+
+[AppModule2](https://github.com/jogro/kotlin-javalin-realworld-example-app/blob/master/src/main/kotlin/io/realworld/app/AppModule2.kt)
+
+
 ### Maven
 Add dependency
 ```xml
@@ -43,46 +38,4 @@ Add repository
         <url>https://jcenter.bintray.com</url>
     </repository>
 </repositories>
-```
-### Gradle
-Add dependency
-```groovy
-compile "io.kraftverk:kraftverk:0.9.3"
-```
-Add repository
-```groovy
-repositories {
-    //[...]
-    jcenter()
-}
-```
-### Given some classes
-```kotlin
-class Service(val repo: Repository)
-class Repository
-```
-### Define a module
-```kotlin
-class AppModule : Module() {
-
-    val service by bean {
-        Service(
-            repository()
-        )
-    }
-
-    val repository by bean {
-        Repository()
-    }
-
-}
-```
-
-### Start a managed instance:
-```kotlin
-fun main() {
-    val app = Kraftverk.start { AppModule() }
-    val service = app { service }
-    println(service)
-}
 ```
