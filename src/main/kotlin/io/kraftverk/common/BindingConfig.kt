@@ -8,6 +8,9 @@ package io.kraftverk.common
 import io.kraftverk.internal.misc.Supplier
 import kotlin.reflect.KClass
 
+/**
+ * Represents the outcome of a bean or value declaration.
+ */
 interface BindingConfig<T : Any> {
     val name: String
     val type: KClass<T>
