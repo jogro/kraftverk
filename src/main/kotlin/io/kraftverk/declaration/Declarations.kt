@@ -3,7 +3,7 @@
  * Licensed under MIT: https://github.com/jogro/kraftverk/blob/master/LICENSE
  */
 
-package io.kraftverk.definition
+package io.kraftverk.declaration
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
@@ -19,45 +19,45 @@ import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.module.Modular
 import io.kraftverk.provider.get
 
-open class ValueDefinition internal constructor(internal val container: Container) {
+open class ValueDeclaration internal constructor(internal val container: Container) {
     val env: Environment get() = container.environment
     val valueProviders get() = container.valueProviders
     operator fun <T : Any> Value<T>.invoke(): T = provider.get()
 }
 
-class ValueSupplierDefinition<T> internal constructor(
+class ValueSupplierDeclaration<T> internal constructor(
     container: Container,
     private val supply: Supplier<T>
-) : ValueDefinition(container) {
+) : ValueDeclaration(container) {
     fun proceed() = supply()
 }
 
-open class BeanDefinition internal constructor(container: Container) : ValueDefinition(container) {
+open class BeanDeclaration internal constructor(container: Container) : ValueDeclaration(container) {
     val beanProviders get() = container.beanProviders
     operator fun <T : Any> Bean<T>.invoke(): T = provider.get()
     operator fun <T : Any> BeanRef<T>.invoke(): T = instance()
     operator fun <M : Modular> ModuleRef<M>.invoke(): M = instance()
 }
 
-class BeanConsumerDefinition<T> internal constructor(
+class BeanConsumerDeclaration<T> internal constructor(
     container: Container,
     val instance: T
-) : BeanDefinition(container)
+) : BeanDeclaration(container)
 
-class BeanSupplierInterceptorDefinition<T> internal constructor(
+class BeanSupplierInterceptorDeclaration<T> internal constructor(
     container: Container,
     private val supply: Supplier<T>
-) : BeanDefinition(container) {
+) : BeanDeclaration(container) {
     fun proceed() = supply()
 }
 
-class BeanConsumerInterceptorDefinition<T> internal constructor(
+class BeanConsumerInterceptorDeclaration<T> internal constructor(
     container: Container,
     private val instance: T,
     private val consume: Consumer<T>
-) : BeanDefinition(container) {
+) : BeanDeclaration(container) {
     fun proceed() = consume(instance)
 }
 
-open class CustomBeanDefinition(parent: BeanDefinition) : BeanDefinition(parent.container)
-open class CustomValueDefinition(parent: ValueDefinition) : ValueDefinition(parent.container)
+open class CustomBeanDeclaration(parent: BeanDeclaration) : BeanDeclaration(parent.container)
+open class CustomValueDeclaration(parent: ValueDeclaration) : ValueDeclaration(parent.container)

@@ -7,7 +7,7 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Value
 import io.kraftverk.common.ValueConfig
-import io.kraftverk.definition.ValueDefinition
+import io.kraftverk.declaration.ValueDeclaration
 import io.kraftverk.internal.container.createValue
 import io.kraftverk.internal.container.createValueInstance
 import kotlin.properties.ReadOnlyProperty
@@ -19,7 +19,7 @@ inline fun <reified T : Any> Modular.value(
     default: T? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
-    noinline instance: ValueDefinition.(Any) -> T
+    noinline instance: ValueDeclaration.(Any) -> T
 ): ValueComponent<T> =
     value(
         name,
@@ -36,7 +36,7 @@ fun <T : Any> Modular.value(
     default: T? = null,
     lazy: Boolean? = null,
     secret: Boolean = false,
-    instance: ValueDefinition.(Any) -> T
+    instance: ValueDeclaration.(Any) -> T
 
 ): ValueComponent<T> =
     object : ValueComponent<T> {

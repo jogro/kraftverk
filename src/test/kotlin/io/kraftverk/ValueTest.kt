@@ -13,7 +13,7 @@ import io.kotlintest.matchers.collections.shouldContainExactly
 import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import io.kraftverk.definition.ValueDefinition
+import io.kraftverk.declaration.ValueDeclaration
 import io.kraftverk.env.environment
 import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
@@ -297,7 +297,7 @@ class ValueTest : StringSpec() {
         fun createValue(value: String, parent: ValueObject) = ValueObject(value, parent)
     }
 
-    private inline fun <reified T : Any> ValueDefinition.values(): List<T> =
+    private inline fun <reified T : Any> ValueDeclaration.values(): List<T> =
         valueProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
 
     @Suppress("UNCHECKED_CAST")

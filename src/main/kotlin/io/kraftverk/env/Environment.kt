@@ -19,7 +19,7 @@ open class Environment(val profiles: List<String>, valueSources: List<ValueSourc
     companion object
 }
 
-open class EnvironmentDefinition {
+open class EnvironmentDeclaration {
     internal val valueSource = ValueSource()
     var valueParsers: MutableList<ValueParser> = mutableListOf(
         PropertiesParser(),
@@ -35,14 +35,14 @@ private val logger = createLogger { }
 
 fun environment(
     vararg profiles: String,
-    block: EnvironmentDefinition.() -> Unit = {}
+    block: EnvironmentDeclaration.() -> Unit = {}
 ): Environment {
     val startMs = System.currentTimeMillis()
     logger.info { "Creating environment" }
     val systemSource = ValueSource.fromSystem()
     val actualProfiles = if (profiles.isEmpty()) systemSource.activeProfiles() else profiles.toList()
     logger.info { "Using profiles: $actualProfiles" }
-    val definition = EnvironmentDefinition().apply(block)
+    val definition = EnvironmentDeclaration().apply(block)
     val sources = mutableListOf<ValueSource>()
     sources += definition.valueSource
     sources += systemSource

@@ -7,8 +7,8 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.handler
-import io.kraftverk.definition.BeanConsumerDefinition
-import io.kraftverk.definition.BeanConsumerInterceptorDefinition
+import io.kraftverk.declaration.BeanConsumerDeclaration
+import io.kraftverk.declaration.BeanConsumerInterceptorDeclaration
 import io.kraftverk.internal.binding.onCreate
 import io.kraftverk.internal.binding.onCustomize
 import io.kraftverk.internal.binding.onDestroy
@@ -30,10 +30,10 @@ import io.kraftverk.internal.binding.onDestroy
  */
 fun <T : Any> Modular.onCreate(
     bean: Bean<T>,
-    block: BeanConsumerInterceptorDefinition<T>.(T) -> Unit
+    block: BeanConsumerInterceptorDeclaration<T>.(T) -> Unit
 ) {
     bean.handler.onCreate { instance, proceed ->
-        val definition = BeanConsumerInterceptorDefinition(
+        val definition = BeanConsumerInterceptorDeclaration(
             container,
             instance,
             proceed
@@ -59,10 +59,10 @@ fun <T : Any> Modular.onCreate(
  */
 fun <T : Any> Modular.onDestroy(
     bean: Bean<T>,
-    block: BeanConsumerInterceptorDefinition<T>.(T) -> Unit
+    block: BeanConsumerInterceptorDeclaration<T>.(T) -> Unit
 ) {
     bean.handler.onDestroy { instance, proceed ->
-        val definition = BeanConsumerInterceptorDefinition(
+        val definition = BeanConsumerInterceptorDeclaration(
             container,
             instance,
             proceed
@@ -90,10 +90,10 @@ fun <T : Any> Modular.onDestroy(
  */
 fun <T : Any> Modular.customize(
     bean: Bean<T>,
-    block: BeanConsumerDefinition<T>.(T) -> Unit
+    block: BeanConsumerDeclaration<T>.(T) -> Unit
 ) {
     bean.handler.onCustomize { instance ->
-        val definition = BeanConsumerDefinition(
+        val definition = BeanConsumerDeclaration(
             container,
             instance
         )

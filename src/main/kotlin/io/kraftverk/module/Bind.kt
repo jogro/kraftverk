@@ -8,8 +8,8 @@ package io.kraftverk.module
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
-import io.kraftverk.definition.BeanSupplierInterceptorDefinition
-import io.kraftverk.definition.ValueSupplierDefinition
+import io.kraftverk.declaration.BeanSupplierInterceptorDeclaration
+import io.kraftverk.declaration.ValueSupplierDeclaration
 import io.kraftverk.internal.binding.bind
 import io.kraftverk.internal.container.Container
 
@@ -66,9 +66,9 @@ class BeanBinder<T : Any> internal constructor(
     private val container: Container,
     private val bean: Bean<T>
 ) {
-    infix fun to(block: BeanSupplierInterceptorDefinition<T>.() -> T) {
+    infix fun to(block: BeanSupplierInterceptorDeclaration<T>.() -> T) {
         bean.handler.bind { proceed ->
-            BeanSupplierInterceptorDefinition(container, proceed).block()
+            BeanSupplierInterceptorDeclaration(container, proceed).block()
         }
     }
 }
@@ -80,9 +80,9 @@ class ValueBinder<T : Any> internal constructor(
     private val container: Container,
     private val value: Value<T>
 ) {
-    infix fun to(block: ValueSupplierDefinition<T>.() -> T) {
+    infix fun to(block: ValueSupplierDeclaration<T>.() -> T) {
         value.handler.bind { proceed ->
-            ValueSupplierDefinition(container, proceed).block()
+            ValueSupplierDeclaration(container, proceed).block()
         }
     }
 }

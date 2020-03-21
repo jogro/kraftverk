@@ -17,7 +17,7 @@ import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
 import io.kraftverk.common.BeanConfig
 import io.kraftverk.common.BeanProcessor
-import io.kraftverk.definition.BeanDefinition
+import io.kraftverk.declaration.BeanDeclaration
 import io.kraftverk.managed.Managed
 import io.kraftverk.managed.beanProviders
 import io.kraftverk.managed.customize
@@ -401,7 +401,7 @@ class BeanTest : StringSpec() {
         return get(bean)
     }
 
-    private inline fun <reified T : Any> BeanDefinition.beans(): List<T> =
+    private inline fun <reified T : Any> BeanDeclaration.beans(): List<T> =
         beanProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
 
     @Suppress("UNCHECKED_CAST")

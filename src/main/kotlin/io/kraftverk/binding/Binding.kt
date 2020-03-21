@@ -43,14 +43,14 @@ import io.kraftverk.provider.ValueProvider
  *
  * As mentioned above the Binding is primarily a factory of singleton instances of type [T]. An
  * important concept is that this singleton instance [T] can *only* be obtained, i.e. injected,
- * within the context of a BeanDefinition[io.kraftverk.definition.BeanDefinition] or
- * ValueDefinition[io.kraftverk.definition.ValueDefinition]. This context is provided by the
+ * within the context of a BeanDeclaration[io.kraftverk.declaration.BeanDeclaration] or
+ * ValueDeclaration[io.kraftverk.declaration.ValueDeclaration]. This context is provided by the
  * bean[io.kraftverk.module.bean] and value[io.kraftverk.module.value] declaration functions
  * like this:
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val dataSource by bean { this: BeanDefinition
+ *     val dataSource by bean { this: BeanDeclaration
  *         [...]
  *     }
  * }

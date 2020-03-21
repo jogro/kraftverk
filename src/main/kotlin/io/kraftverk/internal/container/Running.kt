@@ -8,8 +8,8 @@ package io.kraftverk.internal.container
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.handler
 import io.kraftverk.binding.provider
-import io.kraftverk.definition.BeanDefinition
-import io.kraftverk.definition.ValueDefinition
+import io.kraftverk.declaration.BeanDeclaration
+import io.kraftverk.declaration.ValueDeclaration
 import io.kraftverk.internal.binding.stop
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mightBe
@@ -30,19 +30,19 @@ internal val Container.valueProviders: List<ValueProvider<*>>
         providers.filterIsInstance<ValueProvider<*>>()
 
 internal fun <T : Any> Container.createBeanInstance(
-    instance: BeanDefinition.() -> T
+    instance: BeanDeclaration.() -> T
 ): T {
     state.mustBe<State.Running>()
-    return BeanDefinition(this).instance()
+    return BeanDeclaration(this).instance()
 }
 
 internal fun <T : Any> Container.createValueInstance(
     name: String,
     default: T?,
-    instance: ValueDefinition.(Any) -> T
+    instance: ValueDeclaration.(Any) -> T
 ): T {
     state.mustBe<State.Running>()
-    val definition = ValueDefinition(this)
+    val definition = ValueDeclaration(this)
     val value = environment[name] ?: default ?: throwValueNotFound(
         name
     )

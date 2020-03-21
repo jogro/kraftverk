@@ -7,7 +7,7 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.common.BeanConfig
-import io.kraftverk.definition.BeanDefinition
+import io.kraftverk.declaration.BeanDeclaration
 import io.kraftverk.internal.container.createBean
 import io.kraftverk.internal.container.createBeanInstance
 import kotlin.properties.ReadOnlyProperty
@@ -16,13 +16,13 @@ import kotlin.reflect.KProperty
 
 inline fun <reified T : Any> Modular.bean(
     lazy: Boolean? = null,
-    noinline instance: BeanDefinition.() -> T
+    noinline instance: BeanDeclaration.() -> T
 ): BeanComponent<T> = bean(T::class, lazy, instance)
 
 fun <T : Any> Modular.bean(
     type: KClass<T>,
     lazy: Boolean? = null,
-    instance: BeanDefinition.() -> T
+    instance: BeanDeclaration.() -> T
 
 ): BeanComponent<T> = object : BeanComponent<T> {
 
