@@ -318,7 +318,7 @@ class BeanTest : StringSpec() {
 
         "Trying out bean processors" {
             val module = Kraftverk.manage { Mod1() }
-            module.registerBeanTransformer<Int> { it + 7 }
+            module.registerBeanProcessor<Int> { it + 7 }
             module.start()
             module { intList } should containExactly(8, 9)
         }
@@ -405,7 +405,7 @@ class BeanTest : StringSpec() {
         beanProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
 
     @Suppress("UNCHECKED_CAST")
-    private inline fun <reified T : Any> Managed<*>.registerBeanTransformer(crossinline block: (T) -> T) {
+    private inline fun <reified T : Any> Managed<*>.registerBeanProcessor(crossinline block: (T) -> T) {
         val processor = object : BeanProcessor {
             override fun <A : Any> process(bean: BeanConfig<A>) =
                 if (bean.type.isSubclassOf(T::class)) {
