@@ -7,7 +7,7 @@ package io.kraftverk.managed
 
 import io.kraftverk.common.BeanProcessor
 import io.kraftverk.common.ValueProcessor
-import io.kraftverk.internal.container.ContainerDefinition
+import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.start
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
@@ -64,7 +64,7 @@ fun <M : Module> Managed<M>.registerProcessor(processor: ValueProcessor): Manage
     return this
 }
 
-private fun <M : Module> Managed.State.Configurable<M>.createModule(): M =
-    createModule(
-        ContainerDefinition(lazy, env, beanProcessors, valueProcessors), namespace, moduleFun
-    )
+private fun <M : Module> Managed.State.Configurable<M>.createModule(): M {
+    val container = Container(lazy, env, beanProcessors, valueProcessors)
+    return createModule(container, namespace, moduleFun)
+}

@@ -8,7 +8,6 @@ package io.kraftverk.module
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
 import io.kraftverk.internal.container.Container
-import io.kraftverk.internal.container.ContainerDefinition
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.provider.get
 
@@ -39,22 +38,16 @@ open class ModuleOf<AM : AbstractModule> : AbstractModule() {
 }
 
 internal fun <M : Module> createModule(
-    containerDefinition: ContainerDefinition,
+    container: Container,
     namespace: String,
     createModule: () -> M
 ): M {
-    val rootModule = createRootModule(containerDefinition)
+    val rootModule = RootModule(container)
     return scopedParentModule.use(rootModule) {
         scopedNamespace.use(namespace) {
             createModule()
         }
     }
-}
-
-private fun createRootModule(definition: ContainerDefinition) = with(definition) {
-    RootModule(
-        Container(lazy, environment, beanProcessors, valueProcessors)
-    )
 }
 
 internal fun <AM : AbstractModule, MO : ModuleOf<AM>> AbstractModule.createModuleOf(
