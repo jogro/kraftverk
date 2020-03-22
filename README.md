@@ -16,7 +16,7 @@ Add dependency
 <dependency>
     <groupId>io.kraftverk</groupId>
     <artifactId>kraftverk</artifactId>
-    <version>0.9.3</version>
+    <version>0.9.4</version>
 </dependency>
 ```
 If Maven can't find the dependency add this repository to the POM file.
