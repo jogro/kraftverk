@@ -14,15 +14,15 @@ import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.provider.get
 
-private val threadBoundSubModuleRoot = ThreadBound<Modular>()
-private val threadBoundContainer = ThreadBound<Container>()
-private val threadBoundNamespace = ThreadBound<String>()
+private val scopedContainer = ScopedThreadLocal<Container>()
+private val scopedNamespace = ScopedThreadLocal<String>()
+private val scopedPartitionRoot = ScopedThreadLocal<Modular>()
 
 sealed class Modular {
     internal val logger = createLogger { }
 
-    internal val container: Container = threadBoundContainer.get()
-    internal val namespace: String = threadBoundNamespace.get()
+    internal val container: Container = scopedContainer.get()
+    internal val namespace: String = scopedNamespace.get()
 }
 
 open class Module : Modular()
@@ -30,7 +30,7 @@ open class Module : Modular()
 open class PartitionOf<M : Modular> : Modular() {
 
     @Suppress("UNCHECKED_CAST")
-    internal val root: M = threadBoundSubModuleRoot.get() as M
+    internal val root: M = scopedPartitionRoot.get() as M
 
     internal fun <T : Any, B : Binding<T>> getInstance(binding: M.() -> B): T = root.binding().provider.get()
 }
@@ -42,8 +42,8 @@ internal fun <M : Module> createRootModule(
     beanProcessors: List<BeanProcessor>,
     valueProcessors: List<ValueProcessor>,
     createModule: () -> M
-): M = threadBoundContainer.use(Container(lazy, env, beanProcessors, valueProcessors)) {
-    threadBoundNamespace.use(namespace) {
+): M = scopedContainer.use(Container(lazy, env, beanProcessors, valueProcessors)) {
+    scopedNamespace.use(namespace) {
         createModule()
     }
 }
@@ -51,22 +51,22 @@ internal fun <M : Module> createRootModule(
 internal fun <M : Module> Modular.createModule(
     namespace: String,
     moduleFun: () -> M
-): M = threadBoundNamespace.use(namespace) {
+): M = scopedNamespace.use(namespace) {
     moduleFun()
 }
 
 internal fun <M : Modular, SM : PartitionOf<M>> Modular.createPartition(
     namespace: String,
     moduleFun: () -> SM
-): SM = threadBoundSubModuleRoot.use(this) {
-    threadBoundNamespace.use(namespace) {
+): SM = scopedPartitionRoot.use(this) {
+    scopedNamespace.use(namespace) {
         moduleFun()
     }
 }
 
 internal fun Modular.qualifyName(name: String) = if (namespace.isBlank()) name else "$namespace.$name"
 
-private class ThreadBound<T> {
+private class ScopedThreadLocal<T> {
 
     private val threadLocal = ThreadLocal<T>()
 
