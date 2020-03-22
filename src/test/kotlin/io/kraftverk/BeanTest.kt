@@ -353,9 +353,7 @@ class BeanTest : StringSpec() {
 
         // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
-            val bean0: Bean<Widget> by bean {
-                widget
-            }
+            val bean0: Bean<Widget> by bean { widget }
             val binding0: Binding<Widget> = bean0
             val beanProvider: BeanProvider<Widget> = bean0.provider
             val provider: Provider<Widget> = beanProvider
