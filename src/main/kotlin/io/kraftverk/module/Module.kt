@@ -7,17 +7,13 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
-import io.kraftverk.common.BeanProcessor
-import io.kraftverk.common.ValueProcessor
-import io.kraftverk.env.Environment
-import io.kraftverk.env.environment
 import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.container.ContainerDefinition
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.provider.get
 
-private val scopedContainer = ScopedThreadLocal<Container>()
+private val scopedParentModule = ScopedThreadLocal<AbstractModule>()
 private val scopedNamespace = ScopedThreadLocal<String>()
-private val scopedParent = ScopedThreadLocal<AbstractModule>()
 
 sealed class AbstractModule {
     internal val logger = createLogger { }
@@ -25,8 +21,7 @@ sealed class AbstractModule {
     internal abstract val namespace: String
 }
 
-object Root : AbstractModule() {
-    override val container: Container = Container(false, environment(), emptyList(), emptyList())
+internal class RootModule(override val container: Container) : AbstractModule() {
     override val namespace: String = ""
 }
 
@@ -35,33 +30,37 @@ open class Module : ModuleOf<Module>()
 open class ModuleOf<AM : AbstractModule> : AbstractModule() {
 
     @Suppress("UNCHECKED_CAST")
-    internal val root: AM = scopedParent.get() as AM
+    internal val parent: AM = scopedParentModule.get() as AM
 
-    override val container: Container = scopedContainer.get()
+    override val container: Container = parent.container
     override val namespace: String = scopedNamespace.get()
 
-    internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T = root.binding().provider.get()
+    internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T = parent.binding().provider.get()
 }
 
-internal fun <M : Module> createRootModule(
-    lazy: Boolean = false,
-    env: Environment,
+internal fun <M : Module> createModule(
+    containerDefinition: ContainerDefinition,
     namespace: String,
-    beanProcessors: List<BeanProcessor>,
-    valueProcessors: List<ValueProcessor>,
     createModule: () -> M
-): M = scopedContainer.use(Container(lazy, env, beanProcessors, valueProcessors)) {
-    scopedParent.use(Root) {
+): M {
+    val rootModule = createRootModule(containerDefinition)
+    return scopedParentModule.use(rootModule) {
         scopedNamespace.use(namespace) {
             createModule()
         }
     }
 }
 
+private fun createRootModule(definition: ContainerDefinition) = with(definition) {
+    RootModule(
+        Container(lazy, environment, beanProcessors, valueProcessors)
+    )
+}
+
 internal fun <AM : AbstractModule, MO : ModuleOf<AM>> AbstractModule.createModuleOf(
     namespace: String,
     moduleFun: () -> MO
-): MO = scopedParent.use(this) {
+): MO = scopedParentModule.use(this) {
     scopedNamespace.use(namespace) {
         moduleFun()
     }

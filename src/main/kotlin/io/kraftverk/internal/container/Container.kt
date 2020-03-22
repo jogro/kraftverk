@@ -35,3 +35,10 @@ internal class Container(
         object Destroyed : State()
     }
 }
+
+internal class ContainerDefinition(
+    val lazy: Boolean,
+    val environment: Environment,
+    val beanProcessors: List<BeanProcessor>,
+    val valueProcessors: List<ValueProcessor>
+)

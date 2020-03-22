@@ -7,10 +7,11 @@ package io.kraftverk.managed
 
 import io.kraftverk.common.BeanProcessor
 import io.kraftverk.common.ValueProcessor
+import io.kraftverk.internal.container.ContainerDefinition
 import io.kraftverk.internal.container.start
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
-import io.kraftverk.module.createRootModule
+import io.kraftverk.module.createModule
 
 /**
  * The [start] function will by default perform the following actions:
@@ -26,7 +27,7 @@ fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
     val startMs = System.currentTimeMillis()
     customize(block)
     state.mustBe<Managed.State.Configurable<M>> {
-        val module = createRootModule()
+        val module = createModule()
         onStart(module)
         module.container.start()
         state = Managed.State.Running(module)
@@ -63,7 +64,7 @@ fun <M : Module> Managed<M>.registerProcessor(processor: ValueProcessor): Manage
     return this
 }
 
-private fun <M : Module> Managed.State.Configurable<M>.createRootModule(): M =
-    createRootModule(
-        lazy, env, namespace, beanProcessors, valueProcessors, moduleFun
+private fun <M : Module> Managed.State.Configurable<M>.createModule(): M =
+    createModule(
+        ContainerDefinition(lazy, env, beanProcessors, valueProcessors), namespace, moduleFun
     )

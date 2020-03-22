@@ -265,7 +265,7 @@ class ValueTest : StringSpec() {
         val sm1 by module { Sub1() }
         val b1 by bean { 1 }
 
-        // val sm2 by module { Sub2() }
+        // val sm2 by module { Sub2() } // This shouldn't compile
     }
 
     class Mod4 : Module()

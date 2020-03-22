@@ -19,8 +19,6 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.instanceId
 
-internal class ValueNotFoundException(message: String, val valueName: String) : Exception(message)
-
 internal val Container.beanProviders: List<BeanProvider<*>>
     get() =
         providers.filterIsInstance<BeanProvider<*>>()

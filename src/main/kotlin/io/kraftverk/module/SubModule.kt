@@ -51,7 +51,7 @@ fun <AM : AbstractModule, MO : ModuleOf<AM>, AM1 : AbstractModule> MO.import(
     ): ReadOnlyProperty<AbstractModule, ModuleRef<AM1>> {
         val moduleName = qualifyName(property.name)
         logger.debug { "Importing module '$moduleName'" }
-        val moduleRef = ModuleRef { root.module() }
+        val moduleRef = ModuleRef { parent.module() }
         return Delegate(moduleRef)
     }
 }
