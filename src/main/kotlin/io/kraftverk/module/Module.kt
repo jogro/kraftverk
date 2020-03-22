@@ -10,29 +10,37 @@ import io.kraftverk.binding.provider
 import io.kraftverk.common.BeanProcessor
 import io.kraftverk.common.ValueProcessor
 import io.kraftverk.env.Environment
+import io.kraftverk.env.environment
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.provider.get
 
 private val scopedContainer = ScopedThreadLocal<Container>()
 private val scopedNamespace = ScopedThreadLocal<String>()
-private val scopedPartitionRoot = ScopedThreadLocal<AbstractModule>()
+private val scopedParent = ScopedThreadLocal<AbstractModule>()
 
 sealed class AbstractModule {
     internal val logger = createLogger { }
-
-    internal val container: Container = scopedContainer.get()
-    internal val namespace: String = scopedNamespace.get()
+    internal abstract val container: Container
+    internal abstract val namespace: String
 }
 
-open class Module : AbstractModule()
+object Root : AbstractModule() {
+    override val container: Container = Container(false, environment(), emptyList(), emptyList())
+    override val namespace: String = ""
+}
 
-open class Partition<M : AbstractModule> : AbstractModule() {
+open class Module : ModuleOf<Module>()
+
+open class ModuleOf<AM : AbstractModule> : AbstractModule() {
 
     @Suppress("UNCHECKED_CAST")
-    internal val root: M = scopedPartitionRoot.get() as M
+    internal val root: AM = scopedParent.get() as AM
 
-    internal fun <T : Any, B : Binding<T>> getInstance(binding: M.() -> B): T = root.binding().provider.get()
+    override val container: Container = scopedContainer.get()
+    override val namespace: String = scopedNamespace.get()
+
+    internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T = root.binding().provider.get()
 }
 
 internal fun <M : Module> createRootModule(
@@ -43,22 +51,17 @@ internal fun <M : Module> createRootModule(
     valueProcessors: List<ValueProcessor>,
     createModule: () -> M
 ): M = scopedContainer.use(Container(lazy, env, beanProcessors, valueProcessors)) {
-    scopedNamespace.use(namespace) {
-        createModule()
+    scopedParent.use(Root) {
+        scopedNamespace.use(namespace) {
+            createModule()
+        }
     }
 }
 
-internal fun <M : Module> AbstractModule.createModule(
+internal fun <AM : AbstractModule, MO : ModuleOf<AM>> AbstractModule.createModuleOf(
     namespace: String,
-    moduleFun: () -> M
-): M = scopedNamespace.use(namespace) {
-    moduleFun()
-}
-
-internal fun <M : AbstractModule, SM : Partition<M>> AbstractModule.createPartition(
-    namespace: String,
-    moduleFun: () -> SM
-): SM = scopedPartitionRoot.use(this) {
+    moduleFun: () -> MO
+): MO = scopedParent.use(this) {
     scopedNamespace.use(namespace) {
         moduleFun()
     }

@@ -14,8 +14,7 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 
 /**
- * A Binding is a [Bean] or [Value] that is declared within a Kraftverk managed Module[io.kraftverk.module.Module]
- * or Partition[io.kraftverk.module.Partition].
+ * A Binding is a [Bean] or [Value] that is declared within a Kraftverk managed module.
  *
  * Common for all Bindings is that they serve as factories that produce injectable singleton instances
  * of type [T].

@@ -18,11 +18,10 @@ interface Component<out T> {
 
 interface BeanComponent<out T : Any> : Component<Bean<T>>
 interface ValueComponent<out T : Any> : Component<Value<T>>
-interface ModuleComponent<out M : AbstractModule> : Component<M>
-interface PartitionComponent<M : AbstractModule, out P : Partition<M>> : Component<P>
+interface ModuleComponent<AM : AbstractModule, out MO : ModuleOf<AM>> : Component<MO>
 
 interface BeanRefComponent<out T : Any> : Component<BeanRef<T>>
-interface ModuleRefComponent<out M : AbstractModule> : Component<ModuleRef<M>>
+interface ModuleRefComponent<out AM : AbstractModule> : Component<ModuleRef<AM>>
 
 internal class Delegate<T : Any>(private val t: T) : ReadOnlyProperty<AbstractModule, T> {
     override fun getValue(thisRef: AbstractModule, property: KProperty<*>): T {

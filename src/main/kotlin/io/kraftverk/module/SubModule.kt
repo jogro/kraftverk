@@ -11,63 +11,46 @@ import io.kraftverk.common.ModuleRef
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-fun <M : Module> AbstractModule.module(
+fun <AM : AbstractModule, MO : ModuleOf<AM>> AM.module(
     name: String? = null,
-    instance: () -> M
-): ModuleComponent<M> = object :
-    ModuleComponent<M> {
+    instance: () -> MO
+): ModuleComponent<AM, MO> = object :
+    ModuleComponent<AM, MO> {
 
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, M> {
-        val moduleName = qualifyName(name ?: property.name)
-        logger.debug { "Creating module '$moduleName'" }
-        val module = createModule(moduleName, instance)
-        return Delegate(module)
-    }
-}
-
-fun <M : AbstractModule, P : Partition<M>> M.partition(
-    name: String? = null,
-    instance: () -> P
-): PartitionComponent<M, P> = object :
-    PartitionComponent<M, P> {
-
-    override fun provideDelegate(
-        thisRef: AbstractModule,
-        property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, P> {
+    ): ReadOnlyProperty<AbstractModule, MO> {
         val moduleName = qualifyName(name ?: property.name)
         logger.debug { "Creating partition '$moduleName'" }
-        val module = createPartition(moduleName, instance)
+        val module = createModuleOf(moduleName, instance)
         return Delegate(module)
     }
 }
 
-fun <M : AbstractModule, P : Partition<M>, T : Any, B : Bean<T>> P.ref(
-    bean: M.() -> B
+fun <AM : AbstractModule, MO : ModuleOf<AM>, T : Any, B : Bean<T>> MO.ref(
+    bean: AM.() -> B
 ): BeanRefComponent<T> = object : BeanRefComponent<T> {
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
     ): ReadOnlyProperty<AbstractModule, BeanRef<T>> {
-        val moduleName = qualifyName(property.name)
-        logger.debug { "Injecting bean '$moduleName'" }
+        val beanName = qualifyName(property.name)
+        logger.debug { "Referencing bean '$beanName'" }
         val beanRef = BeanRef { getInstance(bean) }
         return Delegate(beanRef)
     }
 }
 
-fun <M : AbstractModule, P : Partition<M>, M1 : AbstractModule> P.import(
-    module: M.() -> M1
-): ModuleRefComponent<M1> = object : ModuleRefComponent<M1> {
+fun <AM : AbstractModule, MO : ModuleOf<AM>, AM1 : AbstractModule> MO.import(
+    module: AM.() -> AM1
+): ModuleRefComponent<AM1> = object : ModuleRefComponent<AM1> {
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, ModuleRef<M1>> {
+    ): ReadOnlyProperty<AbstractModule, ModuleRef<AM1>> {
         val moduleName = qualifyName(property.name)
-        logger.debug { "Injecting module '$moduleName'" }
+        logger.debug { "Importing module '$moduleName'" }
         val moduleRef = ModuleRef { root.module() }
         return Delegate(moduleRef)
     }

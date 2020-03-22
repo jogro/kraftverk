@@ -19,13 +19,12 @@ import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
 import io.kraftverk.managed.start
 import io.kraftverk.module.Module
-import io.kraftverk.module.Partition
+import io.kraftverk.module.ModuleOf
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
 import io.kraftverk.module.import
 import io.kraftverk.module.int
 import io.kraftverk.module.module
-import io.kraftverk.module.partition
 import io.kraftverk.module.ref
 import io.kraftverk.module.string
 import io.kraftverk.module.value
@@ -86,12 +85,12 @@ class ValueTest : StringSpec() {
             valueObjectFactory.createValue(it.toString())
         }
 
-        val user by module { UserModule() }
+        val user by this.module { UserModule() }
     }
 
     private inner class AppModule : Module() {
         val principal by string()
-        val values by module { ValueModule() }
+        val values by this.module { ValueModule() }
     }
 
     override fun beforeTest(testCase: TestCase) {
@@ -263,19 +262,21 @@ class ValueTest : StringSpec() {
     }
 
     class Mod3 : Module() {
+        val sm1 by module { Sub1() }
         val b1 by bean { 1 }
-        val sm1 by partition { Sub1() }
-        // val sm2 by subModule { Sub2() }
+
+        // val sm2 by module { Sub2() }
     }
 
     class Mod4 : Module()
 
-    class Sub1 : Partition<Mod3>() {
-        val i1 by ref { b1 }
-        val m by import { sm1 }
+    class Sub1 : ModuleOf<Mod3>() {
+        val br1 by ref { b1 }
+        val mako by import { sm1 }
+        val b1 by bean { mako().br1 }
     }
 
-    class Sub2 : Partition<Mod4>()
+    class Sub2 : ModuleOf<Mod4>()
 
     private data class ValueObject(val value: String, val parent: ValueObject? = null)
 
