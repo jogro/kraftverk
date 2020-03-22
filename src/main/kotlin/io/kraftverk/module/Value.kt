@@ -17,7 +17,6 @@ import kotlin.reflect.KProperty
 inline fun <reified T : Any> Modular.value(
     name: String? = null,
     default: T? = null,
-    lazy: Boolean? = null,
     secret: Boolean = false,
     noinline instance: ValueDeclaration.(Any) -> T
 ): ValueComponent<T> =
@@ -25,7 +24,6 @@ inline fun <reified T : Any> Modular.value(
         name,
         T::class,
         default,
-        lazy,
         secret,
         instance
     )
@@ -34,7 +32,6 @@ fun <T : Any> Modular.value(
     name: String? = null,
     type: KClass<T>,
     default: T? = null,
-    lazy: Boolean? = null,
     secret: Boolean = false,
     instance: ValueDeclaration.(Any) -> T
 
@@ -49,7 +46,7 @@ fun <T : Any> Modular.value(
             logger.debug { "Creating value '$valueName'" }
             val config = ValueDefinition(
                 name = valueName,
-                lazy = lazy ?: container.lazy,
+                lazy = container.lazy,
                 secret = secret,
                 type = type,
                 instance = {

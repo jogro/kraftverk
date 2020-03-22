@@ -59,42 +59,39 @@ class ValueTest : StringSpec() {
 
     private val password = "Kuno123"
 
-    private class UserModule(lazy: Boolean? = null) : Module() {
-        val userName by string(lazy = lazy)
-        val password by string(lazy = lazy, secret = true)
+    private class UserModule : Module() {
+        val userName by string()
+        val password by string(secret = true)
     }
 
-    private inner class ValueModule(private val lazy: Boolean? = null) : Module() {
+    private inner class ValueModule : Module() {
 
-        val val2 by value(lazy = lazy) {
+        val val2 by value {
             valueObjectFactory.createValue(it.toString(), val1())
         }
 
-        val val1 by value(lazy = lazy) {
+        val val1 by value {
             valueObjectFactory.createValue(it.toString())
         }
 
-        val val3 by value(lazy = lazy) {
+        val val3 by value {
             valueObjectFactory.createValue(it.toString())
         }
 
-        val val4 by value(
-            lazy = lazy,
-            default = valueObject4.value
-        ) {
+        val val4 by value(default = valueObject4.value) {
             valueObjectFactory.createValue(it.toString())
         }
 
-        val val5 by value(lazy = lazy, name = "xyz.val5") {
+        val val5 by value(name = "xyz.val5") {
             valueObjectFactory.createValue(it.toString())
         }
 
-        val user by module { UserModule(lazy) }
+        val user by module { UserModule() }
     }
 
-    private inner class AppModule(private val lazy: Boolean? = null) : Module() {
-        val principal by string(lazy = lazy)
-        val values by module { ValueModule(lazy) }
+    private inner class AppModule : Module() {
+        val principal by string()
+        val values by module { ValueModule() }
     }
 
     override fun beforeTest(testCase: TestCase) {
@@ -113,16 +110,6 @@ class ValueTest : StringSpec() {
             verifyThatNoValuesAreInstantiated()
         }
 
-        "Value instantiation is eager when specified for the values" {
-            Kraftverk.start { AppModule(lazy = false) }
-            verifyThatAllValuesAreInstantiated()
-        }
-
-        "Value instantiation is lazy when specified for the values" {
-            Kraftverk.start { AppModule(lazy = true) }
-            verifyThatNoValuesAreInstantiated()
-        }
-
         "Extracting a value returns expected value" {
             val app = Kraftverk.start { AppModule() }
             app { principal } shouldBe principal
@@ -136,7 +123,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value does not propagate to other values if not necessary" {
-            val app = Kraftverk.start { AppModule(lazy = true) }
+            val app = Kraftverk.start(lazy = true) { AppModule() }
             app { values.val1 }
             verifySequence {
                 valueObjectFactory.createValue(valueObject1.value)
@@ -144,7 +131,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value propagates to other values if necessary" {
-            val app = Kraftverk.start { AppModule(lazy = true) }
+            val app = Kraftverk.start(lazy = true) { AppModule() }
             app { values.val2 }
             verifySequence {
                 valueObjectFactory.createValue(valueObject1.value)
@@ -153,7 +140,7 @@ class ValueTest : StringSpec() {
         }
 
         "Extracting a value results in one instantiation even if many invocations" {
-            val app = Kraftverk.start { AppModule(lazy = true) }
+            val app = Kraftverk.start(lazy = true) { AppModule() }
             repeat(3) { app { values.val1 } }
             verifySequence {
                 valueObjectFactory.createValue(valueObject1.value)
