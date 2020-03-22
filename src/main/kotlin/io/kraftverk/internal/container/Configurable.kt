@@ -11,8 +11,8 @@ import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
 import io.kraftverk.binding.handler
-import io.kraftverk.common.BeanConfig
-import io.kraftverk.common.ValueConfig
+import io.kraftverk.common.BeanDefinition
+import io.kraftverk.common.ValueDefinition
 import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.initialize
@@ -21,14 +21,14 @@ import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
 internal fun <T : Any> Container.createBean(
-    config: BeanConfig<T>
+    config: BeanDefinition<T>
 ): BeanImpl<T> = config.let(::process)
     .let(::BeanHandler)
     .let(::BeanImpl)
     .also(this::register)
 
 internal fun <T : Any> Container.createValue(
-    config: ValueConfig<T>
+    config: ValueDefinition<T>
 ): ValueImpl<T> = config.let(::process)
     .let(::ValueHandler)
     .let(::ValueImpl)
@@ -46,7 +46,7 @@ internal fun Container.start() =
         bindings.initialize()
     }
 
-private fun <T : Any> Container.process(config: BeanConfig<T>): BeanConfig<T> {
+private fun <T : Any> Container.process(config: BeanDefinition<T>): BeanDefinition<T> {
     var current = config
     state.mustBe<State.Configurable> {
         for (processor in beanProcessors) {
@@ -56,7 +56,7 @@ private fun <T : Any> Container.process(config: BeanConfig<T>): BeanConfig<T> {
     return current
 }
 
-private fun <T : Any> Container.process(config: ValueConfig<T>): ValueConfig<T> {
+private fun <T : Any> Container.process(config: ValueDefinition<T>): ValueDefinition<T> {
     var current = config
     state.mustBe<State.Configurable> {
         for (processor in valueProcessors) {

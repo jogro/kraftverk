@@ -6,7 +6,7 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Value
-import io.kraftverk.common.ValueConfig
+import io.kraftverk.common.ValueDefinition
 import io.kraftverk.declaration.ValueDeclaration
 import io.kraftverk.internal.container.createValue
 import io.kraftverk.internal.container.createValueInstance
@@ -47,7 +47,7 @@ fun <T : Any> Modular.value(
         ): ReadOnlyProperty<Modular, Value<T>> {
             val valueName = qualifyName(name ?: property.name).toSpinalCase()
             logger.debug { "Creating value '$valueName'" }
-            val config = ValueConfig(
+            val config = ValueDefinition(
                 name = valueName,
                 lazy = lazy ?: container.lazy,
                 secret = secret,

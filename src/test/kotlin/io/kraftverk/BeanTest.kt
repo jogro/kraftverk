@@ -15,7 +15,7 @@ import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
-import io.kraftverk.common.BeanConfig
+import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.BeanProcessor
 import io.kraftverk.declaration.BeanDeclaration
 import io.kraftverk.managed.Managed
@@ -33,7 +33,7 @@ import io.kraftverk.module.onCreate
 import io.kraftverk.module.onDestroy
 import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.Provider
-import io.kraftverk.provider.config
+import io.kraftverk.provider.definition
 import io.kraftverk.provider.get
 import io.kraftverk.provider.type
 import io.mockk.Called
@@ -297,7 +297,7 @@ class BeanTest : StringSpec() {
 
         "Trying out bean providers 2" {
             val module = Kraftverk.start { Mod1() }
-            val configs = module.beanProviders.map { it.config }
+            val configs = module.beanProviders.map { it.definition }
             configs shouldHaveSize 3
             with(configs[0]) {
                 name shouldBe "b0"
@@ -353,7 +353,9 @@ class BeanTest : StringSpec() {
 
         // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
-            val bean0: Bean<Widget> by bean { widget }
+            val bean0: Bean<Widget> by bean {
+                widget
+            }
             val binding0: Binding<Widget> = bean0
             val beanProvider: BeanProvider<Widget> = bean0.provider
             val provider: Provider<Widget> = beanProvider
@@ -407,7 +409,7 @@ class BeanTest : StringSpec() {
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T : Any> Managed<*>.registerBeanProcessor(crossinline block: (T) -> T) {
         val processor = object : BeanProcessor {
-            override fun <A : Any> process(bean: BeanConfig<A>) =
+            override fun <A : Any> process(bean: BeanDefinition<A>) =
                 if (bean.type.isSubclassOf(T::class)) {
                     bean.copy {
                         val t: T = bean.instance() as T

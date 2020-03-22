@@ -6,7 +6,7 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.common.BeanConfig
+import io.kraftverk.common.BeanDefinition
 import io.kraftverk.declaration.BeanDeclaration
 import io.kraftverk.internal.container.createBean
 import io.kraftverk.internal.container.createBeanInstance
@@ -32,7 +32,7 @@ fun <T : Any> Modular.bean(
     ): ReadOnlyProperty<Modular, Bean<T>> {
         val beanName = qualifyName(property.name)
         logger.debug { "Creating bean '$beanName'" }
-        val config = BeanConfig(
+        val config = BeanDefinition(
             name = beanName,
             lazy = lazy ?: container.lazy,
             type = type,

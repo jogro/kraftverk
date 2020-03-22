@@ -5,9 +5,9 @@
 
 package io.kraftverk.internal.binding
 
-import io.kraftverk.common.BeanConfig
-import io.kraftverk.common.BindingConfig
-import io.kraftverk.common.ValueConfig
+import io.kraftverk.common.BeanDefinition
+import io.kraftverk.common.BindingDefinition
+import io.kraftverk.common.ValueDefinition
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Consumer
@@ -46,7 +46,7 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
 }
 
 internal class BeanHandler<T : Any>(
-    val config: BeanConfig<T>
+    val config: BeanDefinition<T>
 ) : BindingHandler<T, BeanProvider<T>>(config.instance) {
 
     private val logger = createLogger { }
@@ -73,7 +73,7 @@ internal class BeanHandler<T : Any>(
 }
 
 internal class ValueHandler<T : Any>(
-    val config: ValueConfig<T>
+    val config: ValueDefinition<T>
 ) : BindingHandler<T, ValueProvider<T>>(config.instance) {
 
     private val logger = createLogger { }
@@ -100,11 +100,11 @@ internal class ValueHandler<T : Any>(
 }
 
 private fun <T : Any> createSingleton(
-    config: BindingConfig<T>,
+    definition: BindingDefinition<T>,
     state: BindingHandler.State.Configurable<T>
 ): Singleton<T> = Singleton(
-    type = config.type,
-    lazy = config.lazy,
+    type = definition.type,
+    lazy = definition.lazy,
     createInstance = state.instance,
     onCustomize = state.onCustomize,
     onCreate = state.onCreate,
