@@ -8,7 +8,6 @@ With Kraftverk application startup is really fast. It employs no classpath scann
 time consuming reflective inspection of constructor or method signatures to wire your components.
 The wiring has already been resolved at compile time. The days when you are having "a bad container day" might 
 be over.
-No proxies are gemerated
 
 ### Maven
 
@@ -30,15 +29,6 @@ If Maven can't find the dependency add this repository to the POM file.
     </repository>
 </repositories>
 ```
-
-### Introduction
-
-#### A configurable and mockable DataSource
-A common use case is that you need to implement functionality that uses a DataSource. Probably you 
-want the DataSource to be configurable, so you can specify different urls, user names, pool sizes etc, 
-depending on the environments your application is going to be deployed in. You might also want to pass in 
-certain information by use of environment variables or system properties.
-
 
 The project is under heavy development and more documentation is to come. Until then have a look at the 
 sample files below.
