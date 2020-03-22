@@ -28,7 +28,8 @@ inline fun <reified T : Any> Modular.value(
         instance
     )
 
-fun <T : Any> Modular.value(
+@PublishedApi
+internal fun <T : Any> Modular.value(
     name: String? = null,
     type: KClass<T>,
     default: T? = null,

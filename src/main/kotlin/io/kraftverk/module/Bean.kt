@@ -19,7 +19,9 @@ inline fun <reified T : Any> Modular.bean(
     noinline instance: BeanDeclaration.() -> T
 ): BeanComponent<T> = bean(T::class, lazy, instance)
 
-fun <T : Any> Modular.bean(
+
+@PublishedApi
+internal fun <T : Any> Modular.bean(
     type: KClass<T>,
     lazy: Boolean? = null,
     instance: BeanDeclaration.() -> T
