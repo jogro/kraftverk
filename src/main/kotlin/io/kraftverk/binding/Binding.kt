@@ -17,8 +17,10 @@ import io.kraftverk.provider.ValueProvider
  * A Binding is a [Bean] or [Value] that is declared within a module[io.kraftverk.module.Module]
  * that is managed by Kraftverk.
  *
- * A Binding is obtained by use of the bean[io.kraftverk.module.bean] and value[io.kraftverk.module.value]
- * binding declaration functions like for example this:
+ * Common for all Bindings is that they serve as factories that produce injectable singleton instances
+ * of type [T].
+ *
+ * A Binding can be obtained by calling for example the bean[io.kraftverk.module.bean] declaration function:
  *
  * '''Kotlin
  * class AppModule : Module() {
@@ -47,7 +49,7 @@ sealed class Binding<out T : Any>
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val dataSource by bean { HikariDataSource() }  // Results in a Bean<HikariDataSource>
+ *     val dataSource by bean { HikariDataSource() }  // Bean<HikariDataSource>
  * }
  * '''
  *
@@ -55,15 +57,15 @@ sealed class Binding<out T : Any>
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val dataSource by bean<DataSource> { HikariDataSource() } // Results in a Bean<DataSource>
+ *     val dataSource by bean<DataSource> { HikariDataSource() } // Bean<DataSource>
  * }
  *
  * A Bean can be used to inject other beans:
  *
 '''Kotlin
  * class AppModule : Module() {
- *     val repository by bean { Repository(dataSource()) } // <--- Injection of the data source
  *     val dataSource by bean { HikariDataSource() }
+ *     val repository by bean { Repository(dataSource()) } // <--- Injection of the data source
  * }
  * '''
  *
@@ -79,8 +81,8 @@ sealed class Binding<out T : Any>
  * }
  * '''
  *
- * An important feature is the ability to rebind a Bean after it has been declared but still hasn't been
- * started. This feature provides the foundation for mocking etc, see bind[io.kraftverk.module.bind].
+ * An important feature is the ability to rebind a Bean after it has been declared but the module still hasn't
+ * been started. This feature provides the foundation for mocking etc, see bind[io.kraftverk.module.bind].
  *
  * Beans can also be lifecycle handled by use of the onCreate[io.kraftverk.module.onCreate] and
  * onDestroy[io.kraftverk.module.onDestroy] functions provided by the module[io.kraftverk.module.Module].
@@ -97,8 +99,8 @@ sealed class Binding<out T : Any>
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val session by bean { Session(user()()) }
  *     val user by bean { { User() } }
+ *     val session by bean { Session(user()()) }
  * }
  * '''
  */
@@ -119,7 +121,7 @@ sealed class Bean<out T : Any> : Binding<T>() {
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val uri by value { v -> URI(v.toString()) } // Results in a Value<URI>
+ *     val uri by value { v -> URI(v.toString()) } // Value<URI>
  * }
  * '''
  *
@@ -127,17 +129,37 @@ sealed class Bean<out T : Any> : Binding<T>() {
  *
  * '''Kotlin
  * class JdbcModule : Module() {
- *     val username by string() // Results in a Value<String>
- *     val poolSize by int() // Results in a Value<Int>
+ *     val username by string() // Value<String>
+ *     val poolSize by int() // Value<Int>
  *     [...]
  * }
  * '''
- *
  * See string[io.kraftverk.module.string], int[io.kraftverk.module.int], long[io.kraftverk.module.long],
  * boolean[io.kraftverk.module.boolean] and port[io.kraftverk.module.port].
  *
- * An important feature is the ability to rebind a Value after it has been declared but the module is not
- * yet started which provides the foundation for mocking etc, see bind[io.kraftverk.module.bind].
+ * Values are injectable:
+ *
+ * '''Kotlin
+ * class JdbcModule : Module() {
+ *     val poolSize by int()
+ *     val dataSource by bean { MyDataSource(poolSize()) } // <--- Injection of the pool size
+ * }
+ * '''
+ *
+ * Note that injection occurs by syntactically invoking the Value as a function (operator invoke). Also note that
+ * injection only is available in the context of a BeanDeclaration[io.kraftverk.declaration.BeanDeclaration]
+ * or a ValueDeclaration[io.kraftverk.declaration.ValueDeclaration].
+ *
+ * '''Kotlin
+ * class AppModule : Module() {
+ *     val dataSource by bean { this: BeanDeclaration
+ *         [...]
+ *     }
+ * }
+ * '''
+ *
+ * An important feature is the ability to rebind a Value after it has been declared but the module still hasn't
+ * been started. This feature provides the foundation for mocking etc, see bind[io.kraftverk.module.bind].
  */
 sealed class Value<out T : Any> : Binding<T>() {
     companion object
