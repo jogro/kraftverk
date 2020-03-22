@@ -9,6 +9,7 @@ import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
+import io.kraftverk.internal.misc.ScopedThreadLocal
 import io.kraftverk.provider.get
 
 private val scopedParentModule = ScopedThreadLocal<AbstractModule>()
@@ -60,24 +61,3 @@ internal fun <AM : AbstractModule, MO : ModuleOf<AM>> AbstractModule.createModul
 }
 
 internal fun AbstractModule.qualifyName(name: String) = if (namespace.isBlank()) name else "$namespace.$name"
-
-private class ScopedThreadLocal<T> {
-
-    private val threadLocal = ThreadLocal<T>()
-
-    fun get(): T = threadLocal.get() ?: throw IllegalStateException()
-
-    fun <R> use(value: T, block: () -> R): R {
-        val previous: T? = threadLocal.get()
-        threadLocal.set(value)
-        try {
-            return block()
-        } finally {
-            if (previous == null) {
-                threadLocal.remove()
-            } else {
-                threadLocal.set(previous)
-            }
-        }
-    }
-}
