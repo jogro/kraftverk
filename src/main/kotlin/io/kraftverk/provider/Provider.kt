@@ -22,27 +22,27 @@ val <T : Any> Provider<T>.instanceId get() = singleton.instanceId
 
 val <T : Any> Provider<T>.definition: BindingDefinition<T>
     get() = when (this) {
-        is BeanProviderImpl<T> -> config
-        is ValueProviderImpl<T> -> config
+        is BeanProviderImpl<T> -> definition
+        is ValueProviderImpl<T> -> definition
     }
 
-val <T : Any> BeanProvider<T>.config: BeanDefinition<T>
+val <T : Any> BeanProvider<T>.definition: BeanDefinition<T>
     get() = when (this) {
-        is BeanProviderImpl<T> -> config
+        is BeanProviderImpl<T> -> definition
     }
 
-val <T : Any> ValueProvider<T>.config: ValueDefinition<T>
+val <T : Any> ValueProvider<T>.definition: ValueDefinition<T>
     get() = when (this) {
-        is ValueProviderImpl<T> -> config
+        is ValueProviderImpl<T> -> definition
     }
 
 internal class BeanProviderImpl<T : Any> constructor(
-    val config: BeanDefinition<T>,
+    val definition: BeanDefinition<T>,
     val singleton: Singleton<T>
 ) : BeanProvider<T>()
 
 internal class ValueProviderImpl<T : Any> constructor(
-    val config: ValueDefinition<T>,
+    val definition: ValueDefinition<T>,
     val singleton: Singleton<T>
 ) : ValueProvider<T>()
 
