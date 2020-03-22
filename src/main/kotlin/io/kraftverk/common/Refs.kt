@@ -5,7 +5,7 @@
 
 package io.kraftverk.common
 
-import io.kraftverk.module.Modular
+import io.kraftverk.module.AbstractModule
 
 class BeanRef<out T : Any>(internal val instance: () -> T)
-class ModuleRef<out M : Modular>(internal val instance: () -> M)
+class ModuleRef<out M : AbstractModule>(internal val instance: () -> M)

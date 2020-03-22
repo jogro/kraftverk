@@ -16,7 +16,7 @@ import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.Supplier
-import io.kraftverk.module.Modular
+import io.kraftverk.module.AbstractModule
 import io.kraftverk.provider.get
 
 open class ValueDeclaration internal constructor(internal val container: Container) {
@@ -36,7 +36,7 @@ open class BeanDeclaration internal constructor(container: Container) : ValueDec
     val beanProviders get() = container.beanProviders
     operator fun <T : Any> Bean<T>.invoke(): T = provider.get()
     operator fun <T : Any> BeanRef<T>.invoke(): T = instance()
-    operator fun <M : Modular> ModuleRef<M>.invoke(): M = instance()
+    operator fun <M : AbstractModule> ModuleRef<M>.invoke(): M = instance()
 }
 
 class BeanConsumerDeclaration<T> internal constructor(

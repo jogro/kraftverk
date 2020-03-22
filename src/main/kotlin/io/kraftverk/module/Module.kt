@@ -16,18 +16,18 @@ import io.kraftverk.provider.get
 
 private val scopedContainer = ScopedThreadLocal<Container>()
 private val scopedNamespace = ScopedThreadLocal<String>()
-private val scopedPartitionRoot = ScopedThreadLocal<Modular>()
+private val scopedPartitionRoot = ScopedThreadLocal<AbstractModule>()
 
-sealed class Modular {
+sealed class AbstractModule {
     internal val logger = createLogger { }
 
     internal val container: Container = scopedContainer.get()
     internal val namespace: String = scopedNamespace.get()
 }
 
-open class Module : Modular()
+open class Module : AbstractModule()
 
-open class Partition<M : Modular> : Modular() {
+open class Partition<M : AbstractModule> : AbstractModule() {
 
     @Suppress("UNCHECKED_CAST")
     internal val root: M = scopedPartitionRoot.get() as M
@@ -48,14 +48,14 @@ internal fun <M : Module> createRootModule(
     }
 }
 
-internal fun <M : Module> Modular.createModule(
+internal fun <M : Module> AbstractModule.createModule(
     namespace: String,
     moduleFun: () -> M
 ): M = scopedNamespace.use(namespace) {
     moduleFun()
 }
 
-internal fun <M : Modular, SM : Partition<M>> Modular.createPartition(
+internal fun <M : AbstractModule, SM : Partition<M>> AbstractModule.createPartition(
     namespace: String,
     moduleFun: () -> SM
 ): SM = scopedPartitionRoot.use(this) {
@@ -64,7 +64,7 @@ internal fun <M : Modular, SM : Partition<M>> Modular.createPartition(
     }
 }
 
-internal fun Modular.qualifyName(name: String) = if (namespace.isBlank()) name else "$namespace.$name"
+internal fun AbstractModule.qualifyName(name: String) = if (namespace.isBlank()) name else "$namespace.$name"
 
 private class ScopedThreadLocal<T> {
 
