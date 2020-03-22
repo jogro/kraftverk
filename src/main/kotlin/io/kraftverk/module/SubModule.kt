@@ -28,7 +28,7 @@ fun <M : Module> Modular.module(
     }
 }
 
-fun <M : Modular, P : PartitionOf<M>> M.partition(
+fun <M : Modular, P : Partition<M>> M.partition(
     name: String? = null,
     instance: () -> P
 ): PartitionComponent<M, P> = object :
@@ -45,7 +45,7 @@ fun <M : Modular, P : PartitionOf<M>> M.partition(
     }
 }
 
-fun <M : Modular, P : PartitionOf<M>, T : Any, B : Bean<T>> P.ref(
+fun <M : Modular, P : Partition<M>, T : Any, B : Bean<T>> P.ref(
     bean: M.() -> B
 ): BeanRefComponent<T> = object : BeanRefComponent<T> {
     override fun provideDelegate(
@@ -59,7 +59,7 @@ fun <M : Modular, P : PartitionOf<M>, T : Any, B : Bean<T>> P.ref(
     }
 }
 
-fun <M : Modular, P : PartitionOf<M>, M1 : Modular> P.import(
+fun <M : Modular, P : Partition<M>, M1 : Modular> P.import(
     module: M.() -> M1
 ): ModuleRefComponent<M1> = object : ModuleRefComponent<M1> {
     override fun provideDelegate(

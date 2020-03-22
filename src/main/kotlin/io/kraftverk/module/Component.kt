@@ -19,7 +19,7 @@ interface Component<out T> {
 interface BeanComponent<out T : Any> : Component<Bean<T>>
 interface ValueComponent<out T : Any> : Component<Value<T>>
 interface ModuleComponent<out M : Modular> : Component<M>
-interface PartitionComponent<M : Modular, out P : PartitionOf<M>> : Component<P>
+interface PartitionComponent<M : Modular, out P : Partition<M>> : Component<P>
 
 interface BeanRefComponent<out T : Any> : Component<BeanRef<T>>
 interface ModuleRefComponent<out M : Modular> : Component<ModuleRef<M>>

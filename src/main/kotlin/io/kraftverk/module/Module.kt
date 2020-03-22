@@ -27,7 +27,7 @@ sealed class Modular {
 
 open class Module : Modular()
 
-open class PartitionOf<M : Modular> : Modular() {
+open class Partition<M : Modular> : Modular() {
 
     @Suppress("UNCHECKED_CAST")
     internal val root: M = scopedPartitionRoot.get() as M
@@ -55,7 +55,7 @@ internal fun <M : Module> Modular.createModule(
     moduleFun()
 }
 
-internal fun <M : Modular, SM : PartitionOf<M>> Modular.createPartition(
+internal fun <M : Modular, SM : Partition<M>> Modular.createPartition(
     namespace: String,
     moduleFun: () -> SM
 ): SM = scopedPartitionRoot.use(this) {

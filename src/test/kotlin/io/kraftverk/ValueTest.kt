@@ -19,7 +19,7 @@ import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
 import io.kraftverk.managed.start
 import io.kraftverk.module.Module
-import io.kraftverk.module.PartitionOf
+import io.kraftverk.module.Partition
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
 import io.kraftverk.module.import
@@ -270,12 +270,12 @@ class ValueTest : StringSpec() {
 
     class Mod4 : Module()
 
-    class Sub1 : PartitionOf<Mod3>() {
+    class Sub1 : Partition<Mod3>() {
         val i1 by ref { b1 }
         val m by import { sm1 }
     }
 
-    class Sub2 : PartitionOf<Mod4>()
+    class Sub2 : Partition<Mod4>()
 
     private data class ValueObject(val value: String, val parent: ValueObject? = null)
 
