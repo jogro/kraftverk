@@ -14,8 +14,8 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 
 /**
- * A Binding is a [Bean] or [Value] that is declared within a module[io.kraftverk.module.Module]
- * that is managed by Kraftverk.
+ * A Binding is a [Bean] or [Value] that is declared within a Kraftverk managed Module[io.kraftverk.module.Module]
+ * or Partition[io.kraftverk.module.Partition].
  *
  * Common for all Bindings is that they serve as factories that produce injectable singleton instances
  * of type [T].
@@ -81,8 +81,9 @@ sealed class Binding<out T : Any>
  * }
  * '''
  *
- * An important feature is the ability to rebind a Bean after it has been declared but the module still hasn't
- * been started. This feature provides the foundation for mocking etc, see bind[io.kraftverk.module.bind].
+ * An important feature is the ability to rebind a Bean after it has been declared but the module still
+ * hasn't been started[io.kraftverk.managed.start]. This feature provides the foundation for mocking etc,
+ * see bind[io.kraftverk.module.bind].
  *
  * Beans can also be lifecycle handled by use of the onCreate[io.kraftverk.module.onCreate] and
  * onDestroy[io.kraftverk.module.onDestroy] functions provided by the module[io.kraftverk.module.Module].
@@ -103,6 +104,7 @@ sealed class Binding<out T : Any>
  *     val session by bean { Session(user()()) }
  * }
  * '''
+ *
  */
 sealed class Bean<out T : Any> : Binding<T>() {
     companion object
@@ -158,8 +160,10 @@ sealed class Bean<out T : Any> : Binding<T>() {
  * }
  * '''
  *
- * An important feature is the ability to rebind a Value after it has been declared but the module still hasn't
- * been started. This feature provides the foundation for mocking etc, see bind[io.kraftverk.module.bind].
+ * An important feature is the ability to rebind a Value after it has been declared but the module still
+ * hasn't been started[io.kraftverk.managed.start]. This feature provides the foundation for mocking etc,
+ * see bind[io.kraftverk.module.bind].
+ *
  */
 sealed class Value<out T : Any> : Binding<T>() {
     companion object
