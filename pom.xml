@@ -134,6 +134,9 @@
                     <args>
                         <arg>-Xuse-experimental=kotlin.contracts.ExperimentalContracts</arg>
                     </args>
+                    <!--
+                    <languageVersion>1.4</languageVersion>
+                    -->
                 </configuration>
             </plugin>
             <plugin>

@@ -25,7 +25,7 @@ import io.kraftverk.module.createModule
 fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
     logger.info { "Starting managed module" }
     val startMs = System.currentTimeMillis()
-    customize(block)
+    config(block)
     state.mustBe<Managed.State.Configurable<M>> {
         val module = createModule()
         onStart(module)
@@ -39,7 +39,7 @@ fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
     return this
 }
 
-fun <M : Module> Managed<M>.customize(block: M.() -> Unit): Managed<M> {
+fun <M : Module> Managed<M>.config(block: M.() -> Unit): Managed<M> {
     state.mustBe<Managed.State.Configurable<M>> {
         val previousOnStart = onStart
         onStart = { instance ->

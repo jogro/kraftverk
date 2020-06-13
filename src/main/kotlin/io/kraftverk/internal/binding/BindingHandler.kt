@@ -8,9 +8,9 @@ package io.kraftverk.internal.binding
 import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.BindingDefinition
 import io.kraftverk.common.ValueDefinition
+import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
-import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.internal.provider.Singleton
 import io.kraftverk.provider.BeanProvider
@@ -32,9 +32,7 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
 
         data class Configurable<T : Any>(
             var instance: Supplier<T>,
-            var onCustomize: Consumer<T> = { },
-            var onCreate: Consumer<T> = { },
-            var onDestroy: Consumer<T> = { }
+            var onShape: (T, LifecycleActions) -> Unit = { _, _ -> }
         ) : State<T>()
 
         data class Running<T : Any, P : Provider<T>>(
@@ -46,15 +44,15 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
 }
 
 internal class BeanHandler<T : Any>(
-    val config: BeanDefinition<T>
-) : BindingHandler<T, BeanProvider<T>>(config.instance) {
+    val definition: BeanDefinition<T>
+) : BindingHandler<T, BeanProvider<T>>(definition.instance) {
 
     private val logger = createLogger { }
 
     override fun createProvider(state: State.Configurable<T>) = BeanProviderImpl(
-        config,
+        definition,
         createSingleton(
-            config,
+            definition,
             state.copy(
                 instance = loggingInterceptor(state.instance)
             )
@@ -66,22 +64,22 @@ internal class BeanHandler<T : Any>(
         val t = block()
         val elapsed = System.currentTimeMillis() - startMs
         logger.info {
-            "Bean '${config.name}' is bound to ${config.type} (${elapsed}ms)"
+            "Bean '${definition.name}' is bound to ${definition.type} (${elapsed}ms)"
         }
         t
     }
 }
 
 internal class ValueHandler<T : Any>(
-    val config: ValueDefinition<T>
-) : BindingHandler<T, ValueProvider<T>>(config.instance) {
+    val definition: ValueDefinition<T>
+) : BindingHandler<T, ValueProvider<T>>(definition.instance) {
 
     private val logger = createLogger { }
 
     override fun createProvider(state: State.Configurable<T>) = ValueProviderImpl(
-        config,
+        definition,
         createSingleton(
-            config,
+            definition,
             state.copy(
                 instance = loggingInterceptor(state.instance)
             )
@@ -90,10 +88,10 @@ internal class ValueHandler<T : Any>(
 
     private fun loggingInterceptor(block: () -> T): () -> T = {
         val t = block()
-        if (config.secret) {
-            logger.info { "Value '${config.name}' is bound to '********'" }
+        if (definition.secret) {
+            logger.info { "Value '${definition.name}' is bound to '********'" }
         } else {
-            logger.info { "Value '${config.name}' is bound to '$t'" }
+            logger.info { "Value '${definition.name}' is bound to '$t'" }
         }
         t
     }
@@ -106,7 +104,5 @@ private fun <T : Any> createSingleton(
     type = definition.type,
     lazy = definition.lazy,
     createInstance = state.instance,
-    onCustomize = state.onCustomize,
-    onCreate = state.onCreate,
-    onDestroy = state.onDestroy
+    onShape = state.onShape
 )

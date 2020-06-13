@@ -18,8 +18,8 @@ import io.kraftverk.env.environment
 import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
 import io.kraftverk.managed.start
+import io.kraftverk.module.ChildModule
 import io.kraftverk.module.Module
-import io.kraftverk.module.ModuleOf
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
 import io.kraftverk.module.import
@@ -140,7 +140,10 @@ class ValueTest : StringSpec() {
 
         "Extracting a value results in one instantiation even if many invocations" {
             val app = Kraftverk.start(lazy = true) { AppModule() }
-            repeat(3) { app { values.val1 } }
+            repeat(3) {
+                app { values.val1 }
+                Unit
+            }
             verifySequence {
                 valueObjectFactory.createValue(valueObject1.value)
             }
@@ -270,13 +273,13 @@ class ValueTest : StringSpec() {
 
     class Mod4 : Module()
 
-    class Sub1 : ModuleOf<Mod3>() {
+    class Sub1 : ChildModule<Mod3>() {
         val br1 by ref { b1 }
         val mako by import { sm1 }
         val b1 by bean { mako().br1 }
     }
 
-    class Sub2 : ModuleOf<Mod4>()
+    class Sub2 : ChildModule<Mod4>()
 
     private data class ValueObject(val value: String, val parent: ValueObject? = null)
 

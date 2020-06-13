@@ -25,9 +25,9 @@ internal class RootModule(override val container: Container) : AbstractModule() 
     override val namespace: String = ""
 }
 
-open class Module : ModuleOf<Module>()
+open class Module : ChildModule<Module>()
 
-open class ModuleOf<AM : AbstractModule> : AbstractModule() {
+open class ChildModule<AM : AbstractModule> : AbstractModule() {
 
     @Suppress("UNCHECKED_CAST")
     internal val parent: AM = scopedParentModule.get() as AM
@@ -51,7 +51,7 @@ internal fun <M : Module> createModule(
     }
 }
 
-internal fun <AM : AbstractModule, MO : ModuleOf<AM>> AbstractModule.createModuleOf(
+internal fun <AM : AbstractModule, MO : ChildModule<AM>> AbstractModule.createChildModule(
     namespace: String,
     moduleFun: () -> MO
 ): MO = scopedParentModule.use(this) {

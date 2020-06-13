@@ -5,8 +5,8 @@
 
 package io.kraftverk.internal.binding
 
+import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.binding.BindingHandler.State
-import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.internal.misc.interceptAfter
 import io.kraftverk.internal.misc.interceptAround
@@ -21,27 +21,11 @@ internal fun <T : Any> BindingHandler<T, Provider<T>>.bind(
     }
 }
 
-internal fun <T : Any> BeanHandler<T>.onCustomize(
-    block: Consumer<T>
+internal fun <T : Any> BeanHandler<T>.onShape(
+    block: (T, LifecycleActions) -> Unit
 ) {
     state.mustBe<State.Configurable<T>> {
-        onCustomize = interceptAfter(onCustomize, block)
-    }
-}
-
-internal fun <T : Any> BeanHandler<T>.onCreate(
-    block: (T, Consumer<T>) -> Unit
-) {
-    state.mustBe<State.Configurable<T>> {
-        onCreate = interceptAround(onCreate, block)
-    }
-}
-
-internal fun <T : Any> BeanHandler<T>.onDestroy(
-    block: (T, Consumer<T>) -> Unit
-) {
-    state.mustBe<State.Configurable<T>> {
-        onDestroy = interceptAround(onDestroy, block)
+        onShape = interceptAfter(onShape, block)
     }
 }
 

@@ -18,7 +18,7 @@ interface Component<out T> {
 
 interface BeanComponent<out T : Any> : Component<Bean<T>>
 interface ValueComponent<out T : Any> : Component<Value<T>>
-interface ModuleComponent<AM : AbstractModule, out MO : ModuleOf<AM>> : Component<MO>
+interface ModuleComponent<AM : AbstractModule, out MO : ChildModule<AM>> : Component<MO>
 
 interface BeanRefComponent<out T : Any> : Component<BeanRef<T>>
 interface ModuleRefComponent<out AM : AbstractModule> : Component<ModuleRef<AM>>

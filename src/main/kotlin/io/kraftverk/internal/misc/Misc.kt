@@ -5,6 +5,8 @@
 
 package io.kraftverk.internal.misc
 
+import io.kraftverk.declaration.LifecycleActions
+
 internal typealias Consumer<T> = (T) -> Unit
 
 internal typealias Supplier<T> = () -> T
@@ -29,4 +31,12 @@ internal inline fun <T : Any> interceptAfter(
 ): Consumer<T> = { t ->
     consumer(t)
     block(t)
+}
+
+internal inline fun <T : Any> interceptAfter(
+    noinline consumer: (T, LifecycleActions) -> Unit,
+    crossinline block: (T, LifecycleActions) -> Unit
+): (T, LifecycleActions) -> Unit = { t, lc ->
+    consumer(t, lc)
+    block(t, lc)
 }

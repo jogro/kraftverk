@@ -5,8 +5,8 @@
 
 package io.kraftverk.internal.provider
 
+import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.logging.createLogger
-import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.Supplier
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
@@ -17,10 +17,10 @@ internal class Singleton<T : Any>(
     val type: KClass<T>,
     val lazy: Boolean,
     private val createInstance: Supplier<T>,
-    private val onCustomize: Consumer<T> = { },
-    private val onCreate: Consumer<T>,
-    private val onDestroy: Consumer<T>
+    private val onShape: (T, LifecycleActions) -> Unit
 ) {
+
+    private val lifecycle = LifecycleActions()
 
     @Volatile
     private var instance: Instance<T>? = null
@@ -48,8 +48,8 @@ internal class Singleton<T : Any>(
                     createInstance(),
                     currentInstanceId.incrementAndGet()
                 )
-                onCustomize(i3.value)
-                onCreate(i3.value)
+                onShape(i3.value, lifecycle)
+                lifecycle.onCreate()
                 instance = i3
                 i3.value
             }
@@ -62,7 +62,7 @@ internal class Singleton<T : Any>(
             val i = instance
             if (i != null) {
                 try {
-                    onDestroy(i.value)
+                    lifecycle.onDestroy()
                 } catch (ex: Exception) {
                     logger.error("Couldn't destroy bean", ex)
                 }

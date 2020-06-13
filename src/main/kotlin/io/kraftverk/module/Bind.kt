@@ -19,18 +19,18 @@ import io.kraftverk.internal.container.Container
  * It is useful when doing tests, for example when mocking:
  * ```kotlin
  * val app = Kraftverk.manage { AppModule() }
- * app.start { // this: AppModule
+ * app.start {
  *     bind(repository) to { mockk() }
  * }
  * ```
  * Or when creating a spy:
  * ```kotlin
  * val app = Kraftverk.manage { AppModule() }
- * app.start { // this: AppModule
+ * app.start {
  *     bind(repository) to { spyk(next()) } // Use next() to get hold of the actual instance
  * }
  * ```
- * Another use case is reconfiguration of a sub module:
+ * Another use case is reconfiguration of a nested module:
  * ```kotlin
  * class AppModule : Module() {
  *     val rabbit by module { RabbitModule() }

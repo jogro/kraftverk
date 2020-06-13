@@ -14,7 +14,6 @@ import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.valueProviders
-import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.module.AbstractModule
 import io.kraftverk.provider.get
@@ -39,11 +38,6 @@ open class BeanDeclaration internal constructor(container: Container) : ValueDec
     operator fun <M : AbstractModule> ModuleRef<M>.invoke(): M = instance()
 }
 
-class BeanConsumerDeclaration<T> internal constructor(
-    container: Container,
-    val instance: T
-) : BeanDeclaration(container)
-
 class BeanSupplierInterceptorDeclaration<T> internal constructor(
     container: Container,
     private val supply: Supplier<T>
@@ -51,12 +45,36 @@ class BeanSupplierInterceptorDeclaration<T> internal constructor(
     fun proceed() = supply()
 }
 
-class BeanConsumerInterceptorDeclaration<T> internal constructor(
+class LifecycleActions {
+
+    @Volatile
+    internal var onCreate: () -> Unit = { }
+
+    @Volatile
+    internal var onDestroy: () -> Unit = { }
+
+    fun onCreate(block: Action.() -> Unit) {
+        val proceed = onCreate
+        onCreate = { Action(proceed).block() }
+    }
+
+    fun onDestroy(block: Action.() -> Unit) {
+        val proceed = onDestroy
+        onDestroy = { Action(proceed).block() }
+    }
+
+    class Action(val proceed: () -> Unit)
+}
+
+class BeanShapingDeclaration<T> internal constructor(
     container: Container,
-    private val instance: T,
-    private val consume: Consumer<T>
+    val instance: T,
+    private val lifecycle: LifecycleActions
 ) : BeanDeclaration(container) {
-    fun proceed() = consume(instance)
+
+    fun lifecycle(block: LifecycleActions.() -> Unit) {
+        lifecycle.block()
+    }
 }
 
 open class CustomBeanDeclaration(parent: BeanDeclaration) : BeanDeclaration(parent.container)
