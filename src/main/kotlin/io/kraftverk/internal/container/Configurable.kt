@@ -5,36 +5,36 @@
 
 package io.kraftverk.internal.container
 
-import io.kraftverk.binding.Bean
-import io.kraftverk.binding.BeanImpl
+import io.kraftverk.binding.Component
+import io.kraftverk.binding.ComponentImpl
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
 import io.kraftverk.binding.handler
-import io.kraftverk.common.BeanDefinition
+import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
-import io.kraftverk.internal.binding.BeanHandler
+import io.kraftverk.internal.binding.ComponentHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.initialize
 import io.kraftverk.internal.binding.start
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
-internal fun <T : Any> Container.createBean(
-    config: BeanDefinition<T>
-): BeanImpl<T> = config.let(::process)
-    .let(::BeanHandler)
-    .let(::BeanImpl)
+internal fun <T : Any, S : Any> Container.createComponent(
+    config: ComponentDefinition<T, S>
+): ComponentImpl<T, S> = config.let(::process)
+    .let { ComponentHandler<T, S>(it) }
+    .let(::ComponentImpl)
     .also(this::register)
 
-internal fun <T : Any> Container.createValue(
+internal fun <T : Any, S : Any> Container.createValue(
     config: ValueDefinition<T>
-): ValueImpl<T> = config.let(::process)
-    .let(::ValueHandler)
+): ValueImpl<T, S> = config.let(::process)
+    .let { ValueHandler<T, S>(it) }
     .let(::ValueImpl)
     .also(this::register)
 
-internal fun Container.register(binding: Binding<*>) =
+internal fun Container.register(binding: Binding<*, *>) =
     state.mustBe<State.Configurable> {
         bindings.add(binding)
     }
@@ -46,7 +46,7 @@ internal fun Container.start() =
         bindings.initialize()
     }
 
-private fun <T : Any> Container.process(config: BeanDefinition<T>): BeanDefinition<T> {
+private fun <T : Any, S : Any> Container.process(config: ComponentDefinition<T, S>): ComponentDefinition<T, S> {
     var current = config
     state.mustBe<State.Configurable> {
         for (processor in beanProcessors) {
@@ -66,15 +66,15 @@ private fun <T : Any> Container.process(config: ValueDefinition<T>): ValueDefini
     return current
 }
 
-private fun List<Binding<*>>.start() {
+private fun List<Binding<*, *>>.start() {
     forEach { binding ->
         binding.handler.start()
     }
 }
 
-private fun List<Binding<*>>.initialize() {
+private fun List<Binding<*, *>>.initialize() {
     val valueNotFoundExceptions = mutableListOf<ValueNotFoundException>()
-    filterIsInstance<Value<*>>().forEach { value ->
+    filterIsInstance<Value<*, *>>().forEach { value ->
         try {
             value.handler.initialize()
         } catch (e: ValueNotFoundException) {
@@ -93,7 +93,7 @@ $errorMsg
                 """.trimIndent()
             throw IllegalStateException(exceptionMessage)
         }
-    filterIsInstance<Bean<*>>().forEach { bean ->
+    filterIsInstance<Component<*, *>>().forEach { bean ->
         bean.handler.initialize()
     }
 }

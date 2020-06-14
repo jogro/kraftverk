@@ -35,7 +35,7 @@ open class ChildModule<AM : AbstractModule> : AbstractModule() {
     override val container: Container = parent.container
     override val namespace: String = scopedNamespace.get()
 
-    internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T = parent.binding().provider.get()
+    internal fun <T : Any, S : Any, B : Binding<T, S>> getInstance(binding: AM.() -> B): T = parent.binding().provider.get()
 }
 
 internal fun <M : Module> createModule(

@@ -5,40 +5,43 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.binding.Bean
-import io.kraftverk.common.BeanDefinition
-import io.kraftverk.declaration.BeanDeclaration
-import io.kraftverk.internal.container.createBean
+import io.kraftverk.binding.Component
+import io.kraftverk.common.ComponentDefinition
+import io.kraftverk.declaration.ComponentDeclaration
+import io.kraftverk.internal.container.createComponent
 import io.kraftverk.internal.container.createBeanInstance
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
-inline fun <reified T : Any> AbstractModule.bean(
+inline fun <reified T : Any, S : Any> AbstractModule.component(
     lazy: Boolean? = null,
-    noinline instance: BeanDeclaration.() -> T
-): BeanComponent<T> = bean(T::class, lazy, instance)
+    noinline onShape: (T, (S) -> Unit) -> Unit,
+    noinline instance: ComponentDeclaration.() -> T
+): ComponentDelegateProvider<T, S> = component(T::class, lazy, onShape, instance)
 
 @PublishedApi
-internal fun <T : Any> AbstractModule.bean(
+internal fun <T : Any, S : Any> AbstractModule.component(
     type: KClass<T>,
     lazy: Boolean? = null,
-    instance: BeanDeclaration.() -> T
+    onShape: (T, (S) -> Unit) -> Unit,
+    instance: ComponentDeclaration.() -> T
 
-): BeanComponent<T> = object : BeanComponent<T> {
+): ComponentDelegateProvider<T, S> = object : ComponentDelegateProvider<T, S> {
 
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, Bean<T>> {
+    ): ReadOnlyProperty<AbstractModule, Component<T, S>> {
         val beanName = qualifyName(property.name)
         logger.debug { "Creating bean '$beanName'" }
-        val config = BeanDefinition(
+        val config = ComponentDefinition(
             name = beanName,
             lazy = lazy ?: container.lazy,
+            onShape = onShape,
             type = type,
             instance = { container.createBeanInstance(instance) }
         )
-        return container.createBean(config).let(::Delegate)
+        return container.createComponent<T, S>(config).let(::Delegate)
     }
 }

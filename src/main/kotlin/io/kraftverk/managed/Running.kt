@@ -7,22 +7,22 @@ package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.provider
-import io.kraftverk.internal.container.beanProviders
+import io.kraftverk.internal.container.componentProviders
 import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
-import io.kraftverk.provider.BeanProvider
+import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.get
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 /**
- * Retrieves all [BeanProvider]s.
+ * Retrieves all [ComponentProvider]s.
  */
-val Managed<*>.beanProviders: List<BeanProvider<*>> get() = module.container.beanProviders
+val Managed<*>.componentProviders: List<ComponentProvider<*, *>> get() = module.container.componentProviders
 
 /**
  * Retrieves all [ValueProvider]s.
@@ -35,7 +35,7 @@ val Managed<*>.valueProviders: List<ValueProvider<*>> get() = module.container.v
  * val someService = app { someService }
  * ```
  */
-operator fun <T : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T>): T {
+operator fun <T : Any, S : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T, S>): T {
     state.mustBe<Managed.State.Running<M>> {
         return module.binding().provider.get()
     }
@@ -47,7 +47,7 @@ operator fun <T : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T>
  * val someService by app.get { someService }
  * ```
  */
-fun <T : Any, M : Module> Managed<M>.get(binding: M.() -> Binding<T>) =
+fun <T : Any, S : Any, M : Module> Managed<M>.get(binding: M.() -> Binding<T, S>) =
     object : ReadOnlyProperty<Any?, T> {
         override fun getValue(thisRef: Any?, property: KProperty<*>): T {
             return invoke(binding)

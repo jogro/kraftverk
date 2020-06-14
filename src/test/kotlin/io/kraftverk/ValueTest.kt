@@ -5,39 +5,7 @@
 
 package io.kraftverk
 
-import io.kotlintest.TestCase
-import io.kotlintest.extensions.system.withEnvironment
-import io.kotlintest.extensions.system.withSystemProperties
-import io.kotlintest.matchers.collections.containExactly
-import io.kotlintest.matchers.collections.shouldContainExactly
-import io.kotlintest.should
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.StringSpec
-import io.kraftverk.declaration.ValueDeclaration
-import io.kraftverk.env.environment
-import io.kraftverk.managed.get
-import io.kraftverk.managed.invoke
-import io.kraftverk.managed.start
-import io.kraftverk.module.ChildModule
-import io.kraftverk.module.Module
-import io.kraftverk.module.bean
-import io.kraftverk.module.bind
-import io.kraftverk.module.import
-import io.kraftverk.module.int
-import io.kraftverk.module.module
-import io.kraftverk.module.ref
-import io.kraftverk.module.string
-import io.kraftverk.module.value
-import io.kraftverk.provider.get
-import io.kraftverk.provider.type
-import io.mockk.Called
-import io.mockk.clearMocks
-import io.mockk.spyk
-import io.mockk.verify
-import io.mockk.verifySequence
-import java.time.LocalDate
-import kotlin.reflect.full.isSubclassOf
-
+/*
 class ValueTest : StringSpec() {
 
     private val principal = "ergo"
@@ -299,3 +267,4 @@ class ValueTest : StringSpec() {
             if (value is LocalDate) value else LocalDate.parse(value.toString())
         }
 }
+*/

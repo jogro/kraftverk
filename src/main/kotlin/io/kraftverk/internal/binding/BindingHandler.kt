@@ -5,7 +5,7 @@
 
 package io.kraftverk.internal.binding
 
-import io.kraftverk.common.BeanDefinition
+import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.BindingDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.declaration.LifecycleActions
@@ -13,24 +13,24 @@ import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.internal.provider.Singleton
-import io.kraftverk.provider.BeanProvider
-import io.kraftverk.provider.BeanProviderImpl
+import io.kraftverk.provider.ComponentProvider
+import io.kraftverk.provider.ComponentProviderImpl
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.ValueProviderImpl
 
-internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
+internal sealed class BindingHandler<T : Any, S : Any, out P : Provider<T>>(
     instance: Supplier<T>
 ) {
 
     @Volatile
-    internal var state: State<T> = State.Configurable(instance)
+    internal var state: State<T> = State.Configurable<T, S>(instance)
 
-    abstract fun createProvider(state: State.Configurable<T>): P
+    abstract fun createProvider(state: State.Configurable<T, S>): P
 
     internal sealed class State<out T : Any> : BasicState {
 
-        data class Configurable<T : Any>(
+        data class Configurable<T : Any, S : Any>(
             var instance: Supplier<T>,
             var onShape: (T, LifecycleActions) -> Unit = { _, _ -> }
         ) : State<T>()
@@ -43,13 +43,13 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
     }
 }
 
-internal class BeanHandler<T : Any>(
-    val definition: BeanDefinition<T>
-) : BindingHandler<T, BeanProvider<T>>(definition.instance) {
+internal class ComponentHandler<T : Any, S : Any>(
+    val definition: ComponentDefinition<T, S>
+) : BindingHandler<T, S, ComponentProvider<T, S>>(definition.instance) {
 
     private val logger = createLogger { }
 
-    override fun createProvider(state: State.Configurable<T>) = BeanProviderImpl(
+    override fun createProvider(state: State.Configurable<T, S>) = ComponentProviderImpl(
         definition,
         createSingleton(
             definition,
@@ -70,13 +70,13 @@ internal class BeanHandler<T : Any>(
     }
 }
 
-internal class ValueHandler<T : Any>(
+internal class ValueHandler<T : Any, S : Any>(
     val definition: ValueDefinition<T>
-) : BindingHandler<T, ValueProvider<T>>(definition.instance) {
+) : BindingHandler<T, S, ValueProvider<T>>(definition.instance) {
 
     private val logger = createLogger { }
 
-    override fun createProvider(state: State.Configurable<T>) = ValueProviderImpl(
+    override fun createProvider(state: State.Configurable<T, S>) = ValueProviderImpl(
         definition,
         createSingleton(
             definition,
@@ -97,9 +97,9 @@ internal class ValueHandler<T : Any>(
     }
 }
 
-private fun <T : Any> createSingleton(
+private fun <T : Any, S : Any> createSingleton(
     definition: BindingDefinition<T>,
-    state: BindingHandler.State.Configurable<T>
+    state: BindingHandler.State.Configurable<T, S>
 ): Singleton<T> = Singleton(
     type = definition.type,
     lazy = definition.lazy,

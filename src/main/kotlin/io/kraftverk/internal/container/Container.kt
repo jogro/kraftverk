@@ -24,11 +24,11 @@ internal class Container(
     internal sealed class State : BasicState {
 
         class Configurable : State() {
-            val bindings = mutableListOf<Binding<*>>()
+            val bindings = mutableListOf<Binding<*, *>>()
         }
 
         class Running(
-            val bindings: List<Binding<*>>
+            val bindings: List<Binding<*, *>>
         ) : State()
 
         object Destroying : State()

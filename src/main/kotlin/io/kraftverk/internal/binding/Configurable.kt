@@ -13,24 +13,24 @@ import io.kraftverk.internal.misc.interceptAround
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.provider.Provider
 
-internal fun <T : Any> BindingHandler<T, Provider<T>>.bind(
+internal fun <T : Any, S : Any> BindingHandler<T, S, Provider<T>>.bind(
     block: (Supplier<T>) -> T
 ) {
-    state.mustBe<State.Configurable<T>> {
+    state.mustBe<State.Configurable<T, S>> {
         instance = interceptAround(instance, block)
     }
 }
 
-internal fun <T : Any> BeanHandler<T>.onShape(
+internal fun <T : Any, S : Any> ComponentHandler<T, S>.onShape(
     block: (T, LifecycleActions) -> Unit
 ) {
-    state.mustBe<State.Configurable<T>> {
+    state.mustBe<State.Configurable<T, S>> {
         onShape = interceptAfter(onShape, block)
     }
 }
 
-internal fun <T : Any> BindingHandler<T, Provider<T>>.start() {
-    state.mustBe<State.Configurable<T>> {
+internal fun <T : Any, S : Any> BindingHandler<T, S, Provider<T>>.start() {
+    state.mustBe<State.Configurable<T, S>> {
         val provider = createProvider(this)
         state = State.Running(provider)
     }

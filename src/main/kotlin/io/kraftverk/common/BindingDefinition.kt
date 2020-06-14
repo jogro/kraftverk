@@ -5,6 +5,7 @@
 
 package io.kraftverk.common
 
+import io.kraftverk.declaration.ComponentShapingDeclaration
 import io.kraftverk.internal.misc.Supplier
 import kotlin.reflect.KClass
 
@@ -26,15 +27,16 @@ data class ValueDefinition<T : Any>(
     override val instance: Supplier<T>
 ) : BindingDefinition<T>
 
-data class BeanDefinition<T : Any>(
+data class ComponentDefinition<T : Any, S : Any>(
     override val name: String,
     override val type: KClass<T>,
     override val lazy: Boolean,
+    val onShape: (T, (S) -> Unit) -> Unit,
     override val instance: Supplier<T>
 ) : BindingDefinition<T>
 
 interface BeanProcessor {
-    fun <T : Any> process(bean: BeanDefinition<T>): BeanDefinition<T>
+    fun <T : Any, S : Any> process(component: ComponentDefinition<T, S>): ComponentDefinition<T, S>
 }
 
 interface ValueProcessor {

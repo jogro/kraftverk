@@ -5,16 +5,16 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.binding.Bean
+import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
-import io.kraftverk.declaration.BeanSupplierInterceptorDeclaration
+import io.kraftverk.declaration.ComponentSupplierInterceptorDeclaration
 import io.kraftverk.declaration.ValueSupplierDeclaration
 import io.kraftverk.internal.binding.bind
 import io.kraftverk.internal.container.Container
 
 /**
- * The [bind] method binds an existing [Bean] to a new implementation.
+ * The [bind] method binds an existing [Component] to a new implementation.
  *
  * It is useful when doing tests, for example when mocking:
  * ```kotlin
@@ -43,8 +43,8 @@ import io.kraftverk.internal.container.Container
  * }
  * ```
  */
-fun <T : Any> AbstractModule.bind(bean: Bean<T>) =
-    BeanBinder(container, bean)
+fun <T : Any, S : Any> AbstractModule.bind(component: Component<T, S>) =
+    BeanBinder(container, component)
 
 /**
  * Binds a configured [Value] to a new value, for example:
@@ -56,19 +56,19 @@ fun <T : Any> AbstractModule.bind(bean: Bean<T>) =
  * ```
  * The provided value will override any other values.
  */
-fun <T : Any> AbstractModule.bind(value: Value<T>) =
+fun <T : Any, S : Any> AbstractModule.bind(value: Value<T, S>) =
     ValueBinder(container, value)
 
 /**
  * Helper class for the [Module.bind] method.
  */
-class BeanBinder<T : Any> internal constructor(
+class BeanBinder<T : Any, S : Any> internal constructor(
     private val container: Container,
-    private val bean: Bean<T>
+    private val component: Component<T, S>
 ) {
-    infix fun to(block: BeanSupplierInterceptorDeclaration<T>.() -> T) {
-        bean.handler.bind { proceed ->
-            BeanSupplierInterceptorDeclaration(container, proceed).block()
+    infix fun to(block: ComponentSupplierInterceptorDeclaration<T>.() -> T) {
+        component.handler.bind { proceed ->
+            ComponentSupplierInterceptorDeclaration(container, proceed).block()
         }
     }
 }
@@ -76,9 +76,9 @@ class BeanBinder<T : Any> internal constructor(
 /**
  * Helper class for the [Module.bind] method.
  */
-class ValueBinder<T : Any> internal constructor(
+class ValueBinder<T : Any, S : Any> internal constructor(
     private val container: Container,
-    private val value: Value<T>
+    private val value: Value<T, S>
 ) {
     infix fun to(block: ValueSupplierDeclaration<T>.() -> T) {
         value.handler.bind { proceed ->

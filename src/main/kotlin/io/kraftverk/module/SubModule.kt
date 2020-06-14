@@ -5,7 +5,7 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.binding.Bean
+import io.kraftverk.binding.Component
 import io.kraftverk.common.BeanRef
 import io.kraftverk.common.ModuleRef
 import kotlin.properties.ReadOnlyProperty
@@ -14,8 +14,8 @@ import kotlin.reflect.KProperty
 fun <AM : AbstractModule, CM : ChildModule<AM>> AM.module(
     name: String? = null,
     instance: () -> CM
-): ModuleComponent<AM, CM> = object :
-    ModuleComponent<AM, CM> {
+): ModuleDelegateProvider<AM, CM> = object :
+    ModuleDelegateProvider<AM, CM> {
 
     override fun provideDelegate(
         thisRef: AbstractModule,
@@ -27,9 +27,9 @@ fun <AM : AbstractModule, CM : ChildModule<AM>> AM.module(
     }
 }
 
-fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Bean<T>> CM.ref(
+fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, S : Any, B : Component<T, S>> CM.ref(
     bean: AM.() -> B
-): BeanRefComponent<T> = object : BeanRefComponent<T> {
+): BeanRefDelegateProvider<T> = object : BeanRefDelegateProvider<T> {
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
@@ -41,7 +41,7 @@ fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Bean<T>> CM.ref(
 
 fun <AM : AbstractModule, CM : ChildModule<AM>, AM1 : AbstractModule> CM.import(
     module: AM.() -> AM1
-): ModuleRefComponent<AM1> = object : ModuleRefComponent<AM1> {
+): ModuleRefDelegateProvider<AM1> = object : ModuleRefDelegateProvider<AM1> {
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
