@@ -6,6 +6,8 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Binding
+import io.kraftverk.binding.Component
+import io.kraftverk.binding.Value
 import io.kraftverk.binding.provider
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
@@ -35,7 +37,11 @@ open class ChildModule<AM : AbstractModule> : AbstractModule() {
     override val container: Container = parent.container
     override val namespace: String = scopedNamespace.get()
 
-    internal fun <T : Any, S : Any, B : Binding<T, S>> getInstance(binding: AM.() -> B): T = parent.binding().provider.get()
+    internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T =
+        when(val b: Binding<T> = parent.binding()) {
+            is Value<T> -> b.provider.get()
+            is Component<T, *> -> b.provider.get()
+        }
 }
 
 internal fun <M : Module> createModule(

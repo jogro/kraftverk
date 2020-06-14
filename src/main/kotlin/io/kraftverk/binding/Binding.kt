@@ -35,7 +35,7 @@ import io.kraftverk.provider.ValueProvider
  * }
  *
  */
-sealed class Binding<out T : Any, out S : Any>
+sealed class Binding<out T : Any>
 
 /**
  * A Bean is a specialized [Binding] that can be declared within a module[io.kraftverk.module.Module]
@@ -105,7 +105,7 @@ sealed class Binding<out T : Any, out S : Any>
  * '''
  *
  */
-sealed class Component<out T : Any, out S : Any> : Binding<T, S>() {
+sealed class Component<out T : Any, out S : Any> : Binding<T>() {
     companion object
 }
 
@@ -164,30 +164,27 @@ sealed class Component<out T : Any, out S : Any> : Binding<T, S>() {
  * see bind[io.kraftverk.module.bind].
  *
  */
-sealed class Value<out T : Any, S : Any> : Binding<T, S>() {
+sealed class Value<out T : Any> : Binding<T>() {
     companion object
 }
 
 internal class ComponentImpl<T : Any, S : Any>(val handler: ComponentHandler<T, S>) : Component<T, S>()
 
-internal class ValueImpl<T : Any, S : Any>(val handler: ValueHandler<T, S>) : Value<T, S>()
+internal class ValueImpl<T : Any>(val handler: ValueHandler<T, T>) : Value<T>()
+
 
 internal val <T : Any, S : Any> Component<T, S>.handler: ComponentHandler<T, S>
     get() = when (this) {
         is ComponentImpl<T, S> -> handler
     }
 
-internal val <T : Any, S : Any> Value<T, S>.handler: ValueHandler<T, S>
+internal val <T : Any> Value<T>.handler: ValueHandler<T, T>
     get() = when (this) {
-        is ValueImpl<T, S> -> handler
+        is ValueImpl<T> -> handler
     }
 
-internal val <T : Any, S : Any> Binding<T, S>.handler: BindingHandler<T, S, Provider<T>>
-    get() = when (this) {
-        is ComponentImpl<T, S> -> handler
-        is ValueImpl<T, S> -> handler
-    }
+
 
 internal val <T : Any, S : Any> Component<T, S>.provider: ComponentProvider<T, S> get() = handler.provider
-internal val <T : Any, S : Any> Value<T, S>.provider: ValueProvider<T> get() = handler.provider
-internal val <T : Any, S : Any> Binding<T, S>.provider: Provider<T> get() = handler.provider
+internal val <T : Any> Value<T>.provider: ValueProvider<T> get() = handler.provider
+

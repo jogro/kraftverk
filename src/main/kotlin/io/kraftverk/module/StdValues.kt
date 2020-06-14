@@ -13,7 +13,7 @@ fun AbstractModule.string(
     default: String? = null,
     secret: Boolean = false,
     block: ValueDeclaration.(String) -> String = { it }
-): ValueDelegateProvider<String, String> = value(
+): ValueDelegateProvider<String> = value(
     name,
     default,
     secret
@@ -24,7 +24,7 @@ fun AbstractModule.int(
     default: Int? = null,
     secret: Boolean = false,
     block: ValueDeclaration.(Int) -> Int = { it }
-): ValueDelegateProvider<Int, Int> = value(
+): ValueDelegateProvider<Int> = value(
     name,
     default,
     secret
@@ -35,7 +35,7 @@ fun AbstractModule.long(
     default: Long? = null,
     secret: Boolean = false,
     block: ValueDeclaration.(Long) -> Long = { it }
-): ValueDelegateProvider<Long, Long> = value(
+): ValueDelegateProvider<Long> = value(
     name,
     default,
     secret
@@ -46,7 +46,7 @@ fun AbstractModule.boolean(
     default: Boolean? = null,
     secret: Boolean = false,
     block: ValueDeclaration.(Boolean) -> Boolean = { it }
-): ValueDelegateProvider<Boolean, Boolean> = value(
+): ValueDelegateProvider<Boolean> = value(
     name,
     default,
     secret
@@ -57,7 +57,7 @@ fun AbstractModule.port(
     default: Int? = null,
     secret: Boolean = false,
     block: ValueDeclaration.(Int) -> Int = { it }
-): ValueDelegateProvider<Int, Int> =
+): ValueDelegateProvider<Int> =
     int(name, default, secret) { value ->
         block(
             when (value) {

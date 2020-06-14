@@ -6,6 +6,8 @@
 package io.kraftverk.internal.container
 
 import io.kraftverk.binding.Binding
+import io.kraftverk.binding.Component
+import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
 import io.kraftverk.binding.provider
 import io.kraftverk.declaration.ComponentDeclaration
@@ -57,19 +59,33 @@ internal fun Container.stop() =
 private val Container.providers: List<Provider<*>>
     get() {
         state.mustBe<State.Running> {
-            return bindings.map { it.provider }
+            return bindings.map {
+                when(it) {
+                    is Value<*> -> it.provider
+                    is Component<*, *> -> it.provider
+                }
+            }
         }
     }
 
 private fun throwValueNotFound(name: String): Nothing =
     throw ValueNotFoundException("Value '$name' was not found!", name)
 
-private fun List<Binding<*, *>>.destroy() {
+private fun List<Binding<*>>.destroy() {
     filter { binding ->
-        binding.provider.instanceId != null
+        when(binding) {
+            is Value<*> -> binding.provider.instanceId != null
+            is Component<*, *> -> binding.provider.instanceId != null
+        }
     }.sortedByDescending { binding ->
-        binding.provider.instanceId
+        when(binding) {
+            is Value<*> -> binding.provider.instanceId
+            is Component<*, *> -> binding.provider.instanceId
+        }
     }.forEach { binding ->
-        binding.handler.stop()
+        when(binding) {
+            is Value<*> -> binding.handler.stop()
+            is Component<*, *> -> binding.handler.stop()
+        }
     }
 }

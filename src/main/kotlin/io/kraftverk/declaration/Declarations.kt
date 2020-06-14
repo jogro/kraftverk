@@ -6,11 +6,14 @@
 package io.kraftverk.declaration
 
 import io.kraftverk.binding.Component
+import io.kraftverk.binding.ComponentImpl
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.provider
+import io.kraftverk.binding.ValueImpl
+//import io.kraftverk.binding.provider
 import io.kraftverk.common.BeanRef
 import io.kraftverk.common.ModuleRef
 import io.kraftverk.env.Environment
+import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.componentProviders
 import io.kraftverk.internal.container.valueProviders
@@ -21,7 +24,9 @@ import io.kraftverk.provider.get
 open class ValueDeclaration internal constructor(internal val container: Container) {
     val env: Environment get() = container.environment
     val valueProviders get() = container.valueProviders
-    operator fun <T : Any, S : Any> Value<T, S>.invoke(): T = provider.get()
+    operator fun <T : Any> Value<T>.invoke(): T = when (this) {
+        is ValueImpl<T> -> handler.provider.get()
+    }
 }
 
 class ValueSupplierDeclaration<T> internal constructor(
@@ -33,7 +38,9 @@ class ValueSupplierDeclaration<T> internal constructor(
 
 open class ComponentDeclaration internal constructor(container: Container) : ValueDeclaration(container) {
     val beanProviders get() = container.componentProviders
-    operator fun <T : Any, S : Any> Component<T, S>.invoke(): T = provider.get()
+    operator fun <T : Any, S : Any> Component<T, S>.invoke(): T = when (this) {
+        is ComponentImpl<T, S> -> handler.provider.get()
+    }
     operator fun <T : Any> BeanRef<T>.invoke(): T = instance()
     operator fun <M : AbstractModule> ModuleRef<M>.invoke(): M = instance()
 }

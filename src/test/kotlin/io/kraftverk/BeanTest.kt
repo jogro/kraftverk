@@ -424,7 +424,7 @@ class BeanTest : StringSpec() {
         // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
             val component0: Component<Widget, Widget> by bean { widget }
-            val binding0: Binding<Widget, Widget> = component0
+            val binding0: Binding<Widget> = component0
             val componentProvider: ComponentProvider<Widget, Widget> = component0.provider
             val provider: Provider<Widget> = componentProvider
         }
@@ -491,8 +491,7 @@ class BeanTest : StringSpec() {
 
 }
 
-
-private inline fun <reified T : Any> AbstractModule.bean(
+inline fun <reified T : Any> AbstractModule.bean(
     lazy: Boolean? = null,
     noinline block: ComponentDeclaration.() -> T
 ): ComponentDelegateProvider<T, T> = component(

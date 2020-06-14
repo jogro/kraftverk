@@ -11,6 +11,7 @@ import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
 import io.kraftverk.binding.handler
+//import io.kraftverk.binding.handler
 import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.internal.binding.ComponentHandler
@@ -27,14 +28,14 @@ internal fun <T : Any, S : Any> Container.createComponent(
     .let(::ComponentImpl)
     .also(this::register)
 
-internal fun <T : Any, S : Any> Container.createValue(
+internal fun <T : Any> Container.createValue(
     config: ValueDefinition<T>
-): ValueImpl<T, S> = config.let(::process)
-    .let { ValueHandler<T, S>(it) }
+): ValueImpl<T> = config.let(::process)
+    .let { ValueHandler<T, T>(it) }
     .let(::ValueImpl)
     .also(this::register)
 
-internal fun Container.register(binding: Binding<*, *>) =
+internal fun Container.register(binding: Binding<*>) =
     state.mustBe<State.Configurable> {
         bindings.add(binding)
     }
@@ -66,15 +67,18 @@ private fun <T : Any> Container.process(config: ValueDefinition<T>): ValueDefini
     return current
 }
 
-private fun List<Binding<*, *>>.start() {
+private fun List<Binding<*>>.start() {
     forEach { binding ->
-        binding.handler.start()
+        when(binding) {
+            is Value<*> -> binding.handler.start()
+            is Component<*, *> -> binding.handler.start()
+        }
     }
 }
 
-private fun List<Binding<*, *>>.initialize() {
+private fun List<Binding<*>>.initialize() {
     val valueNotFoundExceptions = mutableListOf<ValueNotFoundException>()
-    filterIsInstance<Value<*, *>>().forEach { value ->
+    filterIsInstance<Value<*>>().forEach { value ->
         try {
             value.handler.initialize()
         } catch (e: ValueNotFoundException) {

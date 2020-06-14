@@ -14,12 +14,12 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
-inline fun <reified T : Any, S : Any> AbstractModule.value(
+inline fun <reified T : Any> AbstractModule.value(
     name: String? = null,
     default: T? = null,
     secret: Boolean = false,
     noinline instance: ValueDeclaration.(Any) -> T
-): ValueDelegateProvider<T, S> =
+): ValueDelegateProvider<T> =
     value(
         name,
         T::class,
@@ -29,20 +29,20 @@ inline fun <reified T : Any, S : Any> AbstractModule.value(
     )
 
 @PublishedApi
-internal fun <T : Any, S : Any> AbstractModule.value(
+internal fun <T : Any> AbstractModule.value(
     name: String? = null,
     type: KClass<T>,
     default: T? = null,
     secret: Boolean = false,
     instance: ValueDeclaration.(Any) -> T
 
-): ValueDelegateProvider<T, S> =
-    object : ValueDelegateProvider<T, S> {
+): ValueDelegateProvider<T> =
+    object : ValueDelegateProvider<T> {
 
         override fun provideDelegate(
             thisRef: AbstractModule,
             property: KProperty<*>
-        ): ReadOnlyProperty<AbstractModule, Value<T, S>> {
+        ): ReadOnlyProperty<AbstractModule, Value<T>> {
             val valueName = qualifyName(name ?: property.name).toSpinalCase()
             logger.debug { "Creating value '$valueName'" }
             val config = ValueDefinition(
@@ -54,7 +54,7 @@ internal fun <T : Any, S : Any> AbstractModule.value(
                     container.createValueInstance(valueName, default, instance)
                 }
             )
-            return container.createValue<T, S>(config).let(::Delegate)
+            return container.createValue<T>(config).let(::Delegate)
         }
     }
 

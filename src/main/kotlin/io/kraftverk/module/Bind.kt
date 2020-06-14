@@ -56,7 +56,7 @@ fun <T : Any, S : Any> AbstractModule.bind(component: Component<T, S>) =
  * ```
  * The provided value will override any other values.
  */
-fun <T : Any, S : Any> AbstractModule.bind(value: Value<T, S>) =
+fun <T : Any> AbstractModule.bind(value: Value<T>) =
     ValueBinder(container, value)
 
 /**
@@ -76,9 +76,9 @@ class BeanBinder<T : Any, S : Any> internal constructor(
 /**
  * Helper class for the [Module.bind] method.
  */
-class ValueBinder<T : Any, S : Any> internal constructor(
+class ValueBinder<T : Any> internal constructor(
     private val container: Container,
-    private val value: Value<T, S>
+    private val value: Value<T>
 ) {
     infix fun to(block: ValueSupplierDeclaration<T>.() -> T) {
         value.handler.bind { proceed ->

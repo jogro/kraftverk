@@ -6,7 +6,11 @@
 package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
+import io.kraftverk.binding.Component
+import io.kraftverk.binding.Value
+import io.kraftverk.binding.handler
 import io.kraftverk.binding.provider
+import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.componentProviders
 import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders
@@ -35,9 +39,12 @@ val Managed<*>.valueProviders: List<ValueProvider<*>> get() = module.container.v
  * val someService = app { someService }
  * ```
  */
-operator fun <T : Any, S : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T, S>): T {
+operator fun <T : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T>): T {
     state.mustBe<Managed.State.Running<M>> {
-        return module.binding().provider.get()
+        return when(val b = module.binding()) {
+            is Value<T> -> b.handler.provider.get()
+            is Component<T, *> -> b.handler.provider.get()
+        }
     }
 }
 
@@ -47,7 +54,7 @@ operator fun <T : Any, S : Any, M : Module> Managed<M>.invoke(binding: M.() -> B
  * val someService by app.get { someService }
  * ```
  */
-fun <T : Any, S : Any, M : Module> Managed<M>.get(binding: M.() -> Binding<T, S>) =
+fun <T : Any, M : Module> Managed<M>.get(binding: M.() -> Binding<T>) =
     object : ReadOnlyProperty<Any?, T> {
         override fun getValue(thisRef: Any?, property: KProperty<*>): T {
             return invoke(binding)
