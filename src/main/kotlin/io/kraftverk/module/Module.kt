@@ -5,6 +5,7 @@
 
 package io.kraftverk.module
 
+import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
@@ -38,7 +39,8 @@ open class ChildModule<AM : AbstractModule> : AbstractModule() {
     override val namespace: String = scopedNamespace.get()
 
     internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T =
-        when(val b: Binding<T> = parent.binding()) {
+        when (val b: Binding<T> = parent.binding()) {
+            is Bean<T> -> b.provider.get()
             is Value<T> -> b.provider.get()
             is Component<T, *> -> b.provider.get()
         }

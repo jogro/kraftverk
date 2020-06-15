@@ -5,8 +5,8 @@
 
 package io.kraftverk.internal.binding
 
-import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.BindingDefinition
+import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.logging.createLogger

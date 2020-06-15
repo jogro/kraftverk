@@ -5,8 +5,8 @@
 
 package io.kraftverk.provider
 
-import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.BindingDefinition
+import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.internal.provider.Singleton
 

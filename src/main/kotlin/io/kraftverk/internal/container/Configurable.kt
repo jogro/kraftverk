@@ -5,13 +5,15 @@
 
 package io.kraftverk.internal.container
 
+// import io.kraftverk.binding.handler
+import io.kraftverk.binding.Bean
+import io.kraftverk.binding.BeanImpl
+import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Component
 import io.kraftverk.binding.ComponentImpl
-import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
 import io.kraftverk.binding.handler
-//import io.kraftverk.binding.handler
 import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.internal.binding.ComponentHandler
@@ -26,6 +28,13 @@ internal fun <T : Any, S : Any> Container.createComponent(
 ): ComponentImpl<T, S> = config.let(::process)
     .let { ComponentHandler<T, S>(it) }
     .let(::ComponentImpl)
+    .also(this::register)
+
+internal fun <T : Any> Container.createBean(
+    config: ComponentDefinition<T, T>
+): BeanImpl<T> = config.let(::process)
+    .let { ComponentHandler(it) }
+    .let(::BeanImpl)
     .also(this::register)
 
 internal fun <T : Any> Container.createValue(
@@ -69,7 +78,8 @@ private fun <T : Any> Container.process(config: ValueDefinition<T>): ValueDefini
 
 private fun List<Binding<*>>.start() {
     forEach { binding ->
-        when(binding) {
+        when (binding) {
+            is Bean<*> -> binding.handler.start()
             is Value<*> -> binding.handler.start()
             is Component<*, *> -> binding.handler.start()
         }
@@ -97,7 +107,13 @@ $errorMsg
                 """.trimIndent()
             throw IllegalStateException(exceptionMessage)
         }
-    filterIsInstance<Component<*, *>>().forEach { bean ->
-        bean.handler.initialize()
+    forEach { binding ->
+        when (binding) {
+            is ComponentImpl<*, *> -> binding.handler.initialize()
+            is Bean<*> -> binding.handler.initialize()
+            is Value<*> -> {
+                // Already initialized
+            }
+        }
     }
 }

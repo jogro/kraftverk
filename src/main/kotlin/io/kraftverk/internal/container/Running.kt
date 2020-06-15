@@ -5,6 +5,7 @@
 
 package io.kraftverk.internal.container
 
+import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
@@ -29,7 +30,7 @@ internal val Container.valueProviders: List<ValueProvider<*>>
     get() =
         providers.filterIsInstance<ValueProvider<*>>()
 
-internal fun <T : Any> Container.createBeanInstance(
+internal fun <T : Any> Container.createComponentInstance(
     instance: ComponentDeclaration.() -> T
 ): T {
     state.mustBe<State.Running>()
@@ -60,9 +61,10 @@ private val Container.providers: List<Provider<*>>
     get() {
         state.mustBe<State.Running> {
             return bindings.map {
-                when(it) {
+                when (it) {
                     is Value<*> -> it.provider
                     is Component<*, *> -> it.provider
+                    is Bean<*> -> it.provider
                 }
             }
         }
@@ -73,17 +75,20 @@ private fun throwValueNotFound(name: String): Nothing =
 
 private fun List<Binding<*>>.destroy() {
     filter { binding ->
-        when(binding) {
+        when (binding) {
+            is Bean<*> -> binding.provider.instanceId != null
             is Value<*> -> binding.provider.instanceId != null
             is Component<*, *> -> binding.provider.instanceId != null
         }
     }.sortedByDescending { binding ->
-        when(binding) {
+        when (binding) {
+            is Bean<*> -> binding.provider.instanceId
             is Value<*> -> binding.provider.instanceId
             is Component<*, *> -> binding.provider.instanceId
         }
     }.forEach { binding ->
-        when(binding) {
+        when (binding) {
+            is Bean<*> -> binding.handler.stop()
             is Value<*> -> binding.handler.stop()
             is Component<*, *> -> binding.handler.stop()
         }

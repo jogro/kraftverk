@@ -5,6 +5,7 @@
 
 package io.kraftverk.module
 
+import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
@@ -43,8 +44,12 @@ import io.kraftverk.internal.container.Container
  * }
  * ```
  */
+
 fun <T : Any, S : Any> AbstractModule.bind(component: Component<T, S>) =
-    BeanBinder(container, component)
+    ComponentBinder(container, component)
+
+fun <T : Any> AbstractModule.bind(bean: Bean<T>) =
+    BeanBinder(container, bean)
 
 /**
  * Binds a configured [Value] to a new value, for example:
@@ -62,9 +67,23 @@ fun <T : Any> AbstractModule.bind(value: Value<T>) =
 /**
  * Helper class for the [Module.bind] method.
  */
-class BeanBinder<T : Any, S : Any> internal constructor(
+class ComponentBinder<T : Any, S : Any> internal constructor(
     private val container: Container,
     private val component: Component<T, S>
+) {
+    infix fun to(block: ComponentSupplierInterceptorDeclaration<T>.() -> T) {
+        component.handler.bind { proceed ->
+            ComponentSupplierInterceptorDeclaration(container, proceed).block()
+        }
+    }
+}
+
+/**
+ * Helper class for the [Module.bind] method.
+ */
+class BeanBinder<T : Any> internal constructor(
+    private val container: Container,
+    private val component: Bean<T>
 ) {
     infix fun to(block: ComponentSupplierInterceptorDeclaration<T>.() -> T) {
         component.handler.bind { proceed ->

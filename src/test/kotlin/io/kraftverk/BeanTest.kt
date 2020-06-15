@@ -12,6 +12,7 @@ import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
+import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Component
 import io.kraftverk.binding.provider
@@ -26,11 +27,9 @@ import io.kraftverk.managed.invoke
 import io.kraftverk.managed.registerProcessor
 import io.kraftverk.managed.start
 import io.kraftverk.managed.stop
-import io.kraftverk.module.AbstractModule
-import io.kraftverk.module.ComponentDelegateProvider
 import io.kraftverk.module.Module
+import io.kraftverk.module.bean
 import io.kraftverk.module.bind
-import io.kraftverk.module.component
 import io.kraftverk.module.shape
 import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
@@ -423,7 +422,7 @@ class BeanTest : StringSpec() {
 
         // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
-            val component0: Component<Widget, Widget> by bean { widget }
+            val component0: Bean<Widget> by bean { widget }
             val binding0: Binding<Widget> = component0
             val componentProvider: ComponentProvider<Widget, Widget> = component0.provider
             val provider: Provider<Widget> = componentProvider
@@ -455,7 +454,7 @@ class BeanTest : StringSpec() {
         fun createWidget(parent: Widget): Widget
     }
 
-    private inline fun <M : Module, reified T : Any, S : Any> Managed<M>.mock(noinline component: M.() -> Component<T, S>):
+    private inline fun <M : Module, reified T : Any, S : Any> Managed<M>.mockC(noinline component: M.() -> Component<T, S>):
             ReadOnlyProperty<Any?, T> {
         config {
             bind(component()) to { mockk() }
@@ -463,7 +462,23 @@ class BeanTest : StringSpec() {
         return get(component)
     }
 
-    private inline fun <M : Module, reified T : Any, S : Any> Managed<M>.spy(noinline component: M.() -> Component<T, S>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline component: M.() -> Bean<T>):
+            ReadOnlyProperty<Any?, T> {
+        config {
+            bind(component()) to { mockk() }
+        }
+        return get(component)
+    }
+
+    private inline fun <M : Module, reified T : Any, S : Any> Managed<M>.spyC(noinline component: M.() -> Component<T, S>):
+            ReadOnlyProperty<Any?, T> {
+        config {
+            bind(component()) to { spyk(proceed()) }
+        }
+        return get(component)
+    }
+
+    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline component: M.() -> Bean<T>):
             ReadOnlyProperty<Any?, T> {
         config {
             bind(component()) to { spyk(proceed()) }
@@ -488,16 +503,4 @@ class BeanTest : StringSpec() {
         }
         registerProcessor(processor)
     }
-
 }
-
-inline fun <reified T : Any> AbstractModule.bean(
-    lazy: Boolean? = null,
-    noinline block: ComponentDeclaration.() -> T
-): ComponentDelegateProvider<T, T> = component(
-    lazy = lazy,
-    instance = block,
-    onShape = { instance, shape ->
-        shape(instance)
-    }
-)

@@ -5,12 +5,10 @@
 
 package io.kraftverk.binding
 
-import io.kraftverk.internal.binding.BindingHandler
 import io.kraftverk.internal.binding.ComponentHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.provider
 import io.kraftverk.provider.ComponentProvider
-import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 
 /**
@@ -109,6 +107,12 @@ sealed class Component<out T : Any, out S : Any> : Binding<T>() {
     companion object
 }
 
+sealed class Bean<out T : Any> : Binding<T>() {
+    companion object
+}
+
+internal class BeanImpl<T : Any>(val handler: ComponentHandler<T, T>) : Bean<T>()
+
 /**
  * A Value is a specialized [Binding] that can be declared within a module[io.kraftverk.module.Module]
  * managed by Kraftverk.
@@ -172,7 +176,6 @@ internal class ComponentImpl<T : Any, S : Any>(val handler: ComponentHandler<T, 
 
 internal class ValueImpl<T : Any>(val handler: ValueHandler<T, T>) : Value<T>()
 
-
 internal val <T : Any, S : Any> Component<T, S>.handler: ComponentHandler<T, S>
     get() = when (this) {
         is ComponentImpl<T, S> -> handler
@@ -183,8 +186,11 @@ internal val <T : Any> Value<T>.handler: ValueHandler<T, T>
         is ValueImpl<T> -> handler
     }
 
-
+internal val <T : Any> Bean<T>.handler: ComponentHandler<T, T>
+    get() = when (this) {
+        is BeanImpl<T> -> handler
+    }
 
 internal val <T : Any, S : Any> Component<T, S>.provider: ComponentProvider<T, S> get() = handler.provider
 internal val <T : Any> Value<T>.provider: ValueProvider<T> get() = handler.provider
-
+internal val <T : Any> Bean<T>.provider: ComponentProvider<T, T> get() = handler.provider

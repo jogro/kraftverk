@@ -20,6 +20,7 @@ import io.kraftverk.managed.invoke
 import io.kraftverk.managed.start
 import io.kraftverk.module.ChildModule
 import io.kraftverk.module.Module
+import io.kraftverk.module.bean
 import io.kraftverk.module.bind
 import io.kraftverk.module.import
 import io.kraftverk.module.int

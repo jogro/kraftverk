@@ -5,7 +5,6 @@
 
 package io.kraftverk.common
 
-import io.kraftverk.declaration.ComponentShapingDeclaration
 import io.kraftverk.internal.misc.Supplier
 import kotlin.reflect.KClass
 
