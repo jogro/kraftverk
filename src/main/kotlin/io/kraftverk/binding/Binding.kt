@@ -12,12 +12,12 @@ import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.ValueProvider
 
 /**
- * A Binding is a [Component] or [Value] that is declared within a Kraftverk managed module.
+ * A Binding is a [XBean] or [Value] that is declared within a Kraftverk managed module.
  *
  * Common for all Bindings is that they serve as factories that produce injectable singleton instances
  * of type [T].
  *
- * A Binding can be obtained by calling for example the bean[io.kraftverk.module.component] declaration function:
+ * A Binding can be obtained by calling for example the bean[io.kraftverk.module.xbean] declaration function:
  *
  * '''Kotlin
  * class AppModule : Module() {
@@ -42,7 +42,7 @@ sealed class Binding<out T : Any>
  * The primary purpose of a Bean is to serve as a configurable factory that produces injectable singleton
  * instances of type [T].
  *
- * A Bean is obtained by calling the bean[io.kraftverk.module.component] declaration function like this:
+ * A Bean is obtained by calling the bean[io.kraftverk.module.xbean] declaration function like this:
  *
  * '''Kotlin
  * class AppModule : Module() {
@@ -68,7 +68,7 @@ sealed class Binding<out T : Any>
  *
  * Note that injection occurs by syntactically invoking the Bean as a function (operator invoke). Also note that
  * injection only is available in the context of a BeanDeclaration[io.kraftverk.declaration.ComponentDeclaration]
- * that is provided by the bean[io.kraftverk.module.component] function.
+ * that is provided by the bean[io.kraftverk.module.xbean] function.
  *
  * '''Kotlin
  * class AppModule : Module() {
@@ -103,11 +103,15 @@ sealed class Binding<out T : Any>
  * '''
  *
  */
-sealed class Component<out T : Any, out S : Any> : Binding<T>() {
+sealed class Component<out T : Any> : Binding<T>() {
     companion object
 }
 
-sealed class Bean<out T : Any> : Binding<T>() {
+sealed class Bean<out T : Any> : Component<T>() {
+    companion object
+}
+
+sealed class XBean<out T : Any, out S : Any> : Component<T>() {
     companion object
 }
 
@@ -172,13 +176,13 @@ sealed class Value<out T : Any> : Binding<T>() {
     companion object
 }
 
-internal class ComponentImpl<T : Any, S : Any>(val handler: ComponentHandler<T, S>) : Component<T, S>()
+internal class XBeanImpl<T : Any, S : Any>(val handler: ComponentHandler<T, S>) : XBean<T, S>()
 
 internal class ValueImpl<T : Any>(val handler: ValueHandler<T, T>) : Value<T>()
 
-internal val <T : Any, S : Any> Component<T, S>.handler: ComponentHandler<T, S>
+internal val <T : Any, S : Any> XBean<T, S>.handler: ComponentHandler<T, S>
     get() = when (this) {
-        is ComponentImpl<T, S> -> handler
+        is XBeanImpl<T, S> -> handler
     }
 
 internal val <T : Any> Value<T>.handler: ValueHandler<T, T>
@@ -191,6 +195,12 @@ internal val <T : Any> Bean<T>.handler: ComponentHandler<T, T>
         is BeanImpl<T> -> handler
     }
 
-internal val <T : Any, S : Any> Component<T, S>.provider: ComponentProvider<T, S> get() = handler.provider
+internal val <T : Any> Component<T>.handler: ComponentHandler<T, *>
+    get() = when (this) {
+        is BeanImpl<T> -> handler
+        is XBeanImpl<T, *> -> handler
+    }
+
 internal val <T : Any> Value<T>.provider: ValueProvider<T> get() = handler.provider
 internal val <T : Any> Bean<T>.provider: ComponentProvider<T, T> get() = handler.provider
+internal val <T : Any, S : Any> XBean<T, S>.provider: ComponentProvider<T, S> get() = handler.provider

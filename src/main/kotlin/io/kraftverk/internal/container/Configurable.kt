@@ -9,10 +9,10 @@ package io.kraftverk.internal.container
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.BeanImpl
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
-import io.kraftverk.binding.ComponentImpl
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
+import io.kraftverk.binding.XBean
+import io.kraftverk.binding.XBeanImpl
 import io.kraftverk.binding.handler
 import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
@@ -25,9 +25,9 @@ import io.kraftverk.internal.misc.mustBe
 
 internal fun <T : Any, S : Any> Container.createComponent(
     config: ComponentDefinition<T, S>
-): ComponentImpl<T, S> = config.let(::process)
+): XBeanImpl<T, S> = config.let(::process)
     .let { ComponentHandler<T, S>(it) }
-    .let(::ComponentImpl)
+    .let(::XBeanImpl)
     .also(this::register)
 
 internal fun <T : Any> Container.createBean(
@@ -81,7 +81,7 @@ private fun List<Binding<*>>.start() {
         when (binding) {
             is Bean<*> -> binding.handler.start()
             is Value<*> -> binding.handler.start()
-            is Component<*, *> -> binding.handler.start()
+            is XBean<*, *> -> binding.handler.start()
         }
     }
 }
@@ -109,7 +109,7 @@ $errorMsg
         }
     forEach { binding ->
         when (binding) {
-            is ComponentImpl<*, *> -> binding.handler.initialize()
+            is XBeanImpl<*, *> -> binding.handler.initialize()
             is Bean<*> -> binding.handler.initialize()
             is Value<*> -> {
                 // Already initialized

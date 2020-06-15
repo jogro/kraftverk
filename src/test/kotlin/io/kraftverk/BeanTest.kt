@@ -50,48 +50,48 @@ import kotlin.reflect.full.isSubclassOf
 
 class BeanTest : StringSpec() {
 
-    private val widget = mockk<Widget>(relaxed = true)
+    private val gadget = mockk<Gadget>(relaxed = true)
 
-    private val childWidget = mockk<Widget>(relaxed = true)
+    private val childGadget = mockk<Gadget>(relaxed = true)
 
-    private val widgetFactory = mockk<WidgetFactory>()
+    private val gadgetFactory = mockk<GadgetFactory>()
 
     inner class AppModule(private val lazy: Boolean? = null) : Module() {
 
-        val childWidget by bean(lazy = this.lazy) {
-            widgetFactory.createWidget(widget())
+        val childGadget by bean(lazy = this.lazy) {
+            gadgetFactory.createGadget(gadget())
         }
 
-        val widget by bean(lazy = this.lazy) {
-            widgetFactory.createWidget()
+        val gadget by bean(lazy = this.lazy) {
+            gadgetFactory.createGadget()
         }
 
         init {
-            shape(widget) { w ->
+            shape(gadget) { w ->
                 lifecycle {
                     onCreate { w.start() }
                     onDestroy { w.stop() }
                 }
             }
-            shape(childWidget) { cw ->
+            shape(childGadget) { cw ->
                 lifecycle {
                     onCreate { cw.start() }
                     onDestroy { cw.stop() }
                 }
             }
             /*
-            onCreate(childWidget) { it.start() }
-            onCreate(widget) { it.start() }
-            onDestroy(widget) { it.stop() }
-            onDestroy(childWidget) { it.stop() }
+            onCreate(childGadget) { it.start() }
+            onCreate(gadget) { it.start() }
+            onDestroy(gadget) { it.stop() }
+            onDestroy(childGadget) { it.stop() }
             */
         }
     }
 
     override fun beforeTest(testCase: TestCase) {
         clearAllMocks()
-        every { widgetFactory.createWidget() } returns widget
-        every { widgetFactory.createWidget(widget) } returns childWidget
+        every { gadgetFactory.createGadget() } returns gadget
+        every { gadgetFactory.createGadget(gadget) } returns childGadget
     }
 
     init {
@@ -122,41 +122,41 @@ class BeanTest : StringSpec() {
 
         "Extracting a bean returns expected value" {
             val app = Kraftverk.start { AppModule() }
-            app { widget } shouldBe widget
-            app { childWidget } shouldBe childWidget
+            app { gadget } shouldBe gadget
+            app { childGadget } shouldBe childGadget
         }
 
         "Beans provided by 'get' should not be instantiated until referenced" {
             val app = Kraftverk.manage { AppModule() }
 
-            val w by app.get { widget }
-            val c by app.get { childWidget }
+            val w by app.get { gadget }
+            val c by app.get { childGadget }
 
             verifyThatNoBeansAreInstantiated()
 
             app.start()
 
-            w shouldBe widget
-            c shouldBe childWidget
+            w shouldBe gadget
+            c shouldBe childGadget
         }
 
         "Extracting a bean does not propagate to other beans if not necessary" {
             val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
-            app { widget }
+            app { gadget }
             verifySequence {
-                widgetFactory.createWidget()
-                widget.start()
+                gadgetFactory.createGadget()
+                gadget.start()
             }
         }
 
         "Customize can be used to replace a bean and inhibit its onCreate" {
             val app = Kraftverk.manage(lazy = true) { AppModule() }
-            val replacement = mockk<Widget>(relaxed = true)
+            val replacement = mockk<Gadget>(relaxed = true)
             app.config {
-                bind(widget) to { replacement }
-                shape(widget) {
+                bind(gadget) to { replacement }
+                shape(gadget) {
                     lifecycle {
                         onCreate { }
                     }
@@ -164,22 +164,22 @@ class BeanTest : StringSpec() {
             }
             app.start()
             verifySequence {
-                widgetFactory wasNot Called
+                gadgetFactory wasNot Called
                 replacement wasNot Called
             }
-            app { widget } shouldBe replacement
+            app { gadget } shouldBe replacement
         }
 
         "Extracting a bean propagates to other beans if necessary" {
             val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
-            app { childWidget }
+            app { childGadget }
             verifySequence {
-                widgetFactory.createWidget()
-                widget.start()
-                widgetFactory.createWidget(widget)
-                childWidget.start()
+                gadgetFactory.createGadget()
+                gadget.start()
+                gadgetFactory.createGadget(gadget)
+                childGadget.start()
             }
         }
 
@@ -188,111 +188,111 @@ class BeanTest : StringSpec() {
                 AppModule()
             }
             repeat(3) {
-                app { widget }
+                app { gadget }
                 Unit
             }
             verifySequence {
-                widgetFactory.createWidget()
-                widget.start()
+                gadgetFactory.createGadget()
+                gadget.start()
             }
         }
 
         "bean on create invokes 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                shape(widget) {
+                shape(gadget) {
                     lifecycle {
                         onCreate { proceed() }
                     }
                 }
             }
             verifySequence {
-                widget.start()
+                gadget.start()
             }
         }
 
         "bean on create inhibits 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                // onCreate(widget) { }
-                shape(widget) {
+                // onCreate(gadget) { }
+                shape(gadget) {
                     lifecycle {
                         onCreate { }
                     }
                 }
             }
             verify(exactly = 1) {
-                widgetFactory.createWidget()
-                widget wasNot Called
+                gadgetFactory.createGadget()
+                gadget wasNot Called
             }
         }
 
         "bean on destroy invokes 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                shape(widget) {
+                shape(gadget) {
                     lifecycle {
                         onDestroy { proceed() }
                     }
                 }
-                shape(childWidget) {
+                shape(childGadget) {
                     lifecycle {
                         onDestroy { proceed() }
                     }
                 }
-                // onDestroy(widget) { proceed() }
-                // onDestroy(childWidget) { proceed() }
+                // onDestroy(gadget) { proceed() }
+                // onDestroy(childGadget) { proceed() }
             }
-            clearMocks(widget, childWidget)
+            clearMocks(gadget, childGadget)
             app.stop()
             verifySequence {
-                childWidget.stop()
-                widget.stop()
+                childGadget.stop()
+                gadget.stop()
             }
         }
 
         "bean on destroy inhibits 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                shape(widget) {
+                shape(gadget) {
                     lifecycle {
                         onDestroy { }
                     }
                 }
-                shape(childWidget) {
+                shape(childGadget) {
                     lifecycle {
                         onDestroy { }
                     }
                 }
-                // onDestroy(widget) { }
-                // onDestroy(childWidget) { }
+                // onDestroy(gadget) { }
+                // onDestroy(childGadget) { }
             }
-            clearMocks(widget, childWidget)
+            clearMocks(gadget, childGadget)
             app.stop()
             verifySequence {
-                childWidget wasNot Called
-                widget wasNot Called
+                childGadget wasNot Called
+                gadget wasNot Called
             }
         }
 
         "Binding a bean does a proper replace 1" {
-            val replacement = mockk<Widget>(relaxed = true)
+            val replacement = mockk<Gadget>(relaxed = true)
             val app = Kraftverk.manage(lazy = true) { AppModule() }
             app.start {
-                bind(widget) to { replacement }
+                bind(gadget) to { replacement }
             }
-            app { widget } shouldBe replacement
+            app { gadget } shouldBe replacement
 
             verifyThatNoBeansAreInstantiated()
         }
 
         "Binding a bean does a proper replace 2" {
-            val replacement = mockk<Widget>(relaxed = true)
+            val replacement = mockk<Gadget>(relaxed = true)
             val app = Kraftverk.manage(lazy = true) { AppModule() }
             app.start {
-                bind(childWidget) to { replacement }
+                bind(childGadget) to { replacement }
             }
-            app { childWidget } shouldBe replacement
+            app { childGadget } shouldBe replacement
 
             verifyThatNoBeansAreInstantiated()
         }
@@ -422,68 +422,52 @@ class BeanTest : StringSpec() {
 
         // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
-            val component0: Bean<Widget> by bean { widget }
-            val binding0: Binding<Widget> = component0
-            val componentProvider: ComponentProvider<Widget, Widget> = component0.provider
-            val provider: Provider<Widget> = componentProvider
+            val component0: Bean<Gadget> by bean { gadget }
+            val binding0: Binding<Gadget> = component0
+            val componentProvider: ComponentProvider<Gadget, Gadget> = component0.provider
+            val provider: Provider<Gadget> = componentProvider
         }
     }
 
     private fun verifyThatNoBeansAreInstantiated() {
         verify {
-            widgetFactory wasNot Called
+            gadgetFactory wasNot Called
         }
     }
 
     private fun verifyThatAllBeansAreInstantiated() {
         verifySequence {
-            widgetFactory.createWidget()
-            widget.start()
-            widgetFactory.createWidget(widget)
-            childWidget.start()
+            gadgetFactory.createGadget()
+            gadget.start()
+            gadgetFactory.createGadget(gadget)
+            childGadget.start()
         }
     }
 
-    interface Widget {
+    interface Gadget {
         fun start()
         fun stop()
     }
 
-    interface WidgetFactory {
-        fun createWidget(): Widget
-        fun createWidget(parent: Widget): Widget
+    interface GadgetFactory {
+        fun createGadget(): Gadget
+        fun createGadget(parent: Gadget): Gadget
     }
 
-    private inline fun <M : Module, reified T : Any, S : Any> Managed<M>.mockC(noinline component: M.() -> Component<T, S>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline bean: M.() -> Component<T>):
             ReadOnlyProperty<Any?, T> {
         config {
-            bind(component()) to { mockk() }
+            bind(bean()) to { mockk() }
         }
-        return get(component)
+        return get(bean)
     }
 
-    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline component: M.() -> Bean<T>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline bean: M.() -> Component<T>):
             ReadOnlyProperty<Any?, T> {
         config {
-            bind(component()) to { mockk() }
+            bind(bean()) to { spyk(proceed()) }
         }
-        return get(component)
-    }
-
-    private inline fun <M : Module, reified T : Any, S : Any> Managed<M>.spyC(noinline component: M.() -> Component<T, S>):
-            ReadOnlyProperty<Any?, T> {
-        config {
-            bind(component()) to { spyk(proceed()) }
-        }
-        return get(component)
-    }
-
-    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline component: M.() -> Bean<T>):
-            ReadOnlyProperty<Any?, T> {
-        config {
-            bind(component()) to { spyk(proceed()) }
-        }
-        return get(component)
+        return get(bean)
     }
 
     private inline fun <reified T : Any> ComponentDeclaration.beans(): List<T> =

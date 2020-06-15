@@ -7,10 +7,9 @@ package io.kraftverk.managed
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
+import io.kraftverk.binding.XBean
 import io.kraftverk.binding.handler
-import io.kraftverk.binding.provider
 import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.componentProviders
 import io.kraftverk.internal.container.stop
@@ -45,7 +44,7 @@ operator fun <T : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T>
         return when (val b = module.binding()) {
             is Bean<T> -> b.handler.provider.get()
             is Value<T> -> b.handler.provider.get()
-            is Component<T, *> -> b.handler.provider.get()
+            is XBean<T, *> -> b.handler.provider.get()
         }
     }
 }

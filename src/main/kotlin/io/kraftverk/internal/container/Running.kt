@@ -7,8 +7,8 @@ package io.kraftverk.internal.container
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
+import io.kraftverk.binding.XBean
 import io.kraftverk.binding.handler
 import io.kraftverk.binding.provider
 import io.kraftverk.declaration.ComponentDeclaration
@@ -63,7 +63,7 @@ private val Container.providers: List<Provider<*>>
             return bindings.map {
                 when (it) {
                     is Value<*> -> it.provider
-                    is Component<*, *> -> it.provider
+                    is XBean<*, *> -> it.provider
                     is Bean<*> -> it.provider
                 }
             }
@@ -78,19 +78,19 @@ private fun List<Binding<*>>.destroy() {
         when (binding) {
             is Bean<*> -> binding.provider.instanceId != null
             is Value<*> -> binding.provider.instanceId != null
-            is Component<*, *> -> binding.provider.instanceId != null
+            is XBean<*, *> -> binding.provider.instanceId != null
         }
     }.sortedByDescending { binding ->
         when (binding) {
             is Bean<*> -> binding.provider.instanceId
             is Value<*> -> binding.provider.instanceId
-            is Component<*, *> -> binding.provider.instanceId
+            is XBean<*, *> -> binding.provider.instanceId
         }
     }.forEach { binding ->
         when (binding) {
             is Bean<*> -> binding.handler.stop()
             is Value<*> -> binding.handler.stop()
-            is Component<*, *> -> binding.handler.stop()
+            is XBean<*, *> -> binding.handler.stop()
         }
     }
 }

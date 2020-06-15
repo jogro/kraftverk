@@ -6,10 +6,10 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.Component
+import io.kraftverk.binding.XBean
 import io.kraftverk.common.BeanRef
-import io.kraftverk.common.ComponentRef
 import io.kraftverk.common.ModuleRef
+import io.kraftverk.common.XBeanRef
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -41,14 +41,14 @@ fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Bean<T>> CM.ref(
     }
 }
 
-fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, S : Any, B : Component<T, S>> CM.refC(
+fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, S : Any, B : XBean<T, S>> CM.refX(
     bean: AM.() -> B
-): ComponentRefDelegateProvider<T> = object : ComponentRefDelegateProvider<T> {
+): XBeanRefDelegateProvider<T> = object : XBeanRefDelegateProvider<T> {
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, ComponentRef<T>> {
-        val ref = ComponentRef { getInstance(bean) }
+    ): ReadOnlyProperty<AbstractModule, XBeanRef<T>> {
+        val ref = XBeanRef { getInstance(bean) }
         return Delegate(ref)
     }
 }

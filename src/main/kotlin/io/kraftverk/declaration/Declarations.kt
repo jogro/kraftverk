@@ -7,14 +7,13 @@ package io.kraftverk.declaration
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.BeanImpl
-import io.kraftverk.binding.Component
-import io.kraftverk.binding.ComponentImpl
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
-// import io.kraftverk.binding.provider
+import io.kraftverk.binding.XBean
+import io.kraftverk.binding.XBeanImpl
 import io.kraftverk.common.BeanRef
-import io.kraftverk.common.ComponentRef
 import io.kraftverk.common.ModuleRef
+import io.kraftverk.common.XBeanRef
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.Container
@@ -41,14 +40,14 @@ class ValueSupplierDeclaration<T> internal constructor(
 
 open class ComponentDeclaration internal constructor(container: Container) : ValueDeclaration(container) {
     val beanProviders get() = container.componentProviders
-    operator fun <T : Any, S : Any> Component<T, S>.invoke(): T = when (this) {
-        is ComponentImpl<T, S> -> handler.provider.get()
+    operator fun <T : Any, S : Any> XBean<T, S>.invoke(): T = when (this) {
+        is XBeanImpl<T, S> -> handler.provider.get()
     }
     operator fun <T : Any> Bean<T>.invoke(): T = when (this) {
         is BeanImpl<T> -> handler.provider.get()
     }
     operator fun <T : Any> BeanRef<T>.invoke(): T = instance()
-    operator fun <T : Any> ComponentRef<T>.invoke(): T = instance()
+    operator fun <T : Any> XBeanRef<T>.invoke(): T = instance()
     operator fun <M : AbstractModule> ModuleRef<M>.invoke(): M = instance()
 }
 
