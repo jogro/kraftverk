@@ -14,13 +14,12 @@ import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
 import io.kraftverk.binding.provider
+import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.BeanProcessor
-import io.kraftverk.common.ComponentDefinition
-import io.kraftverk.declaration.ComponentDeclaration
+import io.kraftverk.declaration.BeanDeclaration
 import io.kraftverk.managed.Managed
-import io.kraftverk.managed.componentProviders
+import io.kraftverk.managed.beanProviders
 import io.kraftverk.managed.config
 import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
@@ -31,7 +30,7 @@ import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
 import io.kraftverk.module.shape
-import io.kraftverk.provider.ComponentProvider
+import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.definition
 import io.kraftverk.provider.get
@@ -363,7 +362,7 @@ class BeanTest : StringSpec() {
 
         "Trying out bean providers 2" {
             val module = Kraftverk.start { Mod1() }
-            val configs = module.componentProviders.map { it.definition }
+            val configs = module.beanProviders.map { it.definition }
             configs shouldHaveSize 3
             with(configs[0]) {
                 name shouldBe "b0"
@@ -422,10 +421,10 @@ class BeanTest : StringSpec() {
 
         // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
-            val component0: Bean<Gadget> by bean { gadget }
-            val binding0: Binding<Gadget> = component0
-            val componentProvider: ComponentProvider<Gadget, Gadget> = component0.provider
-            val provider: Provider<Gadget> = componentProvider
+            val bean0: Bean<Gadget, Gadget> by bean { gadget }
+            val binding0: Binding<Gadget> = bean0
+            val beanProvider: BeanProvider<Gadget, Gadget> = bean0.provider
+            val provider: Provider<Gadget> = beanProvider
         }
     }
 
@@ -454,7 +453,7 @@ class BeanTest : StringSpec() {
         fun createGadget(parent: Gadget): Gadget
     }
 
-    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline bean: M.() -> Component<T>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline bean: M.() -> Bean<T, *>):
             ReadOnlyProperty<Any?, T> {
         config {
             bind(bean()) to { mockk() }
@@ -462,7 +461,7 @@ class BeanTest : StringSpec() {
         return get(bean)
     }
 
-    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline bean: M.() -> Component<T>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline bean: M.() -> Bean<T, *>):
             ReadOnlyProperty<Any?, T> {
         config {
             bind(bean()) to { spyk(proceed()) }
@@ -470,20 +469,20 @@ class BeanTest : StringSpec() {
         return get(bean)
     }
 
-    private inline fun <reified T : Any> ComponentDeclaration.beans(): List<T> =
+    private inline fun <reified T : Any> BeanDeclaration.beans(): List<T> =
         beanProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
 
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T : Any> Managed<*>.registerBeanProcessor(crossinline block: (T) -> T) {
         val processor = object : BeanProcessor {
-            override fun <A : Any, B : Any> process(component: ComponentDefinition<A, B>) =
-                if (component.type.isSubclassOf(T::class)) {
-                    component.copy {
-                        val t: T = component.instance() as T
+            override fun <A : Any, B : Any> process(bean: BeanDefinition<A, B>) =
+                if (bean.type.isSubclassOf(T::class)) {
+                    bean.copy {
+                        val t: T = bean.instance() as T
                         val a: T = block(t)
                         a as A
                     }
-                } else component
+                } else bean
         }
         registerProcessor(processor)
     }

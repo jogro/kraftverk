@@ -26,7 +26,7 @@ data class ValueDefinition<T : Any>(
     override val instance: Supplier<T>
 ) : BindingDefinition<T>
 
-data class ComponentDefinition<T : Any, S : Any>(
+data class BeanDefinition<T : Any, S : Any>(
     override val name: String,
     override val type: KClass<T>,
     override val lazy: Boolean,
@@ -35,7 +35,7 @@ data class ComponentDefinition<T : Any, S : Any>(
 ) : BindingDefinition<T>
 
 interface BeanProcessor {
-    fun <T : Any, S : Any> process(component: ComponentDefinition<T, S>): ComponentDefinition<T, S>
+    fun <T : Any, S : Any> process(bean: BeanDefinition<T, S>): BeanDefinition<T, S>
 }
 
 interface ValueProcessor {

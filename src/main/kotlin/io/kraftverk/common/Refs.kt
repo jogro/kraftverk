@@ -8,5 +8,4 @@ package io.kraftverk.common
 import io.kraftverk.module.AbstractModule
 
 class BeanRef<out T : Any>(internal val instance: () -> T)
-class XBeanRef<out T : Any>(internal val instance: () -> T)
 class ModuleRef<out M : AbstractModule>(internal val instance: () -> M)

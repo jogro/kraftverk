@@ -24,7 +24,7 @@ internal val <T : Any, S : Any, P : Provider<T>> BindingHandler<T, S, P>.provide
         }
     }
 
-internal fun ComponentHandler<*, *>.stop() =
+internal fun BeanHandler<*, *>.stop() =
     state.mightBe<State.Running<*, *>> {
         provider.destroy()
         state = State.Destroyed

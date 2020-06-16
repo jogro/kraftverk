@@ -5,17 +5,16 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.binding.Component
+import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.XBean
 import io.kraftverk.binding.handler
-import io.kraftverk.declaration.ComponentSupplierInterceptorDeclaration
+import io.kraftverk.declaration.BeanSupplierInterceptorDeclaration
 import io.kraftverk.declaration.ValueSupplierDeclaration
 import io.kraftverk.internal.binding.bind
 import io.kraftverk.internal.container.Container
 
 /**
- * The [bind] method binds an existing [XBean] to a new implementation.
+ * The [bind] method binds an existing [Bean] to a new implementation.
  *
  * It is useful when doing tests, for example when mocking:
  * ```kotlin
@@ -45,8 +44,8 @@ import io.kraftverk.internal.container.Container
  * ```
  */
 
-fun <T : Any> AbstractModule.bind(component: Component<T>) =
-    ComponentBinder(container, component)
+fun <T : Any, S : Any> AbstractModule.bind(bean: Bean<T, S>) =
+    BeanBinder(container, bean)
 
 /**
  * Binds a configured [Value] to a new value, for example:
@@ -64,13 +63,13 @@ fun <T : Any> AbstractModule.bind(value: Value<T>) =
 /**
  * Helper class for the [Module.bind] method.
  */
-class ComponentBinder<T : Any> internal constructor(
+class BeanBinder<T : Any> internal constructor(
     private val container: Container,
-    private val component: Component<T>
+    private val bean: Bean<T, *>
 ) {
-    infix fun to(block: ComponentSupplierInterceptorDeclaration<T>.() -> T) {
-        component.handler.bind { proceed ->
-            ComponentSupplierInterceptorDeclaration(container, proceed).block()
+    infix fun to(block: BeanSupplierInterceptorDeclaration<T>.() -> T) {
+        bean.handler.bind { proceed ->
+            BeanSupplierInterceptorDeclaration(container, proceed).block()
         }
     }
 }

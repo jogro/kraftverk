@@ -5,19 +5,19 @@
 
 package io.kraftverk.binding
 
-import io.kraftverk.internal.binding.ComponentHandler
+import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.provider
-import io.kraftverk.provider.ComponentProvider
+import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.ValueProvider
 
 /**
- * A Binding is a [XBean] or [Value] that is declared within a Kraftverk managed module.
+ * A Binding is a [Bean] or [Value] that is declared within a Kraftverk managed module.
  *
  * Common for all Bindings is that they serve as factories that produce injectable singleton instances
  * of type [T].
  *
- * A Binding can be obtained by calling for example the bean[io.kraftverk.module.xbean] declaration function:
+ * A Binding can be obtained by calling for example the bean[io.kraftverk.module.bean] declaration function:
  *
  * '''Kotlin
  * class AppModule : Module() {
@@ -42,7 +42,7 @@ sealed class Binding<out T : Any>
  * The primary purpose of a Bean is to serve as a configurable factory that produces injectable singleton
  * instances of type [T].
  *
- * A Bean is obtained by calling the bean[io.kraftverk.module.xbean] declaration function like this:
+ * A Bean is obtained by calling the bean[io.kraftverk.module.bean] declaration function like this:
  *
  * '''Kotlin
  * class AppModule : Module() {
@@ -67,8 +67,8 @@ sealed class Binding<out T : Any>
  * '''
  *
  * Note that injection occurs by syntactically invoking the Bean as a function (operator invoke). Also note that
- * injection only is available in the context of a BeanDeclaration[io.kraftverk.declaration.ComponentDeclaration]
- * that is provided by the bean[io.kraftverk.module.xbean] function.
+ * injection only is available in the context of a BeanDeclaration[io.kraftverk.declaration.BeanDeclaration]
+ * that is provided by the bean[io.kraftverk.module.bean] function.
  *
  * '''Kotlin
  * class AppModule : Module() {
@@ -103,19 +103,10 @@ sealed class Binding<out T : Any>
  * '''
  *
  */
-sealed class Component<out T : Any> : Binding<T>() {
+
+sealed class Bean<out T : Any, out S : Any> : Binding<T>() {
     companion object
 }
-
-sealed class Bean<out T : Any> : Component<T>() {
-    companion object
-}
-
-sealed class XBean<out T : Any, out S : Any> : Component<T>() {
-    companion object
-}
-
-internal class BeanImpl<T : Any>(val handler: ComponentHandler<T, T>) : Bean<T>()
 
 /**
  * A Value is a specialized [Binding] that can be declared within a module[io.kraftverk.module.Module]
@@ -156,7 +147,7 @@ internal class BeanImpl<T : Any>(val handler: ComponentHandler<T, T>) : Bean<T>(
  * '''
  *
  * Note that injection occurs by syntactically invoking the Value as a function (operator invoke). Also note that
- * injection only is available in the context of a BeanDeclaration[io.kraftverk.declaration.ComponentDeclaration]
+ * injection only is available in the context of a BeanDeclaration[io.kraftverk.declaration.BeanDeclaration]
  * or a ValueDeclaration[io.kraftverk.declaration.ValueDeclaration].
  *
  * '''Kotlin
@@ -176,13 +167,13 @@ sealed class Value<out T : Any> : Binding<T>() {
     companion object
 }
 
-internal class XBeanImpl<T : Any, S : Any>(val handler: ComponentHandler<T, S>) : XBean<T, S>()
+internal class BeanImpl<T : Any, S : Any>(val handler: BeanHandler<T, S>) : Bean<T, S>()
 
 internal class ValueImpl<T : Any>(val handler: ValueHandler<T, T>) : Value<T>()
 
-internal val <T : Any, S : Any> XBean<T, S>.handler: ComponentHandler<T, S>
+internal val <T : Any, S : Any> Bean<T, S>.handler: BeanHandler<T, S>
     get() = when (this) {
-        is XBeanImpl<T, S> -> handler
+        is BeanImpl<T, S> -> handler
     }
 
 internal val <T : Any> Value<T>.handler: ValueHandler<T, T>
@@ -190,17 +181,5 @@ internal val <T : Any> Value<T>.handler: ValueHandler<T, T>
         is ValueImpl<T> -> handler
     }
 
-internal val <T : Any> Bean<T>.handler: ComponentHandler<T, T>
-    get() = when (this) {
-        is BeanImpl<T> -> handler
-    }
-
-internal val <T : Any> Component<T>.handler: ComponentHandler<T, *>
-    get() = when (this) {
-        is BeanImpl<T> -> handler
-        is XBeanImpl<T, *> -> handler
-    }
-
 internal val <T : Any> Value<T>.provider: ValueProvider<T> get() = handler.provider
-internal val <T : Any> Bean<T>.provider: ComponentProvider<T, T> get() = handler.provider
-internal val <T : Any, S : Any> XBean<T, S>.provider: ComponentProvider<T, S> get() = handler.provider
+internal val <T : Any, S : Any> Bean<T, S>.provider: BeanProvider<T, S> get() = handler.provider

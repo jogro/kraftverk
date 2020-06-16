@@ -8,25 +8,24 @@ package io.kraftverk.managed
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.XBean
 import io.kraftverk.binding.handler
 import io.kraftverk.internal.binding.provider
-import io.kraftverk.internal.container.componentProviders
+import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
-import io.kraftverk.provider.ComponentProvider
+import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.get
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 /**
- * Retrieves all [ComponentProvider]s.
+ * Retrieves all [BeanProvider]s.
  */
-val Managed<*>.componentProviders: List<ComponentProvider<*, *>> get() = module.container.componentProviders
+val Managed<*>.beanProviders: List<BeanProvider<*, *>> get() = module.container.beanProviders
 
 /**
  * Retrieves all [ValueProvider]s.
@@ -42,9 +41,8 @@ val Managed<*>.valueProviders: List<ValueProvider<*>> get() = module.container.v
 operator fun <T : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T>): T {
     state.mustBe<Managed.State.Running<M>> {
         return when (val b = module.binding()) {
-            is Bean<T> -> b.handler.provider.get()
             is Value<T> -> b.handler.provider.get()
-            is XBean<T, *> -> b.handler.provider.get()
+            is Bean<T, *> -> b.handler.provider.get()
         }
     }
 }

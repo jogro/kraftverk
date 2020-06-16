@@ -5,35 +5,25 @@
 
 package io.kraftverk.internal.container
 
-// import io.kraftverk.binding.handler
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.BeanImpl
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
-import io.kraftverk.binding.XBean
-import io.kraftverk.binding.XBeanImpl
 import io.kraftverk.binding.handler
-import io.kraftverk.common.ComponentDefinition
+import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.ValueDefinition
-import io.kraftverk.internal.binding.ComponentHandler
+import io.kraftverk.internal.binding.BeanHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.initialize
 import io.kraftverk.internal.binding.start
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
-internal fun <T : Any, S : Any> Container.createComponent(
-    config: ComponentDefinition<T, S>
-): XBeanImpl<T, S> = config.let(::process)
-    .let { ComponentHandler<T, S>(it) }
-    .let(::XBeanImpl)
-    .also(this::register)
-
-internal fun <T : Any> Container.createBean(
-    config: ComponentDefinition<T, T>
-): BeanImpl<T> = config.let(::process)
-    .let { ComponentHandler(it) }
+internal fun <T : Any, S : Any> Container.createBean(
+    config: BeanDefinition<T, S>
+): BeanImpl<T, S> = config.let(::process)
+    .let { BeanHandler<T, S>(it) }
     .let(::BeanImpl)
     .also(this::register)
 
@@ -56,7 +46,7 @@ internal fun Container.start() =
         bindings.initialize()
     }
 
-private fun <T : Any, S : Any> Container.process(config: ComponentDefinition<T, S>): ComponentDefinition<T, S> {
+private fun <T : Any, S : Any> Container.process(config: BeanDefinition<T, S>): BeanDefinition<T, S> {
     var current = config
     state.mustBe<State.Configurable> {
         for (processor in beanProcessors) {
@@ -79,9 +69,8 @@ private fun <T : Any> Container.process(config: ValueDefinition<T>): ValueDefini
 private fun List<Binding<*>>.start() {
     forEach { binding ->
         when (binding) {
-            is Bean<*> -> binding.handler.start()
             is Value<*> -> binding.handler.start()
-            is XBean<*, *> -> binding.handler.start()
+            is Bean<*, *> -> binding.handler.start()
         }
     }
 }
@@ -109,8 +98,7 @@ $errorMsg
         }
     forEach { binding ->
         when (binding) {
-            is XBeanImpl<*, *> -> binding.handler.initialize()
-            is Bean<*> -> binding.handler.initialize()
+            is BeanImpl<*, *> -> binding.handler.initialize()
             is Value<*> -> {
                 // Already initialized
             }

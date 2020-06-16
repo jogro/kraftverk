@@ -8,7 +8,6 @@ package io.kraftverk.module
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.XBean
 import io.kraftverk.binding.provider
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
@@ -40,10 +39,11 @@ open class ChildModule<AM : AbstractModule> : AbstractModule() {
 
     internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T =
         when (val b: Binding<T> = parent.binding()) {
-            is Bean<T> -> b.provider.get()
             is Value<T> -> b.provider.get()
-            is XBean<T, *> -> b.provider.get()
+            is Bean<T, *> -> b.provider.get()
         }
+
+    internal fun <T : Any, S : Any, B : Bean<T, S>> getBean(binding: AM.() -> B): Bean<T, S> = parent.binding()
 }
 
 internal fun <M : Module> createModule(
