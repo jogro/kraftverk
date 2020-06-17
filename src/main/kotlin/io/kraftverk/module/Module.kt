@@ -6,9 +6,7 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
 import io.kraftverk.binding.handler
-import io.kraftverk.binding.provider
 import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
