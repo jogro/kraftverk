@@ -19,18 +19,18 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.ValueProviderImpl
 
-internal sealed class BindingHandler<T : Any, S : Any, out P : Provider<T>>(
+internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
     instance: Supplier<T>
 ) {
 
     @Volatile
-    internal var state: State<T> = State.Configurable<T, S>(instance)
+    internal var state: State<T> = State.Configurable(instance)
 
-    abstract fun createProvider(state: State.Configurable<T, S>): P
+    abstract fun createProvider(state: State.Configurable<T>): P
 
     internal sealed class State<out T : Any> : BasicState {
 
-        data class Configurable<T : Any, S : Any>(
+        data class Configurable<T : Any>(
             var instance: Supplier<T>,
             var onShape: (T, LifecycleActions) -> Unit = { _, _ -> }
         ) : State<T>()
@@ -45,11 +45,11 @@ internal sealed class BindingHandler<T : Any, S : Any, out P : Provider<T>>(
 
 internal class ComponentHandler<T : Any, S : Any>(
     val definition: ComponentDefinition<T, S>
-) : BindingHandler<T, S, ComponentProvider<T, S>>(definition.instance) {
+) : BindingHandler<T, ComponentProvider<T, S>>(definition.instance) {
 
     private val logger = createLogger { }
 
-    override fun createProvider(state: State.Configurable<T, S>) = ComponentProviderImpl(
+    override fun createProvider(state: State.Configurable<T>) = ComponentProviderImpl(
         definition,
         createSingleton(
             definition,
@@ -70,13 +70,13 @@ internal class ComponentHandler<T : Any, S : Any>(
     }
 }
 
-internal class ValueHandler<T : Any, S : Any>(
+internal class ValueHandler<T : Any>(
     private val definition: ValueDefinition<T>
-) : BindingHandler<T, S, ValueProvider<T>>(definition.instance) {
+) : BindingHandler<T, ValueProvider<T>>(definition.instance) {
 
     private val logger = createLogger { }
 
-    override fun createProvider(state: State.Configurable<T, S>) = ValueProviderImpl(
+    override fun createProvider(state: State.Configurable<T>) = ValueProviderImpl(
         definition,
         createSingleton(
             definition,
@@ -97,9 +97,9 @@ internal class ValueHandler<T : Any, S : Any>(
     }
 }
 
-private fun <T : Any, S : Any> createSingleton(
+private fun <T : Any> createSingleton(
     definition: BindingDefinition<T>,
-    state: BindingHandler.State.Configurable<T, S>
+    state: BindingHandler.State.Configurable<T>
 ): Singleton<T> = Singleton(
     type = definition.type,
     lazy = definition.lazy,

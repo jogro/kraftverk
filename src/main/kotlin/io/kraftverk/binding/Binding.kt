@@ -177,9 +177,9 @@ internal class ComponentImpl<T : Any, S : Any>(val handler: ComponentHandler<T, 
 
 internal class BeanImpl<T : Any>(val handler: ComponentHandler<T, T>) : Bean<T>()
 
-internal class ValueImpl<T : Any>(val handler: ValueHandler<T, T>) : Value<T>()
+internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
 
-internal val <T : Any> Binding<T>.handler: BindingHandler<T, *, Provider<T>>
+internal val <T : Any> Binding<T>.handler: BindingHandler<T, Provider<T>>
     get() = when (this) {
         is ValueImpl<T> -> handler
         is ComponentImpl<T, *> -> handler
@@ -193,7 +193,7 @@ internal val <T : Any, S : Any> Component<T, S>.handler: ComponentHandler<T, S>
         is BeanImpl<*> -> (this as BeanImpl<T>).handler as ComponentHandler<T, S>
     }
 
-internal val <T : Any> Value<T>.handler: ValueHandler<T, T>
+internal val <T : Any> Value<T>.handler: ValueHandler<T>
     get() = when (this) {
         is ValueImpl<T> -> handler
     }

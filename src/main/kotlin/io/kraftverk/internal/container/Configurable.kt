@@ -38,7 +38,7 @@ internal fun <T : Any> Container.createBean(
 internal fun <T : Any> Container.createValue(
     config: ValueDefinition<T>
 ): ValueImpl<T> = config.let(::process)
-    .let { ValueHandler<T, T>(it) }
+    .let(::ValueHandler)
     .let(::ValueImpl)
     .also(this::register)
 
