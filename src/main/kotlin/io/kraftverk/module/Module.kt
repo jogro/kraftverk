@@ -40,9 +40,6 @@ open class ChildModule<AM : AbstractModule> : AbstractModule() {
 
     internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T =
         parent.binding().handler.provider.get()
-
-    internal fun <T : Any, S : Any, B : Component<T, S>> getComponent(binding: AM.() -> B): Component<T, S> =
-        parent.binding()
 }
 
 internal fun <M : Module> createModule(
