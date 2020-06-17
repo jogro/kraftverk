@@ -186,6 +186,7 @@ internal val <T : Any> Binding<T>.handler: BindingHandler<T, *, Provider<T>>
         is BeanImpl<T> -> handler
     }
 
+@Suppress("UNCHECKED_CAST")
 internal val <T : Any, S : Any> Component<T, S>.handler: ComponentHandler<T, S>
     get() = when (this) {
         is ComponentImpl<T, S> -> handler
