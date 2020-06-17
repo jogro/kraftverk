@@ -34,7 +34,6 @@ import io.kraftverk.module.Module
  * ```
  */
 class Managed<M : Module> internal constructor(
-    lazy: Boolean = false,
     env: Environment,
     namespace: String,
     moduleFun: () -> M
@@ -45,7 +44,6 @@ class Managed<M : Module> internal constructor(
     @Volatile
     internal var state: State<M> = State.Configurable(
         moduleFun,
-        lazy,
         env,
         namespace
     )
@@ -54,13 +52,12 @@ class Managed<M : Module> internal constructor(
 
         class Configurable<M : Module>(
             val moduleFun: () -> M,
-            var lazy: Boolean = false,
-            var env: Environment,
-            var namespace: String
+            val env: Environment,
+            val namespace: String
         ) : State<M>() {
             val componentProcessors = mutableListOf<ComponentProcessor>()
             val valueProcessors = mutableListOf<ValueProcessor>()
-            var onStart: Consumer<M> = {}
+            var onConfig: Consumer<M> = {}
         }
 
         class Running<M : Module>(

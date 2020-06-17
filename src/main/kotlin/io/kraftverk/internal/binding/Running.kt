@@ -12,9 +12,9 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
 
-internal fun BindingHandler<*, *, Provider<*>>.initialize() =
+internal fun BindingHandler<*, *, Provider<*>>.initialize(lazy: Boolean) =
     state.mustBe<State.Running<*, *>> {
-        provider.initialize()
+        provider.initialize(lazy)
     }
 
 internal val <T : Any, S : Any, P : Provider<T>> BindingHandler<T, S, P>.provider: P

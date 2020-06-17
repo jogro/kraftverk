@@ -47,7 +47,7 @@ private fun <T : Any> AbstractModule.createBean(
     val componentName = qualifyName(propertyName)
     val config = ComponentDefinition(
         name = componentName,
-        lazy = lazy ?: container.lazy,
+        lazy = lazy,
         onShape = onShape,
         type = type,
         instance = { container.createComponentInstance(instance) }

@@ -10,40 +10,39 @@ import io.kraftverk.common.ValueProcessor
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.start
 import io.kraftverk.internal.misc.mustBe
+import io.kraftverk.managed.Managed.State.Configurable
+import io.kraftverk.managed.Managed.State.Running
 import io.kraftverk.module.Module
 import io.kraftverk.module.createModule
 
 /**
- * The [start] function will by default perform the following actions:
+ * The [start] function is by default non-lazy, meaning that:
  * 1) All value bindings declared in the [Module] are eagerly looked up using the Environment that
- * was specified at the time the managed instance was created.
- * Should any value be missing an exception is thrown.
+ * was specified at the time the managed instance was created. Should any value be missing an exception is thrown.
  * 2) All Component bindings are eagerly instantiated.
  *
  * Call the [Managed.stop] method to destroy the [Managed] instance.
  */
-fun <M : Module> Managed<M>.start(block: M.() -> Unit = {}): Managed<M> {
+fun <M : Module> Managed<M>.start(lazy: Boolean = false, configBlock: M.() -> Unit = {}): Managed<M> {
     logger.info { "Starting managed module" }
     val startMs = System.currentTimeMillis()
-    config(block)
-    state.mustBe<Managed.State.Configurable<M>> {
+    config(configBlock)
+    state.mustBe<Configurable<M>> {
         val module = createModule()
-        onStart(module)
-        module.container.start()
-        state = Managed.State.Running(module)
+        onConfig(module)
+        module.container.start(lazy)
+        state = Running(module)
     }
-    Runtime.getRuntime().addShutdownHook(Thread {
-        stop()
-    })
+    Runtime.getRuntime().addShutdownHook(Thread { stop() })
     logger.info { "Started managed module in ${System.currentTimeMillis() - startMs}ms" }
     return this
 }
 
 fun <M : Module> Managed<M>.config(block: M.() -> Unit): Managed<M> {
-    state.mustBe<Managed.State.Configurable<M>> {
-        val previousOnStart = onStart
-        onStart = { instance ->
-            previousOnStart(instance)
+    state.mustBe<Configurable<M>> {
+        val previousOnConfig = onConfig
+        onConfig = { instance ->
+            previousOnConfig(instance)
             block(instance)
         }
     }
@@ -51,20 +50,20 @@ fun <M : Module> Managed<M>.config(block: M.() -> Unit): Managed<M> {
 }
 
 fun <M : Module> Managed<M>.registerProcessor(processor: ComponentProcessor): Managed<M> {
-    state.mustBe<Managed.State.Configurable<M>> {
+    state.mustBe<Configurable<M>> {
         componentProcessors += processor
     }
     return this
 }
 
 fun <M : Module> Managed<M>.registerProcessor(processor: ValueProcessor): Managed<M> {
-    state.mustBe<Managed.State.Configurable<M>> {
+    state.mustBe<Configurable<M>> {
         valueProcessors += processor
     }
     return this
 }
 
-private fun <M : Module> Managed.State.Configurable<M>.createModule(): M {
-    val container = Container(lazy, env, componentProcessors, valueProcessors)
+private fun <M : Module> Configurable<M>.createModule(): M {
+    val container = Container(env, componentProcessors, valueProcessors)
     return createModule(container, namespace, moduleFun)
 }

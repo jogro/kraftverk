@@ -9,14 +9,12 @@ import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
 import io.kraftverk.common.ComponentRef
-import io.kraftverk.common.ModuleRef
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.componentProviders
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.Supplier
-import io.kraftverk.module.AbstractModule
 import io.kraftverk.provider.get
 
 open class ValueDeclaration internal constructor(internal val container: Container) {
@@ -38,7 +36,6 @@ open class ComponentDeclaration internal constructor(container: Container) : Val
     operator fun <T : Any, S : Any> Component<T, S>.invoke(): T = handler.provider.get()
 
     operator fun <T : Any> ComponentRef<T>.invoke(): T = instance()
-    operator fun <M : AbstractModule> ModuleRef<M>.invoke(): M = instance()
 }
 
 class ComponentSupplierInterceptorDeclaration<T> internal constructor(

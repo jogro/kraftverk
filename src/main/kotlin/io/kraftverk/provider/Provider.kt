@@ -47,7 +47,9 @@ internal class ValueProviderImpl<T : Any> constructor(
 ) : ValueProvider<T>()
 
 internal fun <T : Any> Provider<T>.destroy() = singleton.destroy()
-internal fun <T : Any> Provider<T>.initialize() = singleton.initialize()
+internal fun <T : Any> Provider<T>.initialize(lazy: Boolean) {
+    singleton.initialize(lazy)
+}
 
 internal val <T : Any> Provider<T>.singleton
     get() = when (this) {

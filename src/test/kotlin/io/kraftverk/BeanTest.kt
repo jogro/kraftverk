@@ -151,7 +151,7 @@ class BeanTest : StringSpec() {
         }
 
         "Customize can be used to replace a component and inhibit its onCreate" {
-            val app = Kraftverk.manage(lazy = true) { AppModule() }
+            val app = Kraftverk.manage { AppModule() }
             val replacement = mockk<Gadget>(relaxed = true)
             app.config {
                 bind(gadget) to { replacement }
@@ -161,7 +161,7 @@ class BeanTest : StringSpec() {
                     }
                 }
             }
-            app.start()
+            app.start(lazy = true)
             verifySequence {
                 gadgetFactory wasNot Called
                 replacement wasNot Called
@@ -276,8 +276,8 @@ class BeanTest : StringSpec() {
 
         "Binding a component does a proper replace 1" {
             val replacement = mockk<Gadget>(relaxed = true)
-            val app = Kraftverk.manage(lazy = true) { AppModule() }
-            app.start {
+            val app = Kraftverk.manage { AppModule() }
+            app.start(lazy = true) {
                 bind(gadget) to { replacement }
             }
             app { gadget } shouldBe replacement
@@ -287,8 +287,8 @@ class BeanTest : StringSpec() {
 
         "Binding a component does a proper replace 2" {
             val replacement = mockk<Gadget>(relaxed = true)
-            val app = Kraftverk.manage(lazy = true) { AppModule() }
-            app.start {
+            val app = Kraftverk.manage { AppModule() }
+            app.start(lazy = true) {
                 bind(childGadget) to { replacement }
             }
             app { childGadget } shouldBe replacement
@@ -366,17 +366,17 @@ class BeanTest : StringSpec() {
             configs shouldHaveSize 3
             with(configs[0]) {
                 name shouldBe "b0"
-                lazy shouldBe false
+                lazy shouldBe null
                 this.type shouldBe Int::class
             }
             with(configs[1]) {
                 name shouldBe "b1"
-                lazy shouldBe false
+                lazy shouldBe null
                 this.type shouldBe Int::class
             }
             with(configs[2]) {
                 name shouldBe "intList"
-                lazy shouldBe false
+                lazy shouldBe null
                 this.type shouldBe List::class
             }
         }

@@ -9,7 +9,6 @@ import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
 import io.kraftverk.common.ComponentRef
-import io.kraftverk.common.ModuleRef
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -23,10 +22,7 @@ interface ValueDelegateProvider<out T : Any> : DelegateProvider<Value<T>>
 interface ModuleDelegateProvider<AM : AbstractModule, out MO : ChildModule<AM>> : DelegateProvider<MO>
 
 interface ComponentRefDelegateProvider<out T : Any> : DelegateProvider<ComponentRef<T>>
-interface ModuleRefDelegateProvider<out AM : AbstractModule> : DelegateProvider<ModuleRef<AM>>
 
 internal class Delegate<out T : Any>(private val t: T) : ReadOnlyProperty<AbstractModule, T> {
-    override fun getValue(thisRef: AbstractModule, property: KProperty<*>): T {
-        return t
-    }
+    override fun getValue(thisRef: AbstractModule, property: KProperty<*>): T = t
 }

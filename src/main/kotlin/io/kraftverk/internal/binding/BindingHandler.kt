@@ -71,7 +71,7 @@ internal class ComponentHandler<T : Any, S : Any>(
 }
 
 internal class ValueHandler<T : Any, S : Any>(
-    val definition: ValueDefinition<T>
+    private val definition: ValueDefinition<T>
 ) : BindingHandler<T, S, ValueProvider<T>>(definition.instance) {
 
     private val logger = createLogger { }

@@ -6,8 +6,6 @@
 package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
-import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
 import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.componentProviders
@@ -15,6 +13,7 @@ import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
+import io.kraftverk.managed.Managed.State
 import io.kraftverk.module.Module
 import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.ValueProvider
@@ -39,11 +38,8 @@ val Managed<*>.valueProviders: List<ValueProvider<*>> get() = module.container.v
  * ```
  */
 operator fun <T : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T>): T {
-    state.mustBe<Managed.State.Running<M>> {
-        return when (val b = module.binding()) {
-            is Value<T> -> b.handler.provider.get()
-            is Component<T, *> -> b.handler.provider.get()
-        }
+    state.mustBe<State.Running<M>> {
+        return module.binding().handler.provider.get()
     }
 }
 
@@ -61,21 +57,21 @@ fun <T : Any, M : Module> Managed<M>.get(binding: M.() -> Binding<T>) =
     }
 
 /**
- * Stops this instance meaning that all components will be destroyed.
+ * Stops this instance.
  */
 fun <M : Module> Managed<M>.stop() {
-    state.mightBe<Managed.State.Running<*>> {
+    state.mightBe<State.Running<*>> {
         logger.info { "Stopping managed module" }
-        state = Managed.State.Destroying
+        state = State.Destroying
         module.container.stop()
-        state = Managed.State.Destroyed
+        state = State.Destroyed
         logger.info { "Stopped managed module" }
     }
 }
 
 internal val <M : Module> Managed<M>.module: Module
     get() {
-        state.mustBe<Managed.State.Running<M>> {
+        state.mustBe<State.Running<M>> {
             return module
         }
     }

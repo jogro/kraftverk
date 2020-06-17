@@ -47,7 +47,7 @@ internal fun <T : Any> AbstractModule.value(
             logger.debug { "Creating value '$valueName'" }
             val config = ValueDefinition(
                 name = valueName,
-                lazy = container.lazy,
+                lazy = null,
                 secret = secret,
                 type = type,
                 instance = {

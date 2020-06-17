@@ -12,7 +12,6 @@ import io.kraftverk.env.Environment
 import io.kraftverk.internal.misc.BasicState
 
 internal class Container(
-    val lazy: Boolean,
     val environment: Environment,
     val componentProcessors: List<ComponentProcessor>,
     val valueProcessors: List<ValueProcessor>

@@ -22,7 +22,6 @@ import io.kraftverk.module.ChildModule
 import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
-import io.kraftverk.module.import
 import io.kraftverk.module.int
 import io.kraftverk.module.module
 import io.kraftverk.module.ref
@@ -275,8 +274,6 @@ class ValueTest : StringSpec() {
 
     class Sub1 : ChildModule<Mod3>() {
         val br1 by ref { b1 }
-        val mako by import { sm1 }
-        val b1 by bean { mako().br1 }
     }
 
     class Sub2 : ChildModule<Mod4>()

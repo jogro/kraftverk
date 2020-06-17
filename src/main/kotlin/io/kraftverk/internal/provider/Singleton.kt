@@ -15,7 +15,7 @@ private val logger = createLogger { }
 
 internal class Singleton<T : Any>(
     val type: KClass<T>,
-    val lazy: Boolean,
+    private val lazy: Boolean?,
     private val createInstance: Supplier<T>,
     private val onShape: (T, LifecycleActions) -> Unit
 ) {
@@ -30,8 +30,8 @@ internal class Singleton<T : Any>(
             instance?.id
         }
 
-    fun initialize() {
-        if (!lazy) get()
+    fun initialize(lazy: Boolean) {
+        if (!(this.lazy ?: lazy)) get()
     }
 
     fun get(): T {

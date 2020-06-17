@@ -14,14 +14,14 @@ import kotlin.reflect.KClass
 interface BindingDefinition<T : Any> {
     val name: String
     val type: KClass<T>
-    val lazy: Boolean
+    val lazy: Boolean?
     val instance: Supplier<T>
 }
 
 data class ValueDefinition<T : Any>(
     override val name: String,
     override val type: KClass<T>,
-    override val lazy: Boolean,
+    override val lazy: Boolean?,
     val secret: Boolean,
     override val instance: Supplier<T>
 ) : BindingDefinition<T>
@@ -29,7 +29,7 @@ data class ValueDefinition<T : Any>(
 data class ComponentDefinition<T : Any, S : Any>(
     override val name: String,
     override val type: KClass<T>,
-    override val lazy: Boolean,
+    override val lazy: Boolean?,
     val onShape: (T, (S) -> Unit) -> Unit,
     override val instance: Supplier<T>
 ) : BindingDefinition<T>

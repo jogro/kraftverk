@@ -42,16 +42,16 @@ internal fun <T : Any> Container.createValue(
     .let(::ValueImpl)
     .also(this::register)
 
-internal fun Container.register(binding: Binding<*>) =
+private fun Container.register(binding: Binding<*>) =
     state.mustBe<State.Configurable> {
         bindings.add(binding)
     }
 
-internal fun Container.start() =
+internal fun Container.start(lazy: Boolean) =
     state.mustBe<State.Configurable> {
         bindings.start()
         state = State.Running(bindings.toList())
-        bindings.initialize()
+        bindings.initialize(lazy)
     }
 
 private fun <T : Any, S : Any> Container.process(config: ComponentDefinition<T, S>): ComponentDefinition<T, S> {
@@ -78,11 +78,11 @@ private fun List<Binding<*>>.start() {
     forEach { binding -> binding.handler.start() }
 }
 
-private fun List<Binding<*>>.initialize() {
+private fun List<Binding<*>>.initialize(lazy: Boolean) {
     val valueNotFoundExceptions = mutableListOf<ValueNotFoundException>()
     filterIsInstance<Value<*>>().forEach { value ->
         try {
-            value.handler.initialize()
+            value.handler.initialize(lazy)
         } catch (e: ValueNotFoundException) {
             valueNotFoundExceptions += e
         }
@@ -99,5 +99,5 @@ $errorMsg
                 """.trimIndent()
             throw IllegalStateException(exceptionMessage)
         }
-    filterIsInstance<Component<*, *>>().forEach { component -> component.handler.initialize() }
+    filterIsInstance<Component<*, *>>().forEach { component -> component.handler.initialize(lazy) }
 }
