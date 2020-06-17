@@ -9,7 +9,7 @@ import io.kraftverk.internal.misc.Supplier
 import kotlin.reflect.KClass
 
 /**
- * Represents the outcome of a bean or value declaration.
+ * Represents the outcome of a component or value declaration.
  */
 interface BindingDefinition<T : Any> {
     val name: String
@@ -26,7 +26,7 @@ data class ValueDefinition<T : Any>(
     override val instance: Supplier<T>
 ) : BindingDefinition<T>
 
-data class BeanDefinition<T : Any, S : Any>(
+data class ComponentDefinition<T : Any, S : Any>(
     override val name: String,
     override val type: KClass<T>,
     override val lazy: Boolean,
@@ -34,8 +34,8 @@ data class BeanDefinition<T : Any, S : Any>(
     override val instance: Supplier<T>
 ) : BindingDefinition<T>
 
-interface BeanProcessor {
-    fun <T : Any, S : Any> process(bean: BeanDefinition<T, S>): BeanDefinition<T, S>
+interface ComponentProcessor {
+    fun <T : Any, S : Any> process(component: ComponentDefinition<T, S>): ComponentDefinition<T, S>
 }
 
 interface ValueProcessor {

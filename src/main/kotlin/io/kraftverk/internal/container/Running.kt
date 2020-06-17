@@ -5,36 +5,33 @@
 
 package io.kraftverk.internal.container
 
-import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
-import io.kraftverk.binding.provider
-import io.kraftverk.declaration.BeanDeclaration
+import io.kraftverk.declaration.ComponentDeclaration
 import io.kraftverk.declaration.ValueDeclaration
 import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.binding.stop
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
-import io.kraftverk.provider.BeanProvider
+import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.instanceId
 
-internal val Container.beanProviders: List<BeanProvider<*, *>>
+internal val Container.componentProviders: List<ComponentProvider<*, *>>
     get() =
-        providers.filterIsInstance<BeanProvider<*, *>>()
+        providers.filterIsInstance<ComponentProvider<*, *>>()
 
 internal val Container.valueProviders: List<ValueProvider<*>>
     get() =
         providers.filterIsInstance<ValueProvider<*>>()
 
-internal fun <T : Any> Container.createBeanInstance(
-    instance: BeanDeclaration.() -> T
+internal fun <T : Any> Container.createComponentInstance(
+    instance: ComponentDeclaration.() -> T
 ): T {
     state.mustBe<State.Running>()
-    return BeanDeclaration(this).instance()
+    return ComponentDeclaration(this).instance()
 }
 
 internal fun <T : Any> Container.createValueInstance(
@@ -60,12 +57,7 @@ internal fun Container.stop() =
 private val Container.providers: List<Provider<*>>
     get() {
         state.mustBe<State.Running> {
-            return bindings.map {
-                when (it) {
-                    is Value<*> -> it.handler.provider
-                    is Bean<*, *> -> it.provider
-                }
-            }
+            return bindings.map { binding -> binding.handler.provider }
         }
     }
 
@@ -73,20 +65,7 @@ private fun throwValueNotFound(name: String): Nothing =
     throw ValueNotFoundException("Value '$name' was not found!", name)
 
 private fun List<Binding<*>>.destroy() {
-    filter { binding ->
-        when (binding) {
-            is Value<*> -> binding.provider.instanceId != null
-            is Bean<*, *> -> binding.provider.instanceId != null
-        }
-    }.sortedByDescending { binding ->
-        when (binding) {
-            is Value<*> -> binding.provider.instanceId
-            is Bean<*, *> -> binding.provider.instanceId
-        }
-    }.forEach { binding ->
-        when (binding) {
-            is Value<*> -> binding.handler.stop()
-            is Bean<*, *> -> binding.handler.stop()
-        }
-    }
+    filter { binding -> binding.handler.provider.instanceId != null }
+        .sortedByDescending { binding -> binding.handler.provider.instanceId }
+        .forEach { binding -> binding.handler.stop() }
 }

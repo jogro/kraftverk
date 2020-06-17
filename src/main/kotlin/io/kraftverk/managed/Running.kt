@@ -5,27 +5,27 @@
 
 package io.kraftverk.managed
 
-import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
+import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
 import io.kraftverk.internal.binding.provider
-import io.kraftverk.internal.container.beanProviders
+import io.kraftverk.internal.container.componentProviders
 import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.module.Module
-import io.kraftverk.provider.BeanProvider
+import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.get
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 /**
- * Retrieves all [BeanProvider]s.
+ * Retrieves all [ComponentProvider]s.
  */
-val Managed<*>.beanProviders: List<BeanProvider<*, *>> get() = module.container.beanProviders
+val Managed<*>.componentProviders: List<ComponentProvider<*, *>> get() = module.container.componentProviders
 
 /**
  * Retrieves all [ValueProvider]s.
@@ -42,7 +42,7 @@ operator fun <T : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T>
     state.mustBe<Managed.State.Running<M>> {
         return when (val b = module.binding()) {
             is Value<T> -> b.handler.provider.get()
-            is Bean<T, *> -> b.handler.provider.get()
+            is Component<T, *> -> b.handler.provider.get()
         }
     }
 }
@@ -61,7 +61,7 @@ fun <T : Any, M : Module> Managed<M>.get(binding: M.() -> Binding<T>) =
     }
 
 /**
- * Stops this instance meaning that all beans will be destroyed.
+ * Stops this instance meaning that all components will be destroyed.
  */
 fun <M : Module> Managed<M>.stop() {
     state.mightBe<Managed.State.Running<*>> {

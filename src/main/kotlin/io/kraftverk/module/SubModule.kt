@@ -5,8 +5,8 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.binding.Bean
-import io.kraftverk.common.BeanRef
+import io.kraftverk.binding.Component
+import io.kraftverk.common.ComponentRef
 import io.kraftverk.common.ModuleRef
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -28,27 +28,27 @@ fun <AM : AbstractModule, CM : ChildModule<AM>> AM.module(
 }
 
 /*
-fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Bean<T>> CM.ref(
-    bean: AM.() -> B
-): BeanRefDelegateProvider<T> = object : BeanRefDelegateProvider<T> {
+fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Component<T>> CM.ref(
+    component: AM.() -> B
+): ComponentRefDelegateProvider<T> = object : ComponentRefDelegateProvider<T> {
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, BeanRef<T>> {
-        val beanRef = BeanRef { getInstance(bean) }
-        return Delegate(beanRef)
+    ): ReadOnlyProperty<AbstractModule, ComponentRef<T>> {
+        val componentRef = ComponentRef { getInstance(component) }
+        return Delegate(componentRef)
     }
 }
 */
 
-fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Bean<T, *>> CM.ref(
-    bean: AM.() -> B
-): BeanRefDelegateProvider<T> = object : BeanRefDelegateProvider<T> {
+fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Component<T, *>> CM.ref(
+    component: AM.() -> B
+): ComponentRefDelegateProvider<T> = object : ComponentRefDelegateProvider<T> {
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, BeanRef<T>> {
-        val ref = BeanRef { getInstance(bean) }
+    ): ReadOnlyProperty<AbstractModule, ComponentRef<T>> {
+        val ref = ComponentRef { getInstance(component) }
         return Delegate(ref)
     }
 }

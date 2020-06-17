@@ -5,16 +5,16 @@
 
 package io.kraftverk.internal.binding
 
-import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.BindingDefinition
+import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.internal.provider.Singleton
-import io.kraftverk.provider.BeanProvider
-import io.kraftverk.provider.BeanProviderImpl
+import io.kraftverk.provider.ComponentProvider
+import io.kraftverk.provider.ComponentProviderImpl
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.ValueProviderImpl
@@ -43,13 +43,13 @@ internal sealed class BindingHandler<T : Any, S : Any, out P : Provider<T>>(
     }
 }
 
-internal class BeanHandler<T : Any, S : Any>(
-    val definition: BeanDefinition<T, S>
-) : BindingHandler<T, S, BeanProvider<T, S>>(definition.instance) {
+internal class ComponentHandler<T : Any, S : Any>(
+    val definition: ComponentDefinition<T, S>
+) : BindingHandler<T, S, ComponentProvider<T, S>>(definition.instance) {
 
     private val logger = createLogger { }
 
-    override fun createProvider(state: State.Configurable<T, S>) = BeanProviderImpl(
+    override fun createProvider(state: State.Configurable<T, S>) = ComponentProviderImpl(
         definition,
         createSingleton(
             definition,
@@ -64,7 +64,7 @@ internal class BeanHandler<T : Any, S : Any>(
         val t = block()
         val elapsed = System.currentTimeMillis() - startMs
         logger.info {
-            "Bean '${definition.name}' is bound to ${definition.type} (${elapsed}ms)"
+            "Component '${definition.name}' is bound to ${definition.type} (${elapsed}ms)"
         }
         t
     }

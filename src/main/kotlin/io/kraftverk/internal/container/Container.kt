@@ -6,7 +6,7 @@
 package io.kraftverk.internal.container
 
 import io.kraftverk.binding.Binding
-import io.kraftverk.common.BeanProcessor
+import io.kraftverk.common.ComponentProcessor
 import io.kraftverk.common.ValueProcessor
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.misc.BasicState
@@ -14,7 +14,7 @@ import io.kraftverk.internal.misc.BasicState
 internal class Container(
     val lazy: Boolean,
     val environment: Environment,
-    val beanProcessors: List<BeanProcessor>,
+    val componentProcessors: List<ComponentProcessor>,
     val valueProcessors: List<ValueProcessor>
 ) {
 

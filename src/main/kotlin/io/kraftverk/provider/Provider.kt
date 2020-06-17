@@ -5,14 +5,14 @@
 
 package io.kraftverk.provider
 
-import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.BindingDefinition
+import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.internal.provider.Singleton
 
 sealed class Provider<out T : Any>
 
-sealed class BeanProvider<T : Any, S : Any> : Provider<T>()
+sealed class ComponentProvider<T : Any, S : Any> : Provider<T>()
 
 sealed class ValueProvider<T : Any> : Provider<T>()
 
@@ -22,13 +22,13 @@ val <T : Any> Provider<T>.instanceId get() = singleton.instanceId
 
 val <T : Any> Provider<T>.definition: BindingDefinition<T>
     get() = when (this) {
-        is BeanProviderImpl<T, *> -> definition
+        is ComponentProviderImpl<T, *> -> definition
         is ValueProviderImpl<T> -> definition
     }
 
-val <T : Any, S : Any> BeanProvider<T, S>.definition: BeanDefinition<T, S>
+val <T : Any, S : Any> ComponentProvider<T, S>.definition: ComponentDefinition<T, S>
     get() = when (this) {
-        is BeanProviderImpl<T, S> -> definition
+        is ComponentProviderImpl<T, S> -> definition
     }
 
 val <T : Any> ValueProvider<T>.definition: ValueDefinition<T>
@@ -36,10 +36,10 @@ val <T : Any> ValueProvider<T>.definition: ValueDefinition<T>
         is ValueProviderImpl<T> -> definition
     }
 
-internal class BeanProviderImpl<T : Any, S : Any> constructor(
-    val definition: BeanDefinition<T, S>,
+internal class ComponentProviderImpl<T : Any, S : Any> constructor(
+    val definition: ComponentDefinition<T, S>,
     val singleton: Singleton<T>
-) : BeanProvider<T, S>()
+) : ComponentProvider<T, S>()
 
 internal class ValueProviderImpl<T : Any> constructor(
     val definition: ValueDefinition<T>,
@@ -51,6 +51,6 @@ internal fun <T : Any> Provider<T>.initialize() = singleton.initialize()
 
 internal val <T : Any> Provider<T>.singleton
     get() = when (this) {
-        is BeanProviderImpl<T, *> -> singleton
+        is ComponentProviderImpl<T, *> -> singleton
         is ValueProviderImpl<T> -> singleton
     }

@@ -64,7 +64,7 @@ internal class Singleton<T : Any>(
                 try {
                     lifecycle.onDestroy()
                 } catch (ex: Exception) {
-                    logger.error("Couldn't destroy bean", ex)
+                    logger.error("Couldn't destroy component", ex)
                 }
                 instance = null
             }

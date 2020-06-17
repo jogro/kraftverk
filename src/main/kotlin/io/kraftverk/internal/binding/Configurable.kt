@@ -21,7 +21,7 @@ internal fun <T : Any, S : Any> BindingHandler<T, S, Provider<T>>.bind(
     }
 }
 
-internal fun <T : Any, S : Any> BeanHandler<T, S>.onShape(
+internal fun <T : Any, S : Any> ComponentHandler<T, S>.onShape(
     block: (T, LifecycleActions) -> Unit
 ) {
     state.mustBe<State.Configurable<T, S>> {

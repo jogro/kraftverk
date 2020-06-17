@@ -5,7 +5,7 @@ Kraftverk is a dependency injection toolkit written in pure Kotlin. It has one s
 "Dependency resolution should be done at compile time". 
 
 With Kraftverk application startup is really fast. It employs no classpath scanning or 
-time consuming reflective inspection of constructor or method signatures to wire your beans.
+time consuming reflective inspection of constructor or method signatures to wire your components.
 The wiring has already been resolved at compile time. The days when you are having "a bad container day" might 
 be over.
 

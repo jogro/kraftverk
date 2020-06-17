@@ -5,10 +5,11 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Value
+import io.kraftverk.binding.Component
+import io.kraftverk.binding.handler
 import io.kraftverk.binding.provider
+import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.ScopedThreadLocal
@@ -38,12 +39,9 @@ open class ChildModule<AM : AbstractModule> : AbstractModule() {
     override val namespace: String = scopedNamespace.get()
 
     internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T =
-        when (val b: Binding<T> = parent.binding()) {
-            is Value<T> -> b.provider.get()
-            is Bean<T, *> -> b.provider.get()
-        }
+        parent.binding().handler.provider.get()
 
-    internal fun <T : Any, S : Any, B : Bean<T, S>> getBean(binding: AM.() -> B): Bean<T, S> = parent.binding()
+    internal fun <T : Any, S : Any, B : Component<T, S>> getComponent(binding: AM.() -> B): Component<T, S> = parent.binding()
 }
 
 internal fun <M : Module> createModule(
