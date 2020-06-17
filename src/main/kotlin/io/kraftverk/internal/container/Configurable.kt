@@ -22,22 +22,22 @@ import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
 internal fun <T : Any, S : Any> Container.createComponent(
-    config: ComponentDefinition<T, S>
-): ComponentImpl<T, S> = config.let(::process)
+    definition: ComponentDefinition<T, S>
+): ComponentImpl<T, S> = definition.let(::process)
     .let(::ComponentHandler)
     .let(::ComponentImpl)
     .also(this::register)
 
 internal fun <T : Any> Container.createBean(
-    config: ComponentDefinition<T, T>
-): BeanImpl<T> = config.let(::process)
+    definition: ComponentDefinition<T, T>
+): BeanImpl<T> = definition.let(::process)
     .let(::ComponentHandler)
     .let(::BeanImpl)
     .also(this::register)
 
 internal fun <T : Any> Container.createValue(
-    config: ValueDefinition<T>
-): ValueImpl<T> = config.let(::process)
+    definition: ValueDefinition<T>
+): ValueImpl<T> = definition.let(::process)
     .let(::ValueHandler)
     .let(::ValueImpl)
     .also(this::register)
@@ -54,8 +54,8 @@ internal fun Container.start(lazy: Boolean) =
         bindings.initialize(lazy)
     }
 
-private fun <T : Any, S : Any> Container.process(config: ComponentDefinition<T, S>): ComponentDefinition<T, S> {
-    var current = config
+private fun <T : Any, S : Any> Container.process(definition: ComponentDefinition<T, S>): ComponentDefinition<T, S> {
+    var current = definition
     state.mustBe<State.Configurable> {
         for (processor in componentProcessors) {
             current = processor.process(current)
@@ -64,8 +64,8 @@ private fun <T : Any, S : Any> Container.process(config: ComponentDefinition<T, 
     return current
 }
 
-private fun <T : Any> Container.process(config: ValueDefinition<T>): ValueDefinition<T> {
-    var current = config
+private fun <T : Any> Container.process(definition: ValueDefinition<T>): ValueDefinition<T> {
+    var current = definition
     state.mustBe<State.Configurable> {
         for (processor in valueProcessors) {
             current = processor.process(current)
