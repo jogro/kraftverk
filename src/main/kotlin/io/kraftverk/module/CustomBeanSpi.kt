@@ -1,5 +1,5 @@
 package io.kraftverk.module
 
-interface ComponentSpi<S> {
+interface CustomBeanSpi<S> {
     fun onShape(shape: (S) -> Unit)
 }

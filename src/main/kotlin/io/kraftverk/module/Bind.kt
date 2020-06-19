@@ -6,6 +6,7 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Component
+import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
 import io.kraftverk.declaration.ComponentSupplierInterceptorDeclaration
@@ -14,7 +15,7 @@ import io.kraftverk.internal.binding.bind
 import io.kraftverk.internal.container.Container
 
 /**
- * The [bind] method binds an existing [Component] to a new implementation.
+ * The [bind] method binds an existing [CustomBean] to a new implementation.
  *
  * It is useful when doing tests, for example when mocking:
  * ```kotlin
@@ -44,7 +45,7 @@ import io.kraftverk.internal.container.Container
  * ```
  */
 
-fun <T : Any, S : Any> AbstractModule.bind(component: Component<T, S>) =
+fun <T : Any> AbstractModule.bind(component: Component<T>) =
     ComponentBinder(container, component)
 
 /**
@@ -65,7 +66,7 @@ fun <T : Any> AbstractModule.bind(value: Value<T>) =
  */
 class ComponentBinder<T : Any> internal constructor(
     private val container: Container,
-    private val component: Component<T, *>
+    private val component: Component<T>
 ) {
     infix fun to(block: ComponentSupplierInterceptorDeclaration<T>.() -> T) {
         component.handler.bind { proceed ->

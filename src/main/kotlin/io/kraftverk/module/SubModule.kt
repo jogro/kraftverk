@@ -26,7 +26,7 @@ fun <AM : AbstractModule, CM : ChildModule<AM>> AM.module(
     }
 }
 
-fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Component<T, *>> CM.ref(
+fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Component<T>> CM.ref(
     component: AM.() -> B
 ): ComponentRefDelegateProvider<T> = object : ComponentRefDelegateProvider<T> {
     override fun provideDelegate(

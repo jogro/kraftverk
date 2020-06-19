@@ -6,7 +6,7 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.Component
+import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.Value
 import io.kraftverk.common.ComponentRef
 import kotlin.properties.ReadOnlyProperty
@@ -17,7 +17,7 @@ interface DelegateProvider<out T> {
 }
 
 interface BeanDelegateProvider<out T : Any> : DelegateProvider<Bean<T>>
-interface ComponentDelegateProvider<out T : Any, S : Any> : DelegateProvider<Component<T, S>>
+interface ComponentDelegateProvider<out T : Any, S : Any> : DelegateProvider<CustomBean<T, S>>
 interface ValueDelegateProvider<out T : Any> : DelegateProvider<Value<T>>
 interface ModuleDelegateProvider<AM : AbstractModule, out MO : ChildModule<AM>> : DelegateProvider<MO>
 

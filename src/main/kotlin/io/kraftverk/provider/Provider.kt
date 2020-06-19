@@ -12,7 +12,7 @@ import io.kraftverk.internal.provider.Singleton
 
 sealed class Provider<out T : Any>
 
-sealed class ComponentProvider<T : Any, S : Any> : Provider<T>()
+sealed class ComponentProvider<T : Any, out S : Any> : Provider<T>()
 
 sealed class ValueProvider<T : Any> : Provider<T>()
 

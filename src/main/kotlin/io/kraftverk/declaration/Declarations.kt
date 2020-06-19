@@ -33,7 +33,7 @@ class ValueSupplierDeclaration<T> internal constructor(
 open class ComponentDeclaration internal constructor(container: Container) : ValueDeclaration(container) {
     val componentProviders get() = container.componentProviders
 
-    operator fun <T : Any, S : Any> Component<T, S>.invoke(): T = handler.provider.get()
+    operator fun <T : Any> Component<T>.invoke(): T = handler.provider.get()
 
     operator fun <T : Any> ComponentRef<T>.invoke(): T = instance()
 }

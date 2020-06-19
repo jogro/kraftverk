@@ -14,7 +14,7 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 
 /**
- * A Binding is a [Component] or [Value] that is declared within a Kraftverk managed module.
+ * A Binding is a [CustomBean] or [Value] that is declared within a Kraftverk managed module.
  *
  * Common for all Bindings is that they serve as factories that produce injectable singleton instances
  * of type [T].
@@ -106,11 +106,13 @@ sealed class Binding<out T : Any>
  *
  */
 
-sealed class Component<out T : Any, out S : Any> : Binding<T>() {
+sealed class Component<out T : Any> : Binding<T>()
+
+sealed class CustomBean<out T : Any, out S : Any> : Component<T>() {
     companion object
 }
 
-sealed class Bean<out T : Any> : Component<T, T>() {
+sealed class Bean<out T : Any> : Component<T>() {
     companion object
 }
 
@@ -173,24 +175,20 @@ sealed class Value<out T : Any> : Binding<T>() {
     companion object
 }
 
-internal class ComponentImpl<T : Any, S : Any>(val handler: ComponentHandler<T, S>) : Component<T, S>()
+internal class CustomBeanImpl<T : Any, S : Any>(val handler: ComponentHandler<T, S>) : CustomBean<T, S>()
 
 internal class BeanImpl<T : Any>(val handler: ComponentHandler<T, T>) : Bean<T>()
 
 internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
 
-internal val <T : Any> Binding<T>.handler: BindingHandler<T, Provider<T>>
+internal val <T : Any, S : Any> CustomBean<T, S>.handler: ComponentHandler<T, S>
     get() = when (this) {
-        is ValueImpl<T> -> handler
-        is ComponentImpl<T, *> -> handler
-        is BeanImpl<T> -> handler
+        is CustomBeanImpl<T, S> -> handler
     }
 
-@Suppress("UNCHECKED_CAST")
-internal val <T : Any, S : Any> Component<T, S>.handler: ComponentHandler<T, S>
+internal val <T : Any> Bean<T>.handler: ComponentHandler<T, T>
     get() = when (this) {
-        is ComponentImpl<T, S> -> handler
-        is BeanImpl<*> -> (this as BeanImpl<T>).handler as ComponentHandler<T, S>
+        is BeanImpl<T> -> handler
     }
 
 internal val <T : Any> Value<T>.handler: ValueHandler<T>
@@ -198,5 +196,13 @@ internal val <T : Any> Value<T>.handler: ValueHandler<T>
         is ValueImpl<T> -> handler
     }
 
+internal val <T : Any> Binding<T>.handler: BindingHandler<T, Provider<T>>
+    get() = when (this) {
+        is ValueImpl<T> -> handler
+        is CustomBeanImpl<T, *> -> handler
+        is BeanImpl<T> -> handler
+    }
+
 internal val <T : Any> Value<T>.provider: ValueProvider<T> get() = handler.provider
-internal val <T : Any, S : Any> Component<T, S>.provider: ComponentProvider<T, S> get() = handler.provider
+internal val <T : Any, S : Any> CustomBean<T, S>.provider: ComponentProvider<T, S> get() = handler.provider
+internal val <T : Any> Bean<T>.provider: ComponentProvider<T, T> get() = handler.provider

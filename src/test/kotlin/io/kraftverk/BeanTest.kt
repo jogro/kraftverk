@@ -12,6 +12,7 @@ import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
+import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Component
 import io.kraftverk.binding.provider
@@ -421,7 +422,7 @@ class BeanTest : StringSpec() {
 
         // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
-            val component0: Component<Gadget, Gadget> by bean { gadget }
+            val component0: Bean<Gadget> by bean { gadget }
             val binding0: Binding<Gadget> = component0
             val componentProvider: ComponentProvider<Gadget, Gadget> = component0.provider
             val provider: Provider<Gadget> = componentProvider
@@ -453,18 +454,20 @@ class BeanTest : StringSpec() {
         fun createGadget(parent: Gadget): Gadget
     }
 
-    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline component: M.() -> Component<T, *>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline component: M.() -> Component<T>):
             ReadOnlyProperty<Any?, T> {
         config {
-            bind(component()) to { mockk() }
+            val c: Component<T> = component()
+            bind(c) to { mockk() }
         }
         return get(component)
     }
 
-    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline component: M.() -> Component<T, *>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline component: M.() -> Component<T>):
             ReadOnlyProperty<Any?, T> {
         config {
-            bind(component()) to { spyk(proceed()) }
+            val c: Component<T> = component()
+            bind(c) to { spyk(proceed()) }
         }
         return get(component)
     }

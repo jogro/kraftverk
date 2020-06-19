@@ -5,7 +5,8 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.binding.Component
+import io.kraftverk.binding.Bean
+import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.handler
 import io.kraftverk.declaration.ComponentShapingDeclaration
 import io.kraftverk.internal.binding.onShape
@@ -27,11 +28,28 @@ import io.kraftverk.internal.binding.onShape
  * ```
  */
 fun <T : Any, S : Any> AbstractModule.shape(
-    component: Component<T, S>,
+    component: CustomBean<T, S>,
     block: ComponentShapingDeclaration<S>.(S) -> Unit
 ) {
     component.handler.onShape { instance, lifecycle ->
         val f = { s: S ->
+            val definition = ComponentShapingDeclaration(
+                container,
+                s,
+                lifecycle
+            )
+            definition.block(s)
+        }
+        component.handler.definition.onShape(instance, f)
+    }
+}
+
+fun <T : Any> AbstractModule.shape(
+    component: Bean<T>,
+    block: ComponentShapingDeclaration<T>.(T) -> Unit
+) {
+    component.handler.onShape { instance, lifecycle ->
+        val f = { s: T ->
             val definition = ComponentShapingDeclaration(
                 container,
                 s,
