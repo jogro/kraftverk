@@ -22,9 +22,9 @@ import io.kraftverk.declaration.ComponentDeclaration
 import io.kraftverk.managed.Managed
 import io.kraftverk.managed.addProcessor
 import io.kraftverk.managed.componentProviders
+import io.kraftverk.managed.configure
 import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
-import io.kraftverk.managed.onBeforeStart
 import io.kraftverk.managed.start
 import io.kraftverk.managed.stop
 import io.kraftverk.module.Module
@@ -154,7 +154,7 @@ class BeanTest : StringSpec() {
         "Customize can be used to replace a component and inhibit its onCreate" {
             val app = Kraftverk.manage { AppModule() }
             val replacement = mockk<Gadget>(relaxed = true)
-            app.onBeforeStart {
+            app.configure {
                 bind(gadget) to { replacement }
                 configure(gadget) {
                     lifecycle {
@@ -400,7 +400,7 @@ class BeanTest : StringSpec() {
         "Customizing the module after it has been started should fail" {
             val module = Kraftverk.start { Mod1() }
             val ex = shouldThrow<IllegalStateException> {
-                module.onBeforeStart { }
+                module.configure { }
             }
             ex.message shouldBe "Expected state to be 'Configurable' but was 'Running'"
         }
@@ -456,7 +456,7 @@ class BeanTest : StringSpec() {
 
     private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline component: M.() -> Component<T>):
             ReadOnlyProperty<Any?, T> {
-        onBeforeStart {
+        configure {
             val c: Component<T> = component()
             bind(c) to { mockk() }
         }
@@ -465,7 +465,7 @@ class BeanTest : StringSpec() {
 
     private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline component: M.() -> Component<T>):
             ReadOnlyProperty<Any?, T> {
-        onBeforeStart {
+        configure {
             val c: Component<T> = component()
             bind(c) to { spyk(proceed()) }
         }

@@ -57,7 +57,7 @@ class Managed<M : Module> internal constructor(
         ) : State<M>() {
             val componentProcessors = mutableListOf<ComponentProcessor>()
             val valueProcessors = mutableListOf<ValueProcessor>()
-            var onBeforeStart: Consumer<M> = {}
+            var onConfigure: Consumer<M> = {}
         }
 
         class Running<M : Module>(
