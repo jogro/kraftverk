@@ -18,13 +18,13 @@ import kotlin.reflect.KProperty
 inline fun <reified T : Any> AbstractModule.bean(
     lazy: Boolean? = null,
     noinline instance: ComponentDeclaration.() -> T
-): BeanDelegateProvider<T> = bean(T::class, lazy, { i, shape -> shape(i) }, instance)
+): BeanDelegateProvider<T> = bean(T::class, lazy, { i, configure -> configure(i) }, instance)
 
 @PublishedApi
 internal fun <T : Any> AbstractModule.bean(
     type: KClass<T>,
     lazy: Boolean? = null,
-    onShape: (T, (T) -> Unit) -> Unit,
+    onConfigure: (T, (T) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 
 ): BeanDelegateProvider<T> = object : BeanDelegateProvider<T> {
@@ -32,23 +32,22 @@ internal fun <T : Any> AbstractModule.bean(
         thisRef: AbstractModule,
         property: KProperty<*>
     ): ReadOnlyProperty<AbstractModule, Bean<T>> {
-        val componentName = qualifyName(property.name)
-        return createBean(componentName, type, lazy, onShape, instance).let(::Delegate)
+        val qualifiedName = qualifyName(property.name)
+        return createBean(qualifiedName, type, lazy, onConfigure, instance).let(::Delegate)
     }
 }
 
 private fun <T : Any> AbstractModule.createBean(
-    propertyName: String,
+    name: String,
     type: KClass<T>,
     lazy: Boolean? = null,
-    onShape: (T, (T) -> Unit) -> Unit,
+    onConfigure: (T, (T) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 ): BeanImpl<T> {
-    val componentName = qualifyName(propertyName)
     val config = ComponentDefinition(
-        name = componentName,
+        name = name,
         lazy = lazy,
-        onShape = onShape,
+        onConfigure = onConfigure,
         type = type,
         instance = { container.createComponentInstance(instance) }
     )

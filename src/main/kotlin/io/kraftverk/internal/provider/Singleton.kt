@@ -17,7 +17,7 @@ internal class Singleton<T : Any>(
     val type: KClass<T>,
     private val lazy: Boolean?,
     private val createInstance: Supplier<T>,
-    private val onShape: (T, LifecycleActions) -> Unit
+    private val onConfigure: (T, LifecycleActions) -> Unit
 ) {
 
     private val lifecycle = LifecycleActions()
@@ -48,7 +48,7 @@ internal class Singleton<T : Any>(
                     createInstance(),
                     currentInstanceId.incrementAndGet()
                 )
-                onShape(i3.value, lifecycle)
+                onConfigure(i3.value, lifecycle)
                 lifecycle.onCreate()
                 instance = i3
                 i3.value

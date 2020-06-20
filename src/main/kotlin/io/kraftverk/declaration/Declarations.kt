@@ -63,10 +63,14 @@ class LifecycleActions {
         onDestroy = { Action(proceed).block() }
     }
 
-    class Action(val proceed: () -> Unit)
+    class Action(private val proceedFun: () -> Unit) {
+        fun proceed() {
+            proceedFun()
+        }
+    }
 }
 
-class ComponentShapingDeclaration<T> internal constructor(
+class ComponentConfigurationDeclaration<T> internal constructor(
     container: Container,
     val instance: T,
     private val lifecycle: LifecycleActions

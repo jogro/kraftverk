@@ -20,17 +20,17 @@ import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ComponentProcessor
 import io.kraftverk.declaration.ComponentDeclaration
 import io.kraftverk.managed.Managed
+import io.kraftverk.managed.addProcessor
 import io.kraftverk.managed.componentProviders
-import io.kraftverk.managed.config
 import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
-import io.kraftverk.managed.registerProcessor
+import io.kraftverk.managed.onBeforeStart
 import io.kraftverk.managed.start
 import io.kraftverk.managed.stop
 import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
-import io.kraftverk.module.shape
+import io.kraftverk.module.configure
 import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.definition
@@ -67,13 +67,13 @@ class BeanTest : StringSpec() {
         }
 
         init {
-            shape(gadget) { w ->
+            configure(gadget) { w ->
                 lifecycle {
                     onCreate { w.start() }
                     onDestroy { w.stop() }
                 }
             }
-            shape(childGadget) { cw ->
+            configure(childGadget) { cw ->
                 lifecycle {
                     onCreate { cw.start() }
                     onDestroy { cw.stop() }
@@ -154,9 +154,9 @@ class BeanTest : StringSpec() {
         "Customize can be used to replace a component and inhibit its onCreate" {
             val app = Kraftverk.manage { AppModule() }
             val replacement = mockk<Gadget>(relaxed = true)
-            app.config {
+            app.onBeforeStart {
                 bind(gadget) to { replacement }
-                shape(gadget) {
+                configure(gadget) {
                     lifecycle {
                         onCreate { }
                     }
@@ -200,7 +200,7 @@ class BeanTest : StringSpec() {
         "component on create invokes 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                shape(gadget) {
+                configure(gadget) {
                     lifecycle {
                         onCreate { proceed() }
                     }
@@ -215,7 +215,7 @@ class BeanTest : StringSpec() {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 // onCreate(gadget) { }
-                shape(gadget) {
+                configure(gadget) {
                     lifecycle {
                         onCreate { }
                     }
@@ -230,12 +230,12 @@ class BeanTest : StringSpec() {
         "component on destroy invokes 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                shape(gadget) {
+                configure(gadget) {
                     lifecycle {
                         onDestroy { proceed() }
                     }
                 }
-                shape(childGadget) {
+                configure(childGadget) {
                     lifecycle {
                         onDestroy { proceed() }
                     }
@@ -254,12 +254,12 @@ class BeanTest : StringSpec() {
         "component on destroy inhibits 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
-                shape(gadget) {
+                configure(gadget) {
                     lifecycle {
                         onDestroy { }
                     }
                 }
-                shape(childGadget) {
+                configure(childGadget) {
                     lifecycle {
                         onDestroy { }
                     }
@@ -307,17 +307,17 @@ class BeanTest : StringSpec() {
             val b2 by bean { b1() }
 
             init {
-                shape(b0) {
+                configure(b0) {
                     lifecycle {
                         onDestroy { destroyed.add("b0") }
                     }
                 }
-                shape(b1) {
+                configure(b1) {
                     lifecycle {
                         onDestroy { destroyed.add("b1") }
                     }
                 }
-                shape(b2) {
+                configure(b2) {
                     lifecycle {
                         onDestroy { destroyed.add("b2") }
                     }
@@ -400,7 +400,7 @@ class BeanTest : StringSpec() {
         "Customizing the module after it has been started should fail" {
             val module = Kraftverk.start { Mod1() }
             val ex = shouldThrow<IllegalStateException> {
-                module.config { }
+                module.onBeforeStart { }
             }
             ex.message shouldBe "Expected state to be 'Configurable' but was 'Running'"
         }
@@ -456,7 +456,7 @@ class BeanTest : StringSpec() {
 
     private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline component: M.() -> Component<T>):
             ReadOnlyProperty<Any?, T> {
-        config {
+        onBeforeStart {
             val c: Component<T> = component()
             bind(c) to { mockk() }
         }
@@ -465,7 +465,7 @@ class BeanTest : StringSpec() {
 
     private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline component: M.() -> Component<T>):
             ReadOnlyProperty<Any?, T> {
-        config {
+        onBeforeStart {
             val c: Component<T> = component()
             bind(c) to { spyk(proceed()) }
         }
@@ -487,6 +487,6 @@ class BeanTest : StringSpec() {
                     }
                 } else component
         }
-        registerProcessor(processor)
+        addProcessor(processor)
     }
 }

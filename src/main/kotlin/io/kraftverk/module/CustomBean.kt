@@ -14,13 +14,13 @@ inline fun <reified T : CustomBeanSpi<S>, S : Any> AbstractModule.customBean(
     lazy: Boolean? = null,
     noinline instance: ComponentDeclaration.() -> T
 ): ComponentDelegateProvider<T, S> =
-    customBean(T::class, lazy, { t: T, shape: (S) -> Unit -> t.onShape(shape) }, instance)
+    customBean(T::class, lazy, { t: T, configure: (S) -> Unit -> t.onConfigure(configure) }, instance)
 
 @PublishedApi
 internal fun <T : Any, S : Any> AbstractModule.customBean(
     type: KClass<T>,
     lazy: Boolean? = null,
-    onShape: (T, (S) -> Unit) -> Unit,
+    onConfigure: (T, (S) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 
 ): ComponentDelegateProvider<T, S> = object :
@@ -30,23 +30,22 @@ internal fun <T : Any, S : Any> AbstractModule.customBean(
         thisRef: AbstractModule,
         property: KProperty<*>
     ): ReadOnlyProperty<AbstractModule, CustomBean<T, S>> {
-        val componentName = qualifyName(property.name)
-        return createCustomBean(componentName, type, lazy, onShape, instance).let(::Delegate)
+        val qualifiedName = qualifyName(property.name)
+        return createCustomBean(qualifiedName, type, lazy, onConfigure, instance).let(::Delegate)
     }
 }
 
 private fun <T : Any, S : Any> AbstractModule.createCustomBean(
-    propertyName: String,
+    name: String,
     type: KClass<T>,
     lazy: Boolean? = null,
-    onShape: (T, (S) -> Unit) -> Unit,
+    onConfigure: (T, (S) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 ): CustomBeanImpl<T, S> {
-    val componentName = qualifyName(propertyName)
     val config = ComponentDefinition(
-        name = componentName,
+        name = name,
         lazy = lazy,
-        onShape = onShape,
+        onConfigure = onConfigure,
         type = type,
         instance = { container.createComponentInstance(instance) }
     )

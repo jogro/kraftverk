@@ -23,13 +23,13 @@ import io.kraftverk.module.createModule
  *
  * Call the [Managed.stop] method to destroy the [Managed] instance.
  */
-fun <M : Module> Managed<M>.start(lazy: Boolean = false, configBlock: M.() -> Unit = {}): Managed<M> {
+fun <M : Module> Managed<M>.start(lazy: Boolean = false, block: M.() -> Unit = {}): Managed<M> {
     logger.info { "Starting managed module" }
     val startMs = System.currentTimeMillis()
-    config(configBlock)
+    onBeforeStart(block)
     state.mustBe<Configurable<M>> {
         val module = createModule()
-        onConfig(module)
+        onBeforeStart(module)
         module.container.start(lazy)
         state = Running(module)
     }
@@ -38,25 +38,25 @@ fun <M : Module> Managed<M>.start(lazy: Boolean = false, configBlock: M.() -> Un
     return this
 }
 
-fun <M : Module> Managed<M>.config(block: M.() -> Unit): Managed<M> {
+fun <M : Module> Managed<M>.onBeforeStart(block: M.() -> Unit): Managed<M> {
     state.mustBe<Configurable<M>> {
-        val previousOnConfig = onConfig
-        onConfig = { instance ->
-            previousOnConfig(instance)
-            block(instance)
+        val previousOnBeforeStart = onBeforeStart
+        onBeforeStart = { module ->
+            previousOnBeforeStart(module)
+            block(module)
         }
     }
     return this
 }
 
-fun <M : Module> Managed<M>.registerProcessor(processor: ComponentProcessor): Managed<M> {
+fun <M : Module> Managed<M>.addProcessor(processor: ComponentProcessor): Managed<M> {
     state.mustBe<Configurable<M>> {
         componentProcessors += processor
     }
     return this
 }
 
-fun <M : Module> Managed<M>.registerProcessor(processor: ValueProcessor): Managed<M> {
+fun <M : Module> Managed<M>.addProcessor(processor: ValueProcessor): Managed<M> {
     state.mustBe<Configurable<M>> {
         valueProcessors += processor
     }

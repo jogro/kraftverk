@@ -8,8 +8,8 @@ package io.kraftverk.module
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.handler
-import io.kraftverk.declaration.ComponentShapingDeclaration
-import io.kraftverk.internal.binding.onShape
+import io.kraftverk.declaration.ComponentConfigurationDeclaration
+import io.kraftverk.internal.binding.onConfigure
 
 /**
  * A helper method for configuring a component after it has been declared, for example:
@@ -18,7 +18,7 @@ import io.kraftverk.internal.binding.onShape
  *     [...]
  *     val dataSource by component { HikariDataSource() }
  *     init {
- *         shape(dataSource) { ds ->
+ *         configure(dataSource) { ds ->
  *             ds.jdbcUrl = [...]
  *             ds.username = [...]
  *             ds.password = [...]
@@ -27,36 +27,36 @@ import io.kraftverk.internal.binding.onShape
  * }
  * ```
  */
-fun <T : Any, S : Any> AbstractModule.shape(
+fun <T : Any, S : Any> AbstractModule.configure(
     component: CustomBean<T, S>,
-    block: ComponentShapingDeclaration<S>.(S) -> Unit
+    block: ComponentConfigurationDeclaration<S>.(S) -> Unit
 ) {
-    component.handler.onShape { instance, lifecycle ->
+    component.handler.onConfigure { instance, lifecycle ->
         val f = { s: S ->
-            val definition = ComponentShapingDeclaration(
+            val definition = ComponentConfigurationDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.definition.onShape(instance, f)
+        component.handler.definition.onConfigure(instance, f)
     }
 }
 
-fun <T : Any> AbstractModule.shape(
+fun <T : Any> AbstractModule.configure(
     component: Bean<T>,
-    block: ComponentShapingDeclaration<T>.(T) -> Unit
+    block: ComponentConfigurationDeclaration<T>.(T) -> Unit
 ) {
-    component.handler.onShape { instance, lifecycle ->
+    component.handler.onConfigure { instance, lifecycle ->
         val f = { s: T ->
-            val definition = ComponentShapingDeclaration(
+            val definition = ComponentConfigurationDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.definition.onShape(instance, f)
+        component.handler.definition.onConfigure(instance, f)
     }
 }

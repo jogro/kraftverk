@@ -21,11 +21,11 @@ internal fun <T : Any> BindingHandler<T, Provider<T>>.bind(
     }
 }
 
-internal fun <T : Any, S : Any> ComponentHandler<T, S>.onShape(
+internal fun <T : Any, S : Any> ComponentHandler<T, S>.onConfigure(
     block: (T, LifecycleActions) -> Unit
 ) {
     state.mustBe<State.Configurable<T>> {
-        onShape = interceptAfter(onShape, block)
+        onConfigure = interceptAfter(onConfigure, block)
     }
 }
 

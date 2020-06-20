@@ -32,7 +32,7 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>>(
 
         data class Configurable<T : Any>(
             var instance: Supplier<T>,
-            var onShape: (T, LifecycleActions) -> Unit = { _, _ -> }
+            var onConfigure: (T, LifecycleActions) -> Unit = { _, _ -> }
         ) : State<T>()
 
         data class Running<T : Any, P : Provider<T>>(
@@ -104,5 +104,5 @@ private fun <T : Any> createSingleton(
     type = definition.type,
     lazy = definition.lazy,
     createInstance = state.instance,
-    onShape = state.onShape
+    onConfigure = state.onConfigure
 )
