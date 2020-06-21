@@ -11,7 +11,6 @@ import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
 import io.kraftverk.declaration.ComponentSupplierInterceptorDeclaration
 import io.kraftverk.declaration.ValueSupplierDeclaration
-import io.kraftverk.internal.binding.bind
 import io.kraftverk.internal.container.Container
 
 /**

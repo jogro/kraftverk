@@ -19,7 +19,6 @@ import io.kraftverk.internal.binding.ComponentProviderFactory
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.ValueProviderFactory
 import io.kraftverk.internal.binding.initialize
-import io.kraftverk.internal.binding.start
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
