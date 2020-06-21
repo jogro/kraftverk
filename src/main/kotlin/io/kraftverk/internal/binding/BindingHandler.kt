@@ -6,12 +6,10 @@
 package io.kraftverk.internal.binding
 
 import io.kraftverk.internal.misc.BasicState
-import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
-import io.kraftverk.provider.ValueProvider
 
-internal sealed class BindingHandler<T : Any, out P : Provider<T>, out F : BindingProviderFactory<T, P>>(
-    providerFactory: BindingProviderFactory<T, P>
+internal sealed class BindingHandler<T : Any, out F : BindingProviderFactory<T, Provider<T>>>(
+    providerFactory: F
 ) {
 
     @Volatile
@@ -32,7 +30,7 @@ internal sealed class BindingHandler<T : Any, out P : Provider<T>, out F : Bindi
 }
 
 internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProviderFactory<T, S>) :
-    BindingHandler<T, ComponentProvider<T, S>, ComponentProviderFactory<T, S>>(providerFactory)
+    BindingHandler<T, ComponentProviderFactory<T, S>>(providerFactory)
 
 internal class ValueHandler<T : Any>(providerFactory: ValueProviderFactory<T>) :
-    BindingHandler<T, ValueProvider<T>, ValueProviderFactory<T>>(providerFactory)
+    BindingHandler<T, ValueProviderFactory<T>>(providerFactory)

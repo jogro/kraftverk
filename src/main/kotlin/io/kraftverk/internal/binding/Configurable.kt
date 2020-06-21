@@ -13,7 +13,7 @@ import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
 
 // TODO Generic parameters can probably be simplified (P)
-internal fun <T : Any, P : Provider<T>, F : BindingProviderFactory<T, P>> BindingHandler<T, P, F>.bind(
+internal fun <T : Any, P : Provider<T>, F : BindingProviderFactory<T, P>> BindingHandler<T, F>.bind(
     block: (Supplier<T>) -> T
 ) {
     state.mustBe<State.Configurable<T, P, F>> {
@@ -29,7 +29,7 @@ internal fun <T : Any, S : Any, F : ComponentProviderFactory<T, S>> ComponentHan
     }
 }
 
-internal fun <T : Any, P : Provider<T>, F : BindingProviderFactory<T, P>> BindingHandler<T, P, F>.start() {
+internal fun <T : Any, P : Provider<T>, F : BindingProviderFactory<T, P>> BindingHandler<T, F>.start() {
     state.mustBe<State.Configurable<T, P, F>> {
         val provider = providerFactory.createProvider()
         state = State.Running(provider)

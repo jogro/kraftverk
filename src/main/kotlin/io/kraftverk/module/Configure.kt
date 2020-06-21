@@ -34,7 +34,7 @@ fun <T : Any, S : Any> AbstractModule.configure(
     block: ComponentConfigurationDeclaration<S>.(S) -> Unit
 ) {
     component.handler.configure { instance, lifecycle ->
-        val f = { s: S ->
+        val callback = { s: S ->
             val definition = ComponentConfigurationDeclaration(
                 container,
                 s,
@@ -42,7 +42,7 @@ fun <T : Any, S : Any> AbstractModule.configure(
             )
             definition.block(s)
         }
-        component.handler.provider.definition.onConfigure(instance, f)
+        component.handler.provider.definition.onConfigure(instance, callback)
     }
 }
 
@@ -51,7 +51,7 @@ fun <T : Any> AbstractModule.configure(
     block: ComponentConfigurationDeclaration<T>.(T) -> Unit
 ) {
     component.handler.configure { instance, lifecycle ->
-        val f = { s: T ->
+        val callback = { s: T ->
             val definition = ComponentConfigurationDeclaration(
                 container,
                 s,
@@ -59,6 +59,6 @@ fun <T : Any> AbstractModule.configure(
             )
             definition.block(s)
         }
-        component.handler.provider.definition.onConfigure(instance, f)
+        component.handler.provider.definition.onConfigure(instance, callback)
     }
 }
