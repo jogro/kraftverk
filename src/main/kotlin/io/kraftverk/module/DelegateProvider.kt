@@ -17,7 +17,7 @@ interface DelegateProvider<out T> {
 }
 
 interface BeanDelegateProvider<out T : Any> : DelegateProvider<Bean<T>>
-interface ComponentDelegateProvider<out T : Any, S : Any> : DelegateProvider<CustomBean<T, S>>
+interface CustomBeanDelegateProvider<out T : Any, S : Any> : DelegateProvider<CustomBean<T, S>>
 interface ValueDelegateProvider<out T : Any> : DelegateProvider<Value<T>>
 interface ModuleDelegateProvider<AM : AbstractModule, out MO : ChildModule<AM>> : DelegateProvider<MO>
 

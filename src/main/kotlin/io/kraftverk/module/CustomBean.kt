@@ -13,7 +13,7 @@ import kotlin.reflect.KProperty
 inline fun <reified T : CustomBeanSpi<S>, S : Any> AbstractModule.customBean(
     lazy: Boolean? = null,
     noinline instance: ComponentDeclaration.() -> T
-): ComponentDelegateProvider<T, S> =
+): CustomBeanDelegateProvider<T, S> =
     customBean(T::class, lazy, { t: T, configure: (S) -> Unit -> t.onConfigure(configure) }, instance)
 
 @PublishedApi
@@ -23,8 +23,8 @@ internal fun <T : Any, S : Any> AbstractModule.customBean(
     onConfigure: (T, (S) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 
-): ComponentDelegateProvider<T, S> = object :
-    ComponentDelegateProvider<T, S> {
+): CustomBeanDelegateProvider<T, S> = object :
+    CustomBeanDelegateProvider<T, S> {
 
     override fun provideDelegate(
         thisRef: AbstractModule,
