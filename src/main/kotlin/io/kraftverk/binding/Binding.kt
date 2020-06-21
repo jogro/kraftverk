@@ -6,6 +6,7 @@
 package io.kraftverk.binding
 
 import io.kraftverk.internal.binding.BindingHandler
+import io.kraftverk.internal.binding.BindingProviderFactory
 import io.kraftverk.internal.binding.ComponentHandler
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.provider
@@ -196,7 +197,7 @@ internal val <T : Any> Value<T>.handler: ValueHandler<T>
         is ValueImpl<T> -> handler
     }
 
-internal val <T : Any> Binding<T>.handler: BindingHandler<T, Provider<T>>
+internal val <T : Any> Binding<T>.handler: BindingHandler<T, Provider<T>, BindingProviderFactory<T, Provider<T>>>
     get() = when (this) {
         is ValueImpl<T> -> handler
         is CustomBeanImpl<T, *> -> handler

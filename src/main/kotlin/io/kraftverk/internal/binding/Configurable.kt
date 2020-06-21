@@ -8,30 +8,30 @@ package io.kraftverk.internal.binding
 import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.binding.BindingHandler.State
 import io.kraftverk.internal.misc.Supplier
-import io.kraftverk.internal.misc.interceptAfter
-import io.kraftverk.internal.misc.interceptAround
 import io.kraftverk.internal.misc.mustBe
+import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
 
-internal fun <T : Any> BindingHandler<T, Provider<T>>.bind(
+// TODO Generic parameters can probably be simplified (P)
+internal fun <T : Any, P : Provider<T>, F : BindingProviderFactory<T, P>> BindingHandler<T, P, F>.bind(
     block: (Supplier<T>) -> T
 ) {
-    state.mustBe<State.Configurable<T>> {
-        instance = interceptAround(instance, block)
+    state.mustBe<State.Configurable<T, P, F>> {
+        providerFactory.bind(block)
     }
 }
 
-internal fun <T : Any, S : Any> ComponentHandler<T, S>.onConfigure(
+internal fun <T : Any, S : Any, F : ComponentProviderFactory<T, S>> ComponentHandler<T, S>.configure(
     block: (T, LifecycleActions) -> Unit
 ) {
-    state.mustBe<State.Configurable<T>> {
-        onConfigure = interceptAfter(onConfigure, block)
+    state.mustBe<State.Configurable<T, ComponentProvider<T, S>, F>> {
+        providerFactory.configure(block)
     }
 }
 
-internal fun <T : Any> BindingHandler<T, Provider<T>>.start() {
-    state.mustBe<State.Configurable<T>> {
-        val provider = createProvider(this)
+internal fun <T : Any, P : Provider<T>, F : BindingProviderFactory<T, P>> BindingHandler<T, P, F>.start() {
+    state.mustBe<State.Configurable<T, P, F>> {
+        val provider = providerFactory.createProvider()
         state = State.Running(provider)
     }
 }

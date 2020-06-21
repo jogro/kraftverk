@@ -15,7 +15,9 @@ import io.kraftverk.binding.handler
 import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.internal.binding.ComponentHandler
+import io.kraftverk.internal.binding.ComponentProviderFactory
 import io.kraftverk.internal.binding.ValueHandler
+import io.kraftverk.internal.binding.ValueProviderFactory
 import io.kraftverk.internal.binding.initialize
 import io.kraftverk.internal.binding.start
 import io.kraftverk.internal.container.Container.State
@@ -24,6 +26,7 @@ import io.kraftverk.internal.misc.mustBe
 internal fun <T : Any, S : Any> Container.createCustomBean(
     definition: ComponentDefinition<T, S>
 ): CustomBeanImpl<T, S> = definition.let(::process)
+    .let(::ComponentProviderFactory)
     .let(::ComponentHandler)
     .let(::CustomBeanImpl)
     .also(this::register)
@@ -31,6 +34,7 @@ internal fun <T : Any, S : Any> Container.createCustomBean(
 internal fun <T : Any> Container.createBean(
     definition: ComponentDefinition<T, T>
 ): BeanImpl<T> = definition.let(::process)
+    .let(::ComponentProviderFactory)
     .let(::ComponentHandler)
     .let(::BeanImpl)
     .also(this::register)
@@ -38,6 +42,7 @@ internal fun <T : Any> Container.createBean(
 internal fun <T : Any> Container.createValue(
     definition: ValueDefinition<T>
 ): ValueImpl<T> = definition.let(::process)
+    .let(::ValueProviderFactory)
     .let(::ValueHandler)
     .let(::ValueImpl)
     .also(this::register)
