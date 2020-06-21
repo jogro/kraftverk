@@ -58,9 +58,9 @@ internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProv
         }
     }
 
-    fun onConfigure(t: T, cb: (S) -> Unit) {
+    fun onConfigure(t: T, callback: (S) -> Unit) {
         state.mustBe<State.Running<T, ComponentProvider<T, S>>> {
-            provider.definition.onConfigure(t, cb)
+            provider.definition.onConfigure(t, callback)
         }
     }
 }
