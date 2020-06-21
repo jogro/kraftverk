@@ -9,9 +9,6 @@ import io.kraftverk.binding.Bean
 import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.handler
 import io.kraftverk.declaration.ComponentConfigurationDeclaration
-import io.kraftverk.internal.binding.configure
-import io.kraftverk.internal.binding.provider
-import io.kraftverk.provider.definition
 
 /**
  * A helper method for configuring a component after it has been declared, for example:
@@ -42,7 +39,7 @@ fun <T : Any, S : Any> AbstractModule.configure(
             )
             definition.block(s)
         }
-        component.handler.provider.definition.onConfigure(instance, callback)
+        component.handler.onConfigure(instance, callback)
     }
 }
 
@@ -59,6 +56,6 @@ fun <T : Any> AbstractModule.configure(
             )
             definition.block(s)
         }
-        component.handler.provider.definition.onConfigure(instance, callback)
+        component.handler.onConfigure(instance, callback)
     }
 }

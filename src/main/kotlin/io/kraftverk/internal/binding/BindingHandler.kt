@@ -5,8 +5,12 @@
 
 package io.kraftverk.internal.binding
 
+import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.misc.BasicState
+import io.kraftverk.internal.misc.mustBe
+import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
+import io.kraftverk.provider.definition
 
 internal sealed class BindingHandler<T : Any, out F : BindingProviderFactory<T, Provider<T>>>(
     providerFactory: F
@@ -30,7 +34,20 @@ internal sealed class BindingHandler<T : Any, out F : BindingProviderFactory<T, 
 }
 
 internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProviderFactory<T, S>) :
-    BindingHandler<T, ComponentProviderFactory<T, S>>(providerFactory)
+    BindingHandler<T, ComponentProviderFactory<T, S>>(providerFactory) {
+
+    fun configure(block: (T, LifecycleActions) -> Unit) {
+        state.mustBe<State.Configurable<T, ComponentProvider<T, S>, ComponentProviderFactory<T, S>>> {
+            providerFactory.configure(block)
+        }
+    }
+
+    internal fun onConfigure(t: T, cb: (S) -> Unit) {
+        state.mustBe<State.Running<T, ComponentProvider<T, S>>> {
+            provider.definition.onConfigure(t, cb)
+        }
+    }
+}
 
 internal class ValueHandler<T : Any>(providerFactory: ValueProviderFactory<T>) :
     BindingHandler<T, ValueProviderFactory<T>>(providerFactory)
