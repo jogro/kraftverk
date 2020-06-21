@@ -12,7 +12,6 @@ import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
 
-// TODO Generic parameters can probably be simplified (P)
 internal fun <T : Any, P : Provider<T>, F : BindingProviderFactory<T, P>> BindingHandler<T, F>.bind(
     block: (Supplier<T>) -> T
 ) {

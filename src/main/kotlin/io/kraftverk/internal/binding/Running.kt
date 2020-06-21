@@ -5,11 +5,9 @@
 
 package io.kraftverk.internal.binding
 
-import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.binding.BindingHandler.State
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
-import io.kraftverk.provider.ComponentProvider
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
@@ -25,17 +23,6 @@ internal val <T : Any, P : Provider<T>, F : BindingProviderFactory<T, P>> Bindin
             return provider
         }
     }
-
-/*
-internal fun <T : Any, S : Any, F : ComponentProviderFactory<T, S>> ComponentHandler<T, S>.invokeOnConfig(
-    block: (T, LifecycleActions) -> Unit
-) {
-    state.mustBe<State.Running<T, S,F>> {
-        providerFactory.configure(block)
-    }
-}
-
- */
 
 internal fun BindingHandler<*, *>.stop() =
     state.mightBe<State.Running<*, *>> {
