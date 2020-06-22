@@ -10,16 +10,16 @@ import io.kraftverk.internal.binding.ComponentHandler
 import io.kraftverk.internal.binding.ValueHandler
 
 /**
- * A Binding is a [CustomBean] or [Value] that is declared within a Kraftverk managed module.
+ * A Binding is a [Component] or [Value] that is declared within a Kraftverk managed module.
  *
  * Common for all Bindings is that they serve as factories that produce injectable singleton instances
  * of type [T].
  *
- * A Binding can be obtained by calling for example the component[io.kraftverk.module.bean] declaration function:
+ * A Binding can be obtained by calling for example the bean[io.kraftverk.module.bean] declaration function:
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val dataSource by component { HikariDataSource() }  // Results in a Component<HikariDataSource>
+ *     val dataSource by bean { HikariDataSource() }  // Results in a Component<HikariDataSource>
  * }
  * '''
  *
@@ -27,7 +27,7 @@ import io.kraftverk.internal.binding.ValueHandler
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val dataSource: Binding<HikariDataSource> by component { HikariDataSource() }
+ *     val dataSource: Binding<HikariDataSource> by bean { HikariDataSource() }
  * }
  *
  */
@@ -40,11 +40,11 @@ sealed class Binding<out T : Any>
  * The primary purpose of a Component is to serve as a configurable factory that produces injectable singleton
  * instances of type [T].
  *
- * A Component is obtained by calling the component[io.kraftverk.module.bean] declaration function like this:
+ * A Component is obtained by calling for example the bean[io.kraftverk.module.bean] declaration function like this:
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val dataSource by component { HikariDataSource() }  // Component<HikariDataSource>
+ *     val dataSource by bean { HikariDataSource() }  // Component<HikariDataSource>
  * }
  * '''
  *
@@ -52,15 +52,15 @@ sealed class Binding<out T : Any>
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val dataSource by component<DataSource> { HikariDataSource() } // Component<DataSource>
+ *     val dataSource by bean<DataSource> { HikariDataSource() } // Component<DataSource>
  * }
  *
  * A Component can be used to inject other components:
  *
 '''Kotlin
  * class AppModule : Module() {
- *     val dataSource by component { HikariDataSource() }
- *     val repository by component { Repository(dataSource()) } // <--- Injection of the data source
+ *     val dataSource by bean { HikariDataSource() }
+ *     val repository by bean { Repository(dataSource()) } // <--- Injection of the data source
  * }
  * '''
  *
@@ -80,28 +80,26 @@ sealed class Binding<out T : Any>
  * hasn't been started[io.kraftverk.managed.start]. This feature provides the foundation for mocking etc,
  * see bind[io.kraftverk.module.bind].
  *
- * Components can also be lifecycle handled by use of the onCreate[io.kraftverk.module.onCreate] and
- * onDestroy[io.kraftverk.module.onDestroy] functions provided by the module[io.kraftverk.module.Module].
+ * Components can also be lifecycle handled.
  *
  * In Kraftverk there is no need to support a binding scope like 'prototype' etc since this
  * can be achieved in other ways:
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val user by component { { User() } }
+ *     val user by bean { { User() } }
  * }
  * '''
- * Here the binding is inferred to be Component<() -> User> and can be injected like this:
+ * Here the binding is inferred to be Bean<() -> User> and can be injected like this:
  *
  * '''Kotlin
  * class AppModule : Module() {
- *     val user by component { { User() } }
- *     val session by component { Session(user()()) }
+ *     val user by bean { { User() } }
+ *     val session by bean { Session(user()()) }
  * }
  * '''
  *
  */
-
 sealed class Component<out T : Any> : Binding<T>()
 
 sealed class CustomBean<out T : Any, out S : Any> : Component<T>() {
