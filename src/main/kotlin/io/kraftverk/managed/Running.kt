@@ -7,7 +7,6 @@ package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.handler
-import io.kraftverk.internal.binding.provider
 import io.kraftverk.internal.container.componentProviders
 import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders

@@ -17,7 +17,7 @@ import io.kraftverk.provider.ValueProviderImpl
 
 private val logger = createLogger { }
 
-internal abstract class BindingProviderFactory<T : Any, out P : Provider<T>>(var instance: Supplier<T>) {
+internal sealed class BindingProviderFactory<T : Any, out P : Provider<T>>(var instance: Supplier<T>) {
 
     abstract fun createProvider(): P
 

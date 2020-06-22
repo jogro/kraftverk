@@ -6,13 +6,8 @@
 package io.kraftverk.binding
 
 import io.kraftverk.internal.binding.BindingHandler
-import io.kraftverk.internal.binding.BindingProviderFactory
 import io.kraftverk.internal.binding.ComponentHandler
 import io.kraftverk.internal.binding.ValueHandler
-import io.kraftverk.internal.binding.provider
-import io.kraftverk.provider.ComponentProvider
-import io.kraftverk.provider.Provider
-import io.kraftverk.provider.ValueProvider
 
 /**
  * A Binding is a [CustomBean] or [Value] that is declared within a Kraftverk managed module.
@@ -197,13 +192,15 @@ internal val <T : Any> Value<T>.handler: ValueHandler<T>
         is ValueImpl<T> -> handler
     }
 
-internal val <T : Any> Binding<T>.handler: BindingHandler<T, BindingProviderFactory<T, Provider<T>>>
+internal val <T : Any> Component<T>.handler: ComponentHandler<T, *>
     get() = when (this) {
-        is ValueImpl<T> -> handler
-        is CustomBeanImpl<T, *> -> handler
         is BeanImpl<T> -> handler
+        is CustomBeanImpl<T, *> -> handler
     }
 
-internal val <T : Any> Value<T>.provider: ValueProvider<T> get() = handler.provider
-internal val <T : Any, S : Any> CustomBean<T, S>.provider: ComponentProvider<T, S> get() = handler.provider
-internal val <T : Any> Bean<T>.provider: ComponentProvider<T, T> get() = handler.provider
+internal val <T : Any> Binding<T>.handler: BindingHandler<T>
+    get() = when (this) {
+        is ValueImpl<T> -> handler
+        is BeanImpl<T> -> handler
+        is CustomBeanImpl<T, *> -> handler
+    }

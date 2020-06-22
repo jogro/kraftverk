@@ -15,7 +15,6 @@ import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Component
-import io.kraftverk.binding.provider
 import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ComponentProcessor
 import io.kraftverk.declaration.ComponentDeclaration
@@ -31,8 +30,6 @@ import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
 import io.kraftverk.module.configure
-import io.kraftverk.provider.ComponentProvider
-import io.kraftverk.provider.Provider
 import io.kraftverk.provider.definition
 import io.kraftverk.provider.get
 import io.kraftverk.provider.type
@@ -424,8 +421,8 @@ class BeanTest : StringSpec() {
         class CovariantModule : Module() {
             val component0: Bean<Gadget> by bean { gadget }
             val binding0: Binding<Gadget> = component0
-            val componentProvider: ComponentProvider<Gadget, Gadget> = component0.provider
-            val provider: Provider<Gadget> = componentProvider
+            // val componentProvider: ComponentProvider<Gadget, Gadget> = component0.provider
+            // val provider: Provider<Gadget> = componentProvider
         }
     }
 

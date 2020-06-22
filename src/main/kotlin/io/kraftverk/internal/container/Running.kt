@@ -9,8 +9,6 @@ import io.kraftverk.binding.Binding
 import io.kraftverk.binding.handler
 import io.kraftverk.declaration.ComponentDeclaration
 import io.kraftverk.declaration.ValueDeclaration
-import io.kraftverk.internal.binding.provider
-import io.kraftverk.internal.binding.stop
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
