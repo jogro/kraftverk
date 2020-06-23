@@ -67,7 +67,6 @@ internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
 
 internal class CustomBeanImpl<T : Any, S : Any>(val handler: ComponentHandler<T, S>) : CustomBean<T, S>()
 
-
 internal val <T : Any, S : Any> CustomBean<T, S>.handler: ComponentHandler<T, S>
     get() = when (this) {
         is CustomBeanImpl<T, S> -> handler
