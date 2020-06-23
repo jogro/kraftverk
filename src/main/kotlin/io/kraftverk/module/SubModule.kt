@@ -10,7 +10,7 @@ import io.kraftverk.common.ComponentRef
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-fun <AM : AbstractModule, CM : ChildModule<AM>> AM.module(
+fun <AM : AbstractModule, CM : BasicModule<AM>> AM.module(
     name: String? = null,
     instance: () -> CM
 ): ModuleDelegateProvider<AM, CM> = object :

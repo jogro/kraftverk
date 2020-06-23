@@ -25,9 +25,7 @@ internal class RootModule(override val container: Container) : AbstractModule() 
     override val namespace: String = ""
 }
 
-open class Module : ChildModule<Module>()
-
-open class ChildModule<AM : AbstractModule> : AbstractModule() {
+open class BasicModule<AM : AbstractModule> : AbstractModule() {
 
     @Suppress("UNCHECKED_CAST")
     internal val parent: AM = scopedParentModule.get() as AM
@@ -38,6 +36,9 @@ open class ChildModule<AM : AbstractModule> : AbstractModule() {
     internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T =
         parent.binding().handler.provider.get()
 }
+
+open class Module : BasicModule<Module>()
+open class ChildModule<AM : AbstractModule> : BasicModule<AM>()
 
 internal fun <M : Module> createModule(
     container: Container,
@@ -52,7 +53,7 @@ internal fun <M : Module> createModule(
     }
 }
 
-internal fun <AM : AbstractModule, MO : ChildModule<AM>> AbstractModule.createChildModule(
+internal fun <AM : AbstractModule, MO : BasicModule<AM>> AbstractModule.createChildModule(
     namespace: String,
     moduleFun: () -> MO
 ): MO = scopedParentModule.use(this) {
