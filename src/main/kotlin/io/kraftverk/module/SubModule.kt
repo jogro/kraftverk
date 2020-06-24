@@ -10,24 +10,24 @@ import io.kraftverk.common.ComponentRef
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-fun <AM : AbstractModule, CM : BasicModule<AM>> AM.module(
+fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.module(
     name: String? = null,
-    instance: () -> CM
-): ModuleDelegateProvider<AM, CM> = object :
-    ModuleDelegateProvider<AM, CM> {
+    instance: () -> CHILD
+): ModuleDelegateProvider<PARENT, CHILD> = object :
+    ModuleDelegateProvider<PARENT, CHILD> {
 
     override fun provideDelegate(
         thisRef: AbstractModule,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, CM> {
+    ): ReadOnlyProperty<AbstractModule, CHILD> {
         val moduleName = qualifyName(name ?: property.name)
-        val module = createChildModule(moduleName, instance)
+        val module: CHILD = createChildModule(moduleName, instance)
         return Delegate(module)
     }
 }
 
-fun <AM : AbstractModule, CM : ChildModule<AM>, T : Any, B : Component<T>> CM.ref(
-    component: AM.() -> B
+fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>, T : Any, COMPONENT : Component<T>> CHILD.ref(
+    component: PARENT.() -> COMPONENT
 ): ComponentRefDelegateProvider<T> = object : ComponentRefDelegateProvider<T> {
     override fun provideDelegate(
         thisRef: AbstractModule,

@@ -25,20 +25,20 @@ internal class RootModule(override val container: Container) : AbstractModule() 
     override val namespace: String = ""
 }
 
-open class BasicModule<AM : AbstractModule> : AbstractModule() {
+open class BasicModule<PARENT : AbstractModule> : AbstractModule() {
 
     @Suppress("UNCHECKED_CAST")
-    internal val parent: AM = scopedParentModule.get() as AM
+    internal val parent: PARENT = scopedParentModule.get() as PARENT
 
     override val container: Container = parent.container
     override val namespace: String = scopedNamespace.get()
 
-    internal fun <T : Any, B : Binding<T>> getInstance(binding: AM.() -> B): T =
+    internal fun <T : Any, BINDING : Binding<T>> getInstance(binding: PARENT.() -> BINDING): T =
         parent.binding().handler.provider.get()
 }
 
 open class Module : BasicModule<Module>()
-open class ChildModule<AM : AbstractModule> : BasicModule<AM>()
+open class ChildModule<PARENT : Module> : BasicModule<PARENT>()
 
 internal fun <M : Module> createModule(
     container: Container,
@@ -53,10 +53,14 @@ internal fun <M : Module> createModule(
     }
 }
 
-internal fun <AM : AbstractModule, MO : BasicModule<AM>> AbstractModule.createChildModule(
+/*
+This needs to be an extension method, since this is the only way to capture PARENT as
+a "THIS" type parameter. We want to state that CHILD is exactly BasicModule<PARENT>.
+ */
+internal fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.createChildModule(
     namespace: String,
-    moduleFun: () -> MO
-): MO = scopedParentModule.use(this) {
+    moduleFun: () -> CHILD
+): CHILD = scopedParentModule.use(this) {
     scopedNamespace.use(namespace) {
         moduleFun()
     }
