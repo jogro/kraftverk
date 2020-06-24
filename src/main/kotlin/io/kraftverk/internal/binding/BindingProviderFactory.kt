@@ -30,10 +30,10 @@ internal class ComponentProviderFactory<T : Any, S : Any>(
     private val definition: ComponentDefinition<T, S>
 ) : BindingProviderFactory<T, ComponentProvider<T, S>>(definition.instance) {
 
-    private var onConfigure: (T, LifecycleActions) -> Unit = { _, _ -> }
+    private var onShape: (T, LifecycleActions) -> Unit = { _, _ -> }
 
-    fun configure(block: (T, LifecycleActions) -> Unit) {
-        onConfigure = interceptAfter(onConfigure, block)
+    fun shape(block: (T, LifecycleActions) -> Unit) {
+        onShape = interceptAfter(onShape, block)
     }
 
     override fun createProvider() = ComponentProviderImpl(
@@ -41,7 +41,7 @@ internal class ComponentProviderFactory<T : Any, S : Any>(
         createSingleton(
             definition,
             instance = loggingInterceptor(instance),
-            onConfigure = onConfigure
+            onShape = onShape
         )
     )
 
@@ -65,7 +65,7 @@ internal class ValueProviderFactory<T : Any>(
         createSingleton(
             definition,
             instance = loggingInterceptor(instance),
-            onConfigure = { _, _ -> }
+            onShape = { _, _ -> }
         )
     )
 
@@ -83,11 +83,11 @@ internal class ValueProviderFactory<T : Any>(
 private fun <T : Any> createSingleton(
     definition: BindingDefinition<T>,
     instance: Supplier<T>,
-    onConfigure: (T, LifecycleActions) -> Unit
+    onShape: (T, LifecycleActions) -> Unit
 
 ): Singleton<T> = Singleton(
     type = definition.type,
     lazy = definition.lazy,
     createInstance = instance,
-    onConfigure = onConfigure
+    onShape = onShape
 )

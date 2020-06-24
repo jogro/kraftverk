@@ -30,7 +30,7 @@ data class ComponentDefinition<T : Any, S : Any>(
     override val name: String,
     override val type: KClass<T>,
     override val lazy: Boolean?,
-    val onConfigure: (T, (S) -> Unit) -> Unit,
+    val onShape: (T, (S) -> Unit) -> Unit,
     override val instance: Supplier<T>
 ) : BindingDefinition<T>
 

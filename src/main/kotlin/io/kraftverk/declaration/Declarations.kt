@@ -71,7 +71,7 @@ class LifecycleActions {
     }
 }
 
-class ComponentConfigurationDeclaration<T> internal constructor(
+class ComponentShapeDeclaration<T> internal constructor(
     container: Container,
     val instance: T,
     private val lifecycle: LifecycleActions

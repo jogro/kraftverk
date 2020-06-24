@@ -48,7 +48,7 @@ fun <T : Any> BasicModule<*>.bind(component: Component<T>) =
     ComponentBinder(container, component)
 
 /**
- * Binds a configured [Value] to a new value, for example:
+ * Binds a shaped [Value] to a new value, for example:
  * ```kotlin
  * val app = Kraftverk.manage { AppModule() }
  * app.start { // this: AppModule

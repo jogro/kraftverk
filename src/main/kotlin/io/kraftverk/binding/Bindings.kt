@@ -40,7 +40,7 @@ sealed class Value<out T : Any> : Binding<T>() {
 }
 
 /**
- * A CustomBean has the same characteristics as a Bean[Bean] but can be configured by use of an intermediary
+ * A CustomBean has the same characteristics as a Bean[Bean] but can be shaped by use of an intermediary
  * type S[S].
  *
  * See customBean[io.kraftverk.module.customBean] on how to declare a CustomBean.

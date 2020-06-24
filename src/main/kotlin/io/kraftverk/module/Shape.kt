@@ -8,7 +8,7 @@ package io.kraftverk.module
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.handler
-import io.kraftverk.declaration.ComponentConfigurationDeclaration
+import io.kraftverk.declaration.ComponentShapeDeclaration
 
 /**
  * A helper method for configuring a component after it has been declared, for example:
@@ -17,7 +17,7 @@ import io.kraftverk.declaration.ComponentConfigurationDeclaration
  *     [...]
  *     val dataSource by component { HikariDataSource() }
  *     init {
- *         configure(dataSource) { ds ->
+ *         shape(dataSource) { ds ->
  *             ds.jdbcUrl = [...]
  *             ds.username = [...]
  *             ds.password = [...]
@@ -26,36 +26,36 @@ import io.kraftverk.declaration.ComponentConfigurationDeclaration
  * }
  * ```
  */
-fun <T : Any, S : Any> BasicModule<*>.configure(
+fun <T : Any, S : Any> BasicModule<*>.shape(
     component: CustomBean<T, S>,
-    block: ComponentConfigurationDeclaration<S>.(S) -> Unit
+    block: ComponentShapeDeclaration<S>.(S) -> Unit
 ) {
-    component.handler.configure { instance, lifecycle ->
+    component.handler.shape { instance, lifecycle ->
         val callback = { s: S ->
-            val definition = ComponentConfigurationDeclaration(
+            val definition = ComponentShapeDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.onConfigure(instance, callback)
+        component.handler.onShape(instance, callback)
     }
 }
 
-fun <T : Any> BasicModule<*>.configure(
+fun <T : Any> BasicModule<*>.shape(
     component: Bean<T>,
-    block: ComponentConfigurationDeclaration<T>.(T) -> Unit
+    block: ComponentShapeDeclaration<T>.(T) -> Unit
 ) {
-    component.handler.configure { instance, lifecycle ->
+    component.handler.shape { instance, lifecycle ->
         val callback = { s: T ->
-            val definition = ComponentConfigurationDeclaration(
+            val definition = ComponentShapeDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.onConfigure(instance, callback)
+        component.handler.onShape(instance, callback)
     }
 }

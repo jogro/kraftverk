@@ -49,9 +49,9 @@ internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProv
         }
     }
 
-    fun configure(block: (T, LifecycleActions) -> Unit) {
+    fun shape(block: (T, LifecycleActions) -> Unit) {
         state.mustBe<State.Configurable<T, S>> {
-            providerFactory.configure(block)
+            providerFactory.shape(block)
         }
     }
 
@@ -68,9 +68,9 @@ internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProv
         }
     }
 
-    fun onConfigure(t: T, callback: (S) -> Unit) {
+    fun onShape(t: T, callback: (S) -> Unit) {
         state.mustBe<State.Running<T, S>> {
-            provider.definition.onConfigure(t, callback)
+            provider.definition.onShape(t, callback)
         }
     }
 
