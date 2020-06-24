@@ -26,7 +26,7 @@ import io.kraftverk.declaration.ComponentConfigurationDeclaration
  * }
  * ```
  */
-fun <T : Any, S : Any> AbstractModule.configure(
+fun <T : Any, S : Any> BasicModule<*>.configure(
     component: CustomBean<T, S>,
     block: ComponentConfigurationDeclaration<S>.(S) -> Unit
 ) {
@@ -43,7 +43,7 @@ fun <T : Any, S : Any> AbstractModule.configure(
     }
 }
 
-fun <T : Any> AbstractModule.configure(
+fun <T : Any> BasicModule<*>.configure(
     component: Bean<T>,
     block: ComponentConfigurationDeclaration<T>.(T) -> Unit
 ) {

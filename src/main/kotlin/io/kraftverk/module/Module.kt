@@ -25,7 +25,7 @@ internal class RootModule(override val container: Container) : AbstractModule() 
     override val namespace: String = ""
 }
 
-open class BasicModule<PARENT : AbstractModule> : AbstractModule() {
+sealed class BasicModule<PARENT : AbstractModule> : AbstractModule() {
 
     @Suppress("UNCHECKED_CAST")
     internal val parent: PARENT = scopedParentModule.get() as PARENT
@@ -38,7 +38,7 @@ open class BasicModule<PARENT : AbstractModule> : AbstractModule() {
 }
 
 open class Module : BasicModule<Module>()
-open class ChildModule<PARENT : Module> : BasicModule<PARENT>()
+open class ChildModule<PARENT : BasicModule<*>> : BasicModule<PARENT>()
 
 internal fun <M : Module> createModule(
     container: Container,

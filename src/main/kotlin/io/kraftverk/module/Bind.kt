@@ -44,7 +44,7 @@ import io.kraftverk.internal.container.Container
  * ```
  */
 
-fun <T : Any> AbstractModule.bind(component: Component<T>) =
+fun <T : Any> BasicModule<*>.bind(component: Component<T>) =
     ComponentBinder(container, component)
 
 /**
@@ -57,7 +57,7 @@ fun <T : Any> AbstractModule.bind(component: Component<T>) =
  * ```
  * The provided value will override any other values.
  */
-fun <T : Any> AbstractModule.bind(value: Value<T>) =
+fun <T : Any> BasicModule<*>.bind(value: Value<T>) =
     ValueBinder(container, value)
 
 /**

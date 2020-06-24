@@ -10,14 +10,14 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
-inline fun <reified T : CustomBeanSpi<S>, S : Any> AbstractModule.customBean(
+inline fun <reified T : CustomBeanSpi<S>, S : Any> BasicModule<*>.customBean(
     lazy: Boolean? = null,
     noinline instance: ComponentDeclaration.() -> T
 ): CustomBeanDelegateProvider<T, S> =
     customBean(T::class, lazy, { t: T, configure: (S) -> Unit -> t.onConfigure(configure) }, instance)
 
 @PublishedApi
-internal fun <T : Any, S : Any> AbstractModule.customBean(
+internal fun <T : Any, S : Any> BasicModule<*>.customBean(
     type: KClass<T>,
     lazy: Boolean? = null,
     onConfigure: (T, (S) -> Unit) -> Unit,
@@ -27,15 +27,15 @@ internal fun <T : Any, S : Any> AbstractModule.customBean(
     CustomBeanDelegateProvider<T, S> {
 
     override fun provideDelegate(
-        thisRef: AbstractModule,
+        thisRef: BasicModule<*>,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, CustomBean<T, S>> {
+    ): ReadOnlyProperty<BasicModule<*>, CustomBean<T, S>> {
         val qualifiedName = qualifyName(property.name)
         return createCustomBean(qualifiedName, type, lazy, onConfigure, instance).let(::Delegate)
     }
 }
 
-private fun <T : Any, S : Any> AbstractModule.createCustomBean(
+private fun <T : Any, S : Any> BasicModule<*>.createCustomBean(
     name: String,
     type: KClass<T>,
     lazy: Boolean? = null,

@@ -13,16 +13,16 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 interface DelegateProvider<out T> {
-    operator fun provideDelegate(thisRef: AbstractModule, property: KProperty<*>): ReadOnlyProperty<AbstractModule, T>
+    operator fun provideDelegate(thisRef: BasicModule<*>, property: KProperty<*>): ReadOnlyProperty<BasicModule<*>, T>
 }
 
 interface BeanDelegateProvider<out T : Any> : DelegateProvider<Bean<T>>
 interface CustomBeanDelegateProvider<out T : Any, S : Any> : DelegateProvider<CustomBean<T, S>>
 interface ValueDelegateProvider<out T : Any> : DelegateProvider<Value<T>>
-interface ModuleDelegateProvider<AM : AbstractModule, out MO : BasicModule<AM>> : DelegateProvider<MO>
+interface ModuleDelegateProvider<PARENT : BasicModule<*>, out CHILD : BasicModule<PARENT>> : DelegateProvider<CHILD>
 
 interface ComponentRefDelegateProvider<out T : Any> : DelegateProvider<ComponentRef<T>>
 
-internal class Delegate<out T : Any>(private val t: T) : ReadOnlyProperty<AbstractModule, T> {
-    override fun getValue(thisRef: AbstractModule, property: KProperty<*>): T = t
+internal class Delegate<out T : Any>(private val t: T) : ReadOnlyProperty<BasicModule<*>, T> {
+    override fun getValue(thisRef: BasicModule<*>, property: KProperty<*>): T = t
 }

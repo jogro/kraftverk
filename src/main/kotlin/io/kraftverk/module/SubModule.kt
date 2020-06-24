@@ -17,9 +17,9 @@ fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.module(
     ModuleDelegateProvider<PARENT, CHILD> {
 
     override fun provideDelegate(
-        thisRef: AbstractModule,
+        thisRef: BasicModule<*>,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, CHILD> {
+    ): ReadOnlyProperty<BasicModule<*>, CHILD> {
         val moduleName = qualifyName(name ?: property.name)
         val module: CHILD = createChildModule(moduleName, instance)
         return Delegate(module)
@@ -30,9 +30,9 @@ fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>, T : Any, COMPONENT : 
     component: PARENT.() -> COMPONENT
 ): ComponentRefDelegateProvider<T> = object : ComponentRefDelegateProvider<T> {
     override fun provideDelegate(
-        thisRef: AbstractModule,
+        thisRef: BasicModule<*>,
         property: KProperty<*>
-    ): ReadOnlyProperty<AbstractModule, ComponentRef<T>> {
+    ): ReadOnlyProperty<BasicModule<*>, ComponentRef<T>> {
         val ref = ComponentRef { getInstance(component) }
         return Delegate(ref)
     }
