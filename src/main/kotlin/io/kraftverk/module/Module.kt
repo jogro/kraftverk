@@ -6,14 +6,15 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Binding
+import io.kraftverk.binding.Component
 import io.kraftverk.binding.handler
+import io.kraftverk.common.ComponentRef
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.ScopedThreadLocal
 import io.kraftverk.provider.get
-
-private val scopedParentModule = ScopedThreadLocal<AbstractModule>()
-private val scopedNamespace = ScopedThreadLocal<String>()
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 sealed class AbstractModule {
     internal val logger = createLogger { }
@@ -24,6 +25,9 @@ sealed class AbstractModule {
 internal class RootModule(override val container: Container) : AbstractModule() {
     override val namespace: String = ""
 }
+
+private val scopedParentModule = ScopedThreadLocal<AbstractModule>()
+private val scopedNamespace = ScopedThreadLocal<String>()
 
 sealed class BasicModule<PARENT : AbstractModule> : AbstractModule() {
 
@@ -38,7 +42,6 @@ sealed class BasicModule<PARENT : AbstractModule> : AbstractModule() {
 }
 
 open class Module : BasicModule<Module>()
-open class ChildModule<PARENT : BasicModule<*>> : BasicModule<PARENT>()
 
 internal fun <M : Module> createModule(
     container: Container,
@@ -55,7 +58,7 @@ internal fun <M : Module> createModule(
 
 /*
 This needs to be an extension method, since this is the only way to capture PARENT as
-a "THIS" type parameter. We want to state that CHILD is exactly BasicModule<PARENT>.
+a "THIS" type parameter. We want the CHILD to be exactly BasicModule<PARENT>.
  */
 internal fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.createChildModule(
     namespace: String,
@@ -65,5 +68,35 @@ internal fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.creat
         moduleFun()
     }
 }
+
+fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.module(
+    name: String? = null,
+    instance: () -> CHILD
+): ModuleDelegateProvider<PARENT, CHILD> =
+    object : ModuleDelegateProvider<PARENT, CHILD> {
+        override fun provideDelegate(
+            thisRef: BasicModule<*>,
+            property: KProperty<*>
+        ): ReadOnlyProperty<BasicModule<*>, CHILD> {
+            val moduleName = qualifyName(name ?: property.name)
+            val module: CHILD = createChildModule(moduleName, instance)
+            return Delegate(module)
+        }
+    }
+
+open class ChildModule<PARENT : BasicModule<*>> : BasicModule<PARENT>()
+
+fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>, T : Any, COMPONENT : Component<T>> CHILD.ref(
+    component: PARENT.() -> COMPONENT
+): ComponentRefDelegateProvider<T> =
+    object : ComponentRefDelegateProvider<T> {
+        override fun provideDelegate(
+            thisRef: BasicModule<*>,
+            property: KProperty<*>
+        ): ReadOnlyProperty<BasicModule<*>, ComponentRef<T>> {
+            val ref = ComponentRef { getInstance(component) }
+            return Delegate(ref)
+        }
+    }
 
 internal fun AbstractModule.qualifyName(name: String) = if (namespace.isBlank()) name else "$namespace.$name"
