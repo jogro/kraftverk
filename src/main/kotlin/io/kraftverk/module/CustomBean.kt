@@ -14,13 +14,13 @@ inline fun <reified T : CustomBeanSpi<S>, S : Any> BasicModule<*>.customBean(
     lazy: Boolean? = null,
     noinline instance: ComponentDeclaration.() -> T
 ): CustomBeanDelegateProvider<T, S> =
-    customBean(T::class, lazy, { t: T, shape: (S) -> Unit -> t.onShape(shape) }, instance)
+    customBean(T::class, lazy, { t: T, setUp: (S) -> Unit -> t.onSetUp(setUp) }, instance)
 
 @PublishedApi
 internal fun <T : Any, S : Any> BasicModule<*>.customBean(
     type: KClass<T>,
     lazy: Boolean? = null,
-    onShape: (T, (S) -> Unit) -> Unit,
+    onSetUp: (T, (S) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 
 ): CustomBeanDelegateProvider<T, S> = object :
@@ -31,7 +31,7 @@ internal fun <T : Any, S : Any> BasicModule<*>.customBean(
         property: KProperty<*>
     ): ReadOnlyProperty<BasicModule<*>, CustomBean<T, S>> {
         val qualifiedName = qualifyName(property.name)
-        return createCustomBean(qualifiedName, type, lazy, onShape, instance).let(::Delegate)
+        return createCustomBean(qualifiedName, type, lazy, onSetUp, instance).let(::Delegate)
     }
 }
 
@@ -39,13 +39,13 @@ private fun <T : Any, S : Any> BasicModule<*>.createCustomBean(
     name: String,
     type: KClass<T>,
     lazy: Boolean? = null,
-    onShape: (T, (S) -> Unit) -> Unit,
+    onSetUp: (T, (S) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 ): CustomBeanImpl<T, S> {
     val config = ComponentDefinition(
         name = name,
         lazy = lazy,
-        onShape = onShape,
+        onSetUp = onSetUp,
         type = type,
         instance = { container.createComponentInstance(instance) }
     )

@@ -26,10 +26,10 @@ import io.kraftverk.module.createModule
 fun <M : Module> Managed<M>.start(lazy: Boolean = false, block: M.() -> Unit = {}): Managed<M> {
     logger.info { "Starting managed module" }
     val startMs = System.currentTimeMillis()
-    shape(block)
+    setUp(block)
     state.mustBe<Configurable<M>> {
         val module = createModule()
-        onShape(module)
+        onSetUp(module)
         module.container.start(lazy)
         state = Running(module)
     }
@@ -38,11 +38,11 @@ fun <M : Module> Managed<M>.start(lazy: Boolean = false, block: M.() -> Unit = {
     return this
 }
 
-fun <M : Module> Managed<M>.shape(block: M.() -> Unit): Managed<M> {
+fun <M : Module> Managed<M>.setUp(block: M.() -> Unit): Managed<M> {
     state.mustBe<Configurable<M>> {
-        val previousOnShape = onShape
-        onShape = { module ->
-            previousOnShape(module)
+        val previousOnSetUp = onSetUp
+        onSetUp = { module ->
+            previousOnSetUp(module)
             block(module)
         }
     }

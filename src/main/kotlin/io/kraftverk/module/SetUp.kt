@@ -8,7 +8,7 @@ package io.kraftverk.module
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.handler
-import io.kraftverk.declaration.ComponentShapeDeclaration
+import io.kraftverk.declaration.ComponentSetupDeclaration
 
 /**
  * A helper method for configuring a component after it has been declared, for example:
@@ -17,7 +17,7 @@ import io.kraftverk.declaration.ComponentShapeDeclaration
  *     [...]
  *     val dataSource by component { HikariDataSource() }
  *     init {
- *         shape(dataSource) { ds ->
+ *         setUp(dataSource) { ds ->
  *             ds.jdbcUrl = [...]
  *             ds.username = [...]
  *             ds.password = [...]
@@ -26,36 +26,36 @@ import io.kraftverk.declaration.ComponentShapeDeclaration
  * }
  * ```
  */
-fun <T : Any, S : Any> BasicModule<*>.shape(
+fun <T : Any, S : Any> BasicModule<*>.setUp(
     component: CustomBean<T, S>,
-    block: ComponentShapeDeclaration<S>.(S) -> Unit
+    block: ComponentSetupDeclaration<S>.(S) -> Unit
 ) {
-    component.handler.shape { instance, lifecycle ->
+    component.handler.setUp { instance, lifecycle ->
         val callback = { s: S ->
-            val definition = ComponentShapeDeclaration(
+            val definition = ComponentSetupDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.onShape(instance, callback)
+        component.handler.onSetUp(instance, callback)
     }
 }
 
-fun <T : Any> BasicModule<*>.shape(
+fun <T : Any> BasicModule<*>.setUp(
     component: Bean<T>,
-    block: ComponentShapeDeclaration<T>.(T) -> Unit
+    block: ComponentSetupDeclaration<T>.(T) -> Unit
 ) {
-    component.handler.shape { instance, lifecycle ->
+    component.handler.setUp { instance, lifecycle ->
         val callback = { s: T ->
-            val definition = ComponentShapeDeclaration(
+            val definition = ComponentSetupDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.onShape(instance, callback)
+        component.handler.onSetUp(instance, callback)
     }
 }

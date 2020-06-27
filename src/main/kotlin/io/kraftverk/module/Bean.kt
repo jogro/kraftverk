@@ -18,13 +18,13 @@ import kotlin.reflect.KProperty
 inline fun <reified T : Any> BasicModule<*>.bean(
     lazy: Boolean? = null,
     noinline instance: ComponentDeclaration.() -> T
-): BeanDelegateProvider<T> = bean(T::class, lazy, { i, shape -> shape(i) }, instance)
+): BeanDelegateProvider<T> = bean(T::class, lazy, { i, setUp -> setUp(i) }, instance)
 
 @PublishedApi
 internal fun <T : Any> BasicModule<*>.bean(
     type: KClass<T>,
     lazy: Boolean? = null,
-    onShape: (T, (T) -> Unit) -> Unit,
+    onSetUp: (T, (T) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 
 ): BeanDelegateProvider<T> = object : BeanDelegateProvider<T> {
@@ -33,7 +33,7 @@ internal fun <T : Any> BasicModule<*>.bean(
         property: KProperty<*>
     ): ReadOnlyProperty<BasicModule<*>, Bean<T>> {
         val qualifiedName = qualifyName(property.name)
-        return createBean(qualifiedName, type, lazy, onShape, instance).let(::Delegate)
+        return createBean(qualifiedName, type, lazy, onSetUp, instance).let(::Delegate)
     }
 }
 
@@ -41,13 +41,13 @@ private fun <T : Any> BasicModule<*>.createBean(
     name: String,
     type: KClass<T>,
     lazy: Boolean? = null,
-    onShape: (T, (T) -> Unit) -> Unit,
+    onSetUp: (T, (T) -> Unit) -> Unit,
     instance: ComponentDeclaration.() -> T
 ): BeanImpl<T> {
     val config = ComponentDefinition(
         name = name,
         lazy = lazy,
-        onShape = onShape,
+        onSetUp = onSetUp,
         type = type,
         instance = { container.createComponentInstance(instance) }
     )
