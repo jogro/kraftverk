@@ -43,7 +43,7 @@ sealed class Value<out T : Any> : Binding<T>() {
  * A CustomBean has the same characteristics as a Bean[Bean] but can be set up by use of an intermediary
  * type S[S].
  *
- * See customBean[io.kraftverk.module.customBean] on how to declare a CustomBean.
+ * See [customBean][io.kraftverk.module.customBean] on how to declare a CustomBean.
  */
 sealed class CustomBean<out T : Any, out S : Any> : Component<T>() {
     companion object
