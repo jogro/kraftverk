@@ -8,7 +8,7 @@ package io.kraftverk.module
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.handler
-import io.kraftverk.declaration.ComponentSetupDeclaration
+import io.kraftverk.declaration.ComponentConfigurationDeclaration
 
 /**
  * A helper method for configuring a component after it has been declared, for example:
@@ -17,7 +17,7 @@ import io.kraftverk.declaration.ComponentSetupDeclaration
  *     [...]
  *     val dataSource by component { HikariDataSource() }
  *     init {
- *         setUp(dataSource) { ds ->
+ *         configure(dataSource) { ds ->
  *             ds.jdbcUrl = [...]
  *             ds.username = [...]
  *             ds.password = [...]
@@ -26,36 +26,36 @@ import io.kraftverk.declaration.ComponentSetupDeclaration
  * }
  * ```
  */
-fun <T : Any, S : Any> BasicModule<*>.setUp(
+fun <T : Any, S : Any> BasicModule<*>.configure(
     component: CustomBean<T, S>,
-    block: ComponentSetupDeclaration<S>.(S) -> Unit
+    block: ComponentConfigurationDeclaration<S>.(S) -> Unit
 ) {
-    component.handler.setUp { instance, lifecycle ->
+    component.handler.configure { instance, lifecycle ->
         val callback = { s: S ->
-            val definition = ComponentSetupDeclaration(
+            val definition = ComponentConfigurationDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.onSetUp(instance, callback)
+        component.handler.onConfigure(instance, callback)
     }
 }
 
-fun <T : Any> BasicModule<*>.setUp(
+fun <T : Any> BasicModule<*>.configure(
     component: Bean<T>,
-    block: ComponentSetupDeclaration<T>.(T) -> Unit
+    block: ComponentConfigurationDeclaration<T>.(T) -> Unit
 ) {
-    component.handler.setUp { instance, lifecycle ->
+    component.handler.configure { instance, lifecycle ->
         val callback = { s: T ->
-            val definition = ComponentSetupDeclaration(
+            val definition = ComponentConfigurationDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.onSetUp(instance, callback)
+        component.handler.onConfigure(instance, callback)
     }
 }

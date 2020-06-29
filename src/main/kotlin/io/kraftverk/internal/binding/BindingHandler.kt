@@ -49,9 +49,9 @@ internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProv
         }
     }
 
-    fun setUp(block: (T, LifecycleActions) -> Unit) {
+    fun configure(block: (T, LifecycleActions) -> Unit) {
         state.mustBe<State.Configurable<T, S>> {
-            providerFactory.setUp(block)
+            providerFactory.configure(block)
         }
     }
 
@@ -68,9 +68,9 @@ internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProv
         }
     }
 
-    fun onSetUp(t: T, callback: (S) -> Unit) {
+    fun onConfigure(t: T, callback: (S) -> Unit) {
         state.mustBe<State.Running<T, S>> {
-            provider.definition.onSetUp(t, callback)
+            provider.definition.onConfigure(t, callback)
         }
     }
 
