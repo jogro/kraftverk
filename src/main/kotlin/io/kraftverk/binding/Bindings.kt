@@ -40,16 +40,6 @@ sealed class Value<out T : Any> : Binding<T>() {
 }
 
 /**
- * A CustomBean has the same characteristics as a Bean[Bean] but can be set up by use of an intermediary
- * type S[S].
- *
- * See [customBean][io.kraftverk.module.customBean] on how to declare a CustomBean.
- */
-sealed class CustomBean<out T : Any, out S : Any> : Component<T>() {
-    companion object
-}
-
-/**
  * Represents a [Bean] or [CustomBean]
  */
 sealed class Component<out T : Any> : Binding<T>()
@@ -65,13 +55,6 @@ internal class BeanImpl<T : Any>(val handler: ComponentHandler<T, T>) : Bean<T>(
 
 internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
 
-internal class CustomBeanImpl<T : Any, S : Any>(val handler: ComponentHandler<T, S>) : CustomBean<T, S>()
-
-internal val <T : Any, S : Any> CustomBean<T, S>.handler: ComponentHandler<T, S>
-    get() = when (this) {
-        is CustomBeanImpl<T, S> -> handler
-    }
-
 internal val <T : Any> Bean<T>.handler: ComponentHandler<T, T>
     get() = when (this) {
         is BeanImpl<T> -> handler
@@ -85,12 +68,10 @@ internal val <T : Any> Value<T>.handler: ValueHandler<T>
 internal val <T : Any> Component<T>.handler: ComponentHandler<T, *>
     get() = when (this) {
         is BeanImpl<T> -> handler
-        is CustomBeanImpl<T, *> -> handler
     }
 
 internal val <T : Any> Binding<T>.handler: BindingHandler<T>
     get() = when (this) {
         is ValueImpl<T> -> handler
         is BeanImpl<T> -> handler
-        is CustomBeanImpl<T, *> -> handler
     }

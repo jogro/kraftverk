@@ -6,7 +6,6 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Component
-import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
 import io.kraftverk.declaration.ComponentSupplierInterceptorDeclaration
@@ -14,7 +13,7 @@ import io.kraftverk.declaration.ValueSupplierDeclaration
 import io.kraftverk.internal.container.Container
 
 /**
- * The [bind] method binds an existing [CustomBean] to a new implementation.
+ * The [bind] method binds an existing bean to a new implementation.
  *
  * It is useful when doing tests, for example when mocking:
  * ```kotlin

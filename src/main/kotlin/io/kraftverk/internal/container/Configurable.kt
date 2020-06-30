@@ -8,7 +8,6 @@ package io.kraftverk.internal.container
 import io.kraftverk.binding.BeanImpl
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Component
-import io.kraftverk.binding.CustomBeanImpl
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
 import io.kraftverk.binding.handler
@@ -20,14 +19,6 @@ import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.ValueProviderFactory
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
-
-internal fun <T : Any, S : Any> Container.createCustomBean(
-    definition: ComponentDefinition<T, S>
-): CustomBeanImpl<T, S> = definition.let(::process)
-    .let(::ComponentProviderFactory)
-    .let(::ComponentHandler)
-    .let(::CustomBeanImpl)
-    .also(this::register)
 
 internal fun <T : Any> Container.createBean(
     definition: ComponentDefinition<T, T>

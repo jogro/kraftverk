@@ -6,7 +6,6 @@
 package io.kraftverk.declaration
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.CustomBean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
 import io.kraftverk.common.ComponentRef
@@ -34,7 +33,6 @@ open class ComponentDeclaration internal constructor(container: Container) : Val
     val componentProviders get() = container.componentProviders
 
     operator fun <T : Any> Bean<T>.invoke(): T = handler.provider.get()
-    operator fun <T : Any, S : Any> CustomBean<T, S>.invoke(): T = handler.provider.get()
 
     operator fun <T : Any> ComponentRef<T>.invoke(): T = instance()
 }
