@@ -17,9 +17,9 @@ import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.instanceId
 
-internal val Container.beanProviders: List<BeanProvider<*, *>>
+internal val Container.beanProviders: List<BeanProvider<*>>
     get() =
-        providers.filterIsInstance<BeanProvider<*, *>>()
+        providers.filterIsInstance<BeanProvider<*>>()
 
 internal val Container.valueProviders: List<ValueProvider<*>>
     get() =

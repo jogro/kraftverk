@@ -12,7 +12,7 @@ import io.kraftverk.internal.provider.Singleton
 
 sealed class Provider<out T : Any>
 
-sealed class BeanProvider<T : Any, out S : Any> : Provider<T>()
+sealed class BeanProvider<T : Any> : Provider<T>()
 
 sealed class ValueProvider<T : Any> : Provider<T>()
 
@@ -22,13 +22,13 @@ val <T : Any> Provider<T>.instanceId get() = singleton.instanceId
 
 val <T : Any> Provider<T>.definition: BindingDefinition<T>
     get() = when (this) {
-        is BeanProviderImpl<T, *> -> definition
+        is BeanProviderImpl<T> -> definition
         is ValueProviderImpl<T> -> definition
     }
 
-val <T : Any, S : Any> BeanProvider<T, S>.definition: BeanDefinition<T, S>
+val <T : Any> BeanProvider<T>.definition: BeanDefinition<T>
     get() = when (this) {
-        is BeanProviderImpl<T, S> -> definition
+        is BeanProviderImpl<T> -> definition
     }
 
 val <T : Any> ValueProvider<T>.definition: ValueDefinition<T>
@@ -36,10 +36,10 @@ val <T : Any> ValueProvider<T>.definition: ValueDefinition<T>
         is ValueProviderImpl<T> -> definition
     }
 
-internal class BeanProviderImpl<T : Any, S : Any> constructor(
-    val definition: BeanDefinition<T, S>,
+internal class BeanProviderImpl<T : Any> constructor(
+    val definition: BeanDefinition<T>,
     val singleton: Singleton<T>
-) : BeanProvider<T, S>()
+) : BeanProvider<T>()
 
 internal class ValueProviderImpl<T : Any> constructor(
     val definition: ValueDefinition<T>,
@@ -53,6 +53,6 @@ internal fun <T : Any> Provider<T>.initialize(lazy: Boolean) {
 
 internal val <T : Any> Provider<T>.singleton
     get() = when (this) {
-        is BeanProviderImpl<T, *> -> singleton
+        is BeanProviderImpl<T> -> singleton
         is ValueProviderImpl<T> -> singleton
     }

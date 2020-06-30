@@ -24,7 +24,7 @@ internal sealed class BindingHandler<T : Any> {
     abstract val provider: Provider<T>
 }
 
-internal class BeanHandler<T : Any, S : Any>(providerFactory: BeanProviderFactory<T, S>) :
+internal class BeanHandler<T : Any>(providerFactory: BeanProviderFactory<T>) :
     BindingHandler<T>() {
 
     @Volatile
@@ -32,57 +32,57 @@ internal class BeanHandler<T : Any, S : Any>(providerFactory: BeanProviderFactor
 
     private sealed class State<out T : Any> : BasicState {
 
-        class Configurable<T : Any, S : Any>(
-            val providerFactory: BeanProviderFactory<T, S>
+        class Configurable<T : Any>(
+            val providerFactory: BeanProviderFactory<T>
         ) : State<T>()
 
-        class Running<T : Any, S : Any>(
-            val provider: BeanProvider<T, S>
+        class Running<T : Any>(
+            val provider: BeanProvider<T>
         ) : State<T>()
 
         object Destroyed : State<Nothing>()
     }
 
     fun bind(block: (Supplier<T>) -> T) {
-        state.mustBe<State.Configurable<T, S>> {
+        state.mustBe<State.Configurable<T>> {
             providerFactory.bind(block)
         }
     }
 
     fun configure(block: (T, LifecycleActions) -> Unit) {
-        state.mustBe<State.Configurable<T, S>> {
+        state.mustBe<State.Configurable<T>> {
             providerFactory.configure(block)
         }
     }
 
     override fun start() {
-        state.mustBe<State.Configurable<T, S>> {
+        state.mustBe<State.Configurable<T>> {
             val provider = providerFactory.createProvider()
             state = State.Running(provider)
         }
     }
 
     override fun initialize(lazy: Boolean) {
-        state.mightBe<State.Running<T, S>> {
+        state.mightBe<State.Running<T>> {
             provider.initialize(lazy)
         }
     }
 
-    fun onConfigure(t: T, callback: (S) -> Unit) {
-        state.mustBe<State.Running<T, S>> {
+    fun onConfigure(t: T, callback: (T) -> Unit) {
+        state.mustBe<State.Running<T>> {
             provider.definition.onConfigure(t, callback)
         }
     }
 
-    override val provider: BeanProvider<T, S>
+    override val provider: BeanProvider<T>
         get() {
-            state.mustBe<State.Running<T, S>> {
+            state.mustBe<State.Running<T>> {
                 return provider
             }
         }
 
     override fun stop() {
-        state.mightBe<State.Running<T, S>> {
+        state.mightBe<State.Running<T>> {
             provider.destroy()
             state = State.Destroyed
         }

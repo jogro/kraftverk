@@ -21,7 +21,7 @@ import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
 internal fun <T : Any> Container.createBean(
-    definition: BeanDefinition<T, T>
+    definition: BeanDefinition<T>
 ): BeanImpl<T> = definition.let(::process)
     .let(::BeanProviderFactory)
     .let(::BeanHandler)
@@ -48,7 +48,7 @@ internal fun Container.start(lazy: Boolean) =
         bindings.initialize(lazy)
     }
 
-private fun <T : Any, S : Any> Container.process(definition: BeanDefinition<T, S>): BeanDefinition<T, S> {
+private fun <T : Any> Container.process(definition: BeanDefinition<T>): BeanDefinition<T> {
     var current = definition
     state.mustBe<State.Configurable> {
         for (processor in beanProcessors) {

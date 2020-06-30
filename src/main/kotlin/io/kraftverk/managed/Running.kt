@@ -23,7 +23,7 @@ import kotlin.reflect.KProperty
 /**
  * Retrieves all [BeanProvider]s.
  */
-val Managed<*>.beanProviders: List<BeanProvider<*, *>> get() = module.container.beanProviders
+val Managed<*>.beanProviders: List<BeanProvider<*>> get() = module.container.beanProviders
 
 /**
  * Retrieves all [ValueProvider]s.

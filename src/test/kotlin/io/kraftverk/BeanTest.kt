@@ -474,7 +474,7 @@ class BeanTest : StringSpec() {
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T : Any> Managed<*>.registerBeanProcessor(crossinline block: (T) -> T) {
         val processor = object : BeanProcessor {
-            override fun <A : Any, B : Any> process(bean: BeanDefinition<A, B>) =
+            override fun <A : Any> process(bean: BeanDefinition<A>) =
                 if (bean.type.isSubclassOf(T::class)) {
                     bean.copy {
                         val t: T = bean.instance() as T

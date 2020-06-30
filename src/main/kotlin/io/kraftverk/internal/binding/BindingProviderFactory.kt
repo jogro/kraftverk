@@ -26,9 +26,9 @@ internal sealed class BindingProviderFactory<T : Any, out P : Provider<T>>(var i
     }
 }
 
-internal class BeanProviderFactory<T : Any, S : Any>(
-    private val definition: BeanDefinition<T, S>
-) : BindingProviderFactory<T, BeanProvider<T, S>>(definition.instance) {
+internal class BeanProviderFactory<T : Any>(
+    private val definition: BeanDefinition<T>
+) : BindingProviderFactory<T, BeanProvider<T>>(definition.instance) {
 
     private var onConfigure: (T, LifecycleActions) -> Unit = { _, _ -> }
 

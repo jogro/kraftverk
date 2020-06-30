@@ -46,11 +46,11 @@ sealed class Binding<out T : Any>
 
 /* Internals */
 
-internal class BeanImpl<T : Any>(val handler: BeanHandler<T, T>) : Bean<T>()
+internal class BeanImpl<T : Any>(val handler: BeanHandler<T>) : Bean<T>()
 
 internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
 
-internal val <T : Any> Bean<T>.handler: BeanHandler<T, T>
+internal val <T : Any> Bean<T>.handler: BeanHandler<T>
     get() = when (this) {
         is BeanImpl<T> -> handler
     }
