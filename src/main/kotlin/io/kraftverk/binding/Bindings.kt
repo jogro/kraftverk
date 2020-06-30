@@ -10,7 +10,7 @@ import io.kraftverk.internal.binding.BindingDelegate
 import io.kraftverk.internal.binding.ValueDelegate
 
 /**
- * A Bean is a [Bean] that can be declared within a Kraftverk managed module.
+ * A Bean is a [Binding] that can be declared within a Kraftverk managed module.
  *
  * The primary purpose of a Bean is to serve as a configurable factory that produces injectable singleton
  * instances of type [T].
