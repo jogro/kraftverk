@@ -13,7 +13,6 @@ import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
-import io.kraftverk.provider.definition
 import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
 
@@ -68,12 +67,6 @@ internal class BeanHandler<T : Any>(providerFactory: BeanProviderFactory<T>) :
         }
     }
 
-    fun onConfigure(t: T, callback: (T) -> Unit) {
-        state.mustBe<State.Running<T>> {
-            provider.definition.onConfigure(t, callback)
-        }
-    }
-
     override val provider: BeanProvider<T>
         get() {
             state.mustBe<State.Running<T>> {
@@ -121,7 +114,7 @@ internal class ValueHandler<T : Any>(providerFactory: ValueProviderFactory<T>) :
     }
 
     override fun initialize(lazy: Boolean) {
-        state.mightBe<State.Running<T>> {
+        state.mustBe<State.Running<T>> {
             provider.initialize(lazy)
         }
     }

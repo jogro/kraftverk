@@ -65,5 +65,5 @@ fun <M : Module> Managed<M>.addProcessor(processor: ValueProcessor): Managed<M> 
 
 private fun <M : Module> Configurable<M>.createModule(): M {
     val container = Container(env, beanProcessors, valueProcessors)
-    return createModule(container, namespace, moduleFun)
+    return createModule(container, namespace, instance)
 }

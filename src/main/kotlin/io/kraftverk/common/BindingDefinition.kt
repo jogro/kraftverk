@@ -30,7 +30,6 @@ data class BeanDefinition<T : Any>(
     override val name: String,
     override val type: KClass<T>,
     override val lazy: Boolean?,
-    val onConfigure: (T, (T) -> Unit) -> Unit,
     override val instance: Supplier<T>
 ) : BindingDefinition<T>
 

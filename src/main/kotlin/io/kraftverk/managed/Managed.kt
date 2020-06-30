@@ -51,7 +51,7 @@ class Managed<M : Module> internal constructor(
     internal sealed class State<out M : Module> : BasicState {
 
         class Configurable<M : Module>(
-            val moduleFun: () -> M,
+            val instance: () -> M,
             val env: Environment,
             val namespace: String
         ) : State<M>() {

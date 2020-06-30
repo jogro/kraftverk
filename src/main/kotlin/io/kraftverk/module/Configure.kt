@@ -30,14 +30,11 @@ fun <T : Any> BasicModule<*>.configure(
     block: BeanConfigurationDeclaration<T>.(T) -> Unit
 ) {
     bean.handler.configure { instance, lifecycle ->
-        val callback = { s: T ->
-            val definition = BeanConfigurationDeclaration(
-                container,
-                s,
-                lifecycle
-            )
-            definition.block(s)
-        }
-        bean.handler.onConfigure(instance, callback)
+        val definition = BeanConfigurationDeclaration(
+            container,
+            instance,
+            lifecycle
+        )
+        definition.block(instance)
     }
 }

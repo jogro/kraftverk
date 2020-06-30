@@ -61,22 +61,20 @@ import kotlin.reflect.KProperty
 inline fun <reified T : Any> BasicModule<*>.bean(
     lazy: Boolean? = null,
     noinline instance: BeanDeclaration.() -> T
-): BeanDelegateProvider<T> = bean(T::class, lazy, { i, configure -> configure(i) }, instance)
+): BeanDelegateProvider<T> = bean(T::class, lazy, instance)
 
 @PublishedApi
 internal fun <T : Any> BasicModule<*>.bean(
     type: KClass<T>,
     lazy: Boolean? = null,
-    onConfigure: (T, (T) -> Unit) -> Unit,
     instance: BeanDeclaration.() -> T
-
 ): BeanDelegateProvider<T> = object : BeanDelegateProvider<T> {
     override fun provideDelegate(
         thisRef: BasicModule<*>,
         property: KProperty<*>
     ): ReadOnlyProperty<BasicModule<*>, Bean<T>> {
         val qualifiedName = qualifyName(property.name)
-        return createBean(qualifiedName, type, lazy, onConfigure, instance).let(::Delegate)
+        return createBean(qualifiedName, type, lazy, instance).let(::Delegate)
     }
 }
 
@@ -84,13 +82,11 @@ private fun <T : Any> BasicModule<*>.createBean(
     name: String,
     type: KClass<T>,
     lazy: Boolean? = null,
-    onConfigure: (T, (T) -> Unit) -> Unit,
     instance: BeanDeclaration.() -> T
 ): BeanImpl<T> {
     val config = BeanDefinition(
         name = name,
         lazy = lazy,
-        onConfigure = onConfigure,
         type = type,
         instance = { container.createBeanInstance(instance) }
     )
