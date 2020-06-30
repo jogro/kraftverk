@@ -5,12 +5,8 @@
 
 package io.kraftverk.managed
 
-import io.kraftverk.common.BeanProcessor
-import io.kraftverk.common.ValueProcessor
-import io.kraftverk.env.Environment
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.BasicState
-import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.module.Module
 
 /**
@@ -33,32 +29,18 @@ import io.kraftverk.module.Module
  * val app by Kraftverk.manage { AppModule() }
  * ```
  */
-class Managed<M : Module> internal constructor(
-    env: Environment,
-    namespace: String,
-    moduleFun: () -> M
-) {
+class Managed<M : Module> internal constructor(moduleFactory: ModuleFactory<M>) {
 
     internal val logger = createLogger { }
 
     @Volatile
-    internal var state: State<M> = State.Configurable(
-        moduleFun,
-        env,
-        namespace
-    )
+    internal var state: State<M> = State.Configurable(moduleFactory)
 
     internal sealed class State<out M : Module> : BasicState {
 
         class Configurable<M : Module>(
-            val instance: () -> M,
-            val env: Environment,
-            val namespace: String
-        ) : State<M>() {
-            val beanProcessors = mutableListOf<BeanProcessor>()
-            val valueProcessors = mutableListOf<ValueProcessor>()
-            var onConfigure: Consumer<M> = {}
-        }
+            val moduleFactory: ModuleFactory<M>
+        ) : State<M>()
 
         class Running<M : Module>(
             val module: M

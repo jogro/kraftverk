@@ -7,7 +7,6 @@ package io.kraftverk.managed
 
 import io.kraftverk.common.BeanProcessor
 import io.kraftverk.common.ValueProcessor
-import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.start
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.managed.Managed.State.Configurable
@@ -26,11 +25,9 @@ import io.kraftverk.module.createModule
 fun <M : Module> Managed<M>.start(lazy: Boolean = false, block: M.() -> Unit = {}): Managed<M> {
     logger.info { "Starting managed module" }
     val startMs = System.currentTimeMillis()
-    configure(block)
     state.mustBe<Configurable<M>> {
-        val module = createModule()
-        onConfigure(module)
-        module.container.start(lazy)
+        moduleFactory.configure(block)
+        val module = moduleFactory.createModule(lazy)
         state = Running(module)
     }
     Runtime.getRuntime().addShutdownHook(Thread { stop() })
@@ -40,30 +37,21 @@ fun <M : Module> Managed<M>.start(lazy: Boolean = false, block: M.() -> Unit = {
 
 fun <M : Module> Managed<M>.configure(block: M.() -> Unit): Managed<M> {
     state.mustBe<Configurable<M>> {
-        val previousOnConfigure = onConfigure
-        onConfigure = { module ->
-            previousOnConfigure(module)
-            block(module)
-        }
+        moduleFactory.configure(block)
     }
     return this
 }
 
 fun <M : Module> Managed<M>.addProcessor(processor: BeanProcessor): Managed<M> {
     state.mustBe<Configurable<M>> {
-        beanProcessors += processor
+        moduleFactory.addProcessor(processor)
     }
     return this
 }
 
 fun <M : Module> Managed<M>.addProcessor(processor: ValueProcessor): Managed<M> {
     state.mustBe<Configurable<M>> {
-        valueProcessors += processor
+        moduleFactory.addProcessor(processor)
     }
     return this
-}
-
-private fun <M : Module> Configurable<M>.createModule(): M {
-    val container = Container(env, beanProcessors, valueProcessors)
-    return createModule(container, namespace, instance)
 }
