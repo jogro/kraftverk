@@ -8,10 +8,10 @@ package io.kraftverk.declaration
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.handler
-import io.kraftverk.common.ComponentRef
+import io.kraftverk.common.BeanRef
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
-import io.kraftverk.internal.container.componentProviders
+import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.provider.get
@@ -29,18 +29,18 @@ class ValueSupplierDeclaration<T> internal constructor(
     fun proceed() = supply()
 }
 
-open class ComponentDeclaration internal constructor(container: Container) : ValueDeclaration(container) {
-    val componentProviders get() = container.componentProviders
+open class BeanDeclaration internal constructor(container: Container) : ValueDeclaration(container) {
+    val beanProviders get() = container.beanProviders
 
     operator fun <T : Any> Bean<T>.invoke(): T = handler.provider.get()
 
-    operator fun <T : Any> ComponentRef<T>.invoke(): T = instance()
+    operator fun <T : Any> BeanRef<T>.invoke(): T = instance()
 }
 
-class ComponentSupplierInterceptorDeclaration<T> internal constructor(
+class BeanSupplierInterceptorDeclaration<T> internal constructor(
     container: Container,
     private val supply: Supplier<T>
-) : ComponentDeclaration(container) {
+) : BeanDeclaration(container) {
     fun proceed() = supply()
 }
 
@@ -69,16 +69,16 @@ class LifecycleActions {
     }
 }
 
-class ComponentConfigurationDeclaration<T> internal constructor(
+class BeanConfigurationDeclaration<T> internal constructor(
     container: Container,
     val instance: T,
     private val lifecycle: LifecycleActions
-) : ComponentDeclaration(container) {
+) : BeanDeclaration(container) {
 
     fun lifecycle(block: LifecycleActions.() -> Unit) {
         lifecycle.block()
     }
 }
 
-open class CustomComponentDeclaration(parent: ComponentDeclaration) : ComponentDeclaration(parent.container)
+open class CustomBeanDeclaration(parent: BeanDeclaration) : BeanDeclaration(parent.container)
 open class CustomValueDeclaration(parent: ValueDeclaration) : ValueDeclaration(parent.container)

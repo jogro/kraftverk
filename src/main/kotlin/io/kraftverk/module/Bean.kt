@@ -7,10 +7,10 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.BeanImpl
-import io.kraftverk.common.ComponentDefinition
-import io.kraftverk.declaration.ComponentDeclaration
+import io.kraftverk.common.BeanDefinition
+import io.kraftverk.declaration.BeanDeclaration
 import io.kraftverk.internal.container.createBean
-import io.kraftverk.internal.container.createComponentInstance
+import io.kraftverk.internal.container.createBeanInstance
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -33,7 +33,7 @@ import kotlin.reflect.KProperty
  *     val dataSource by bean<DataSource> { HikariDataSource() } // Bean<DataSource>
  * }
  *```
- * A Bean can be used to inject other components:
+ * A Bean can be used to inject other beans:
  *
  * ```kotlin
  * class AppModule : Module() {
@@ -42,25 +42,25 @@ import kotlin.reflect.KProperty
  * }
  * ```
  *
- * Note that injection occurs by syntactically invoking the Component as a function (operator invoke). Also note that
- * injection only is available in the context of a ComponentDeclaration[io.kraftverk.declaration.ComponentDeclaration]
- * that is provided by the component[io.kraftverk.module.bean] function.
+ * Note that injection occurs by syntactically invoking the Bean as a function (operator invoke). Also note that
+ * injection only is available in the context of a BeanDeclaration[io.kraftverk.declaration.BeanDeclaration]
+ * that is provided by the bean[io.kraftverk.module.bean] function.
  *
  * ```kotlin
  * class AppModule : Module() {
- *     val dataSource by component { this: ComponentDeclaration
+ *     val dataSource by bean { this: BeanDeclaration
  *         [...]
  *     }
  * }
  * ```
  *
- * An important feature is the ability to rebind a Component after it has been declared but the module still
+ * An important feature is the ability to rebind a Bean after it has been declared but the module still
  * hasn't been started[io.kraftverk.managed.start]. This feature provides the foundation for mocking etc,
  * see bind[io.kraftverk.module.bind].
  */
 inline fun <reified T : Any> BasicModule<*>.bean(
     lazy: Boolean? = null,
-    noinline instance: ComponentDeclaration.() -> T
+    noinline instance: BeanDeclaration.() -> T
 ): BeanDelegateProvider<T> = bean(T::class, lazy, { i, configure -> configure(i) }, instance)
 
 @PublishedApi
@@ -68,7 +68,7 @@ internal fun <T : Any> BasicModule<*>.bean(
     type: KClass<T>,
     lazy: Boolean? = null,
     onConfigure: (T, (T) -> Unit) -> Unit,
-    instance: ComponentDeclaration.() -> T
+    instance: BeanDeclaration.() -> T
 
 ): BeanDelegateProvider<T> = object : BeanDelegateProvider<T> {
     override fun provideDelegate(
@@ -85,14 +85,14 @@ private fun <T : Any> BasicModule<*>.createBean(
     type: KClass<T>,
     lazy: Boolean? = null,
     onConfigure: (T, (T) -> Unit) -> Unit,
-    instance: ComponentDeclaration.() -> T
+    instance: BeanDeclaration.() -> T
 ): BeanImpl<T> {
-    val config = ComponentDefinition(
+    val config = BeanDefinition(
         name = name,
         lazy = lazy,
         onConfigure = onConfigure,
         type = type,
-        instance = { container.createComponentInstance(instance) }
+        instance = { container.createBeanInstance(instance) }
     )
     return container.createBean(config)
 }

@@ -5,7 +5,7 @@
 
 package io.kraftverk.managed
 
-import io.kraftverk.common.ComponentProcessor
+import io.kraftverk.common.BeanProcessor
 import io.kraftverk.common.ValueProcessor
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.start
@@ -19,7 +19,7 @@ import io.kraftverk.module.createModule
  * The [start] function is by default non-lazy, meaning that:
  * 1) All value bindings declared in the [Module] are eagerly looked up using the Environment that
  * was specified at the time the managed instance was created. Should any value be missing an exception is thrown.
- * 2) All Component bindings are eagerly instantiated.
+ * 2) All Bean bindings are eagerly instantiated.
  *
  * Call the [Managed.stop] method to destroy the [Managed] instance.
  */
@@ -49,9 +49,9 @@ fun <M : Module> Managed<M>.configure(block: M.() -> Unit): Managed<M> {
     return this
 }
 
-fun <M : Module> Managed<M>.addProcessor(processor: ComponentProcessor): Managed<M> {
+fun <M : Module> Managed<M>.addProcessor(processor: BeanProcessor): Managed<M> {
     state.mustBe<Configurable<M>> {
-        componentProcessors += processor
+        beanProcessors += processor
     }
     return this
 }
@@ -64,6 +64,6 @@ fun <M : Module> Managed<M>.addProcessor(processor: ValueProcessor): Managed<M> 
 }
 
 private fun <M : Module> Configurable<M>.createModule(): M {
-    val container = Container(env, componentProcessors, valueProcessors)
+    val container = Container(env, beanProcessors, valueProcessors)
     return createModule(container, namespace, moduleFun)
 }

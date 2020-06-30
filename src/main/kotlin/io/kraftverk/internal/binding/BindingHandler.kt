@@ -10,7 +10,7 @@ import io.kraftverk.internal.misc.BasicState
 import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
-import io.kraftverk.provider.ComponentProvider
+import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.definition
@@ -24,7 +24,7 @@ internal sealed class BindingHandler<T : Any> {
     abstract val provider: Provider<T>
 }
 
-internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProviderFactory<T, S>) :
+internal class BeanHandler<T : Any, S : Any>(providerFactory: BeanProviderFactory<T, S>) :
     BindingHandler<T>() {
 
     @Volatile
@@ -33,11 +33,11 @@ internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProv
     private sealed class State<out T : Any> : BasicState {
 
         class Configurable<T : Any, S : Any>(
-            val providerFactory: ComponentProviderFactory<T, S>
+            val providerFactory: BeanProviderFactory<T, S>
         ) : State<T>()
 
         class Running<T : Any, S : Any>(
-            val provider: ComponentProvider<T, S>
+            val provider: BeanProvider<T, S>
         ) : State<T>()
 
         object Destroyed : State<Nothing>()
@@ -74,7 +74,7 @@ internal class ComponentHandler<T : Any, S : Any>(providerFactory: ComponentProv
         }
     }
 
-    override val provider: ComponentProvider<T, S>
+    override val provider: BeanProvider<T, S>
         get() {
             state.mustBe<State.Running<T, S>> {
                 return provider

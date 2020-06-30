@@ -7,23 +7,23 @@ package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.handler
-import io.kraftverk.internal.container.componentProviders
+import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.managed.Managed.State
 import io.kraftverk.module.Module
-import io.kraftverk.provider.ComponentProvider
+import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.get
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 /**
- * Retrieves all [ComponentProvider]s.
+ * Retrieves all [BeanProvider]s.
  */
-val Managed<*>.componentProviders: List<ComponentProvider<*, *>> get() = module.container.componentProviders
+val Managed<*>.beanProviders: List<BeanProvider<*, *>> get() = module.container.beanProviders
 
 /**
  * Retrieves all [ValueProvider]s.

@@ -7,14 +7,14 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.handler
-import io.kraftverk.declaration.ComponentConfigurationDeclaration
+import io.kraftverk.declaration.BeanConfigurationDeclaration
 
 /**
- * A helper method for configuring a component after it has been declared, for example:
+ * A helper method for configuring a bean after it has been declared, for example:
  * ```kotlin
  * class JdbcModule : Module() {
  *     [...]
- *     val dataSource by component { HikariDataSource() }
+ *     val dataSource by bean { HikariDataSource() }
  *     init {
  *         configure(dataSource) { ds ->
  *             ds.jdbcUrl = [...]
@@ -26,18 +26,18 @@ import io.kraftverk.declaration.ComponentConfigurationDeclaration
  * ```
  */
 fun <T : Any> BasicModule<*>.configure(
-    component: Bean<T>,
-    block: ComponentConfigurationDeclaration<T>.(T) -> Unit
+    bean: Bean<T>,
+    block: BeanConfigurationDeclaration<T>.(T) -> Unit
 ) {
-    component.handler.configure { instance, lifecycle ->
+    bean.handler.configure { instance, lifecycle ->
         val callback = { s: T ->
-            val definition = ComponentConfigurationDeclaration(
+            val definition = BeanConfigurationDeclaration(
                 container,
                 s,
                 lifecycle
             )
             definition.block(s)
         }
-        component.handler.onConfigure(instance, callback)
+        bean.handler.onConfigure(instance, callback)
     }
 }

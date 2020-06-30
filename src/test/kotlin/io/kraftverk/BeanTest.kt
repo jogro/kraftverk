@@ -14,13 +14,12 @@ import io.kotlintest.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
-import io.kraftverk.common.ComponentDefinition
-import io.kraftverk.common.ComponentProcessor
-import io.kraftverk.declaration.ComponentDeclaration
+import io.kraftverk.common.BeanDefinition
+import io.kraftverk.common.BeanProcessor
+import io.kraftverk.declaration.BeanDeclaration
 import io.kraftverk.managed.Managed
 import io.kraftverk.managed.addProcessor
-import io.kraftverk.managed.componentProviders
+import io.kraftverk.managed.beanProviders
 import io.kraftverk.managed.configure
 import io.kraftverk.managed.get
 import io.kraftverk.managed.invoke
@@ -93,43 +92,43 @@ class BeanTest : StringSpec() {
 
     init {
 
-        "component instantiation is eager by default" {
+        "bean instantiation is eager by default" {
             Kraftverk.start { AppModule() }
-            verifyThatAllComponentsAreInstantiated()
+            verifyThatAllBeansAreInstantiated()
         }
 
-        "component instantiation is eager when specified for the component" {
+        "bean instantiation is eager when specified for the bean" {
             Kraftverk.start(lazy = true) {
                 AppModule(lazy = false)
             }
-            verifyThatAllComponentsAreInstantiated()
+            verifyThatAllBeansAreInstantiated()
         }
 
-        "component instantiation is lazy when managed lazily" {
+        "bean instantiation is lazy when managed lazily" {
             Kraftverk.start(lazy = true) {
                 AppModule()
             }
-            verifyThatNoComponentsAreInstantiated()
+            verifyThatNoBeansAreInstantiated()
         }
 
-        "component instantiation is lazy when specified for the component" {
+        "bean instantiation is lazy when specified for the bean" {
             Kraftverk.start { AppModule(lazy = true) }
-            verifyThatNoComponentsAreInstantiated()
+            verifyThatNoBeansAreInstantiated()
         }
 
-        "Extracting a component returns expected value" {
+        "Extracting a bean returns expected value" {
             val app = Kraftverk.start { AppModule() }
             app { gadget } shouldBe gadget
             app { childGadget } shouldBe childGadget
         }
 
-        "Components provided by 'get' should not be instantiated until referenced" {
+        "Beans provided by 'get' should not be instantiated until referenced" {
             val app = Kraftverk.manage { AppModule() }
 
             val w by app.get { gadget }
             val c by app.get { childGadget }
 
-            verifyThatNoComponentsAreInstantiated()
+            verifyThatNoBeansAreInstantiated()
 
             app.start()
 
@@ -137,7 +136,7 @@ class BeanTest : StringSpec() {
             c shouldBe childGadget
         }
 
-        "Extracting a component does not propagate to other components if not necessary" {
+        "Extracting a bean does not propagate to other beans if not necessary" {
             val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
@@ -148,7 +147,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Customize can be used to replace a component and inhibit its onCreate" {
+        "Customize can be used to replace a bean and inhibit its onCreate" {
             val app = Kraftverk.manage { AppModule() }
             val replacement = mockk<Gadget>(relaxed = true)
             app.configure {
@@ -167,7 +166,7 @@ class BeanTest : StringSpec() {
             app { gadget } shouldBe replacement
         }
 
-        "Extracting a component propagates to other components if necessary" {
+        "Extracting a bean propagates to other beans if necessary" {
             val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
@@ -180,7 +179,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Extracting a component results in one instantiation even if many invocations" {
+        "Extracting a bean results in one instantiation even if many invocations" {
             val app = Kraftverk.start(lazy = true) {
                 AppModule()
             }
@@ -194,7 +193,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "component on create invokes 'proceed' properly" {
+        "bean on create invokes 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 configure(gadget) {
@@ -208,7 +207,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "component on create inhibits 'proceed' properly" {
+        "bean on create inhibits 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 // onCreate(gadget) { }
@@ -224,7 +223,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "component on destroy invokes 'proceed' properly" {
+        "bean on destroy invokes 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 configure(gadget) {
@@ -248,7 +247,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "component on destroy inhibits 'proceed' properly" {
+        "bean on destroy inhibits 'proceed' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 configure(gadget) {
@@ -272,7 +271,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Binding a component does a proper replace 1" {
+        "Binding a bean does a proper replace 1" {
             val replacement = mockk<Gadget>(relaxed = true)
             val app = Kraftverk.manage { AppModule() }
             app.start(lazy = true) {
@@ -280,10 +279,10 @@ class BeanTest : StringSpec() {
             }
             app { gadget } shouldBe replacement
 
-            verifyThatNoComponentsAreInstantiated()
+            verifyThatNoBeansAreInstantiated()
         }
 
-        "Binding a component does a proper replace 2" {
+        "Binding a bean does a proper replace 2" {
             val replacement = mockk<Gadget>(relaxed = true)
             val app = Kraftverk.manage { AppModule() }
             app.start(lazy = true) {
@@ -291,7 +290,7 @@ class BeanTest : StringSpec() {
             }
             app { childGadget } shouldBe replacement
 
-            verifyThatNoComponentsAreInstantiated()
+            verifyThatNoBeansAreInstantiated()
         }
 
         class Mod0(val destroyed: MutableList<String>) : Module() {
@@ -350,17 +349,17 @@ class BeanTest : StringSpec() {
         class Mod1 : Module() {
             val b0 by bean { 1 }
             val b1 by bean { 2 }
-            val intList by bean { components<Int>() }
+            val intList by bean { beans<Int>() }
         }
 
-        "Trying out component providers 1" {
+        "Trying out bean providers 1" {
             val module = Kraftverk.start { Mod1() }
             module { intList } should containExactly(1, 2)
         }
 
-        "Trying out component providers 2" {
+        "Trying out bean providers 2" {
             val module = Kraftverk.start { Mod1() }
-            val configs = module.componentProviders.map { it.definition }
+            val configs = module.beanProviders.map { it.definition }
             configs shouldHaveSize 3
             with(configs[0]) {
                 name shouldBe "b0"
@@ -379,14 +378,14 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "Trying out component processors" {
+        "Trying out bean processors" {
             val module = Kraftverk.manage { Mod1() }
-            module.registerComponentProcessor<Int> { it + 7 }
+            module.registerBeanProcessor<Int> { it + 7 }
             module.start()
             module { intList } should containExactly(8, 9)
         }
 
-        "Getting a component before the module has been started should fail" {
+        "Getting a bean before the module has been started should fail" {
             val module = Kraftverk.manage { Mod1() }
             val ex = shouldThrow<IllegalStateException> {
                 module { b0 }
@@ -419,20 +418,20 @@ class BeanTest : StringSpec() {
 
         // This declaration is to ensure that we don't break binding and provider covariance
         class CovariantModule : Module() {
-            val component0: Bean<Gadget> by bean { gadget }
-            val binding0: Binding<Gadget> = component0
-            // val componentProvider: ComponentProvider<Gadget, Gadget> = component0.provider
-            // val provider: Provider<Gadget> = componentProvider
+            val bean0: Bean<Gadget> by bean { gadget }
+            val binding0: Binding<Gadget> = bean0
+            // val beanProvider: BeanProvider<Gadget, Gadget> = bean0.provider
+            // val provider: Provider<Gadget> = beanProvider
         }
     }
 
-    private fun verifyThatNoComponentsAreInstantiated() {
+    private fun verifyThatNoBeansAreInstantiated() {
         verify {
             gadgetFactory wasNot Called
         }
     }
 
-    private fun verifyThatAllComponentsAreInstantiated() {
+    private fun verifyThatAllBeansAreInstantiated() {
         verifySequence {
             gadgetFactory.createGadget()
             gadget.start()
@@ -451,38 +450,38 @@ class BeanTest : StringSpec() {
         fun createGadget(parent: Gadget): Gadget
     }
 
-    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline component: M.() -> Component<T>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.mock(noinline bean: M.() -> Bean<T>):
             ReadOnlyProperty<Any?, T> {
         configure {
-            val c: Component<T> = component()
+            val c: Bean<T> = bean()
             bind(c) to { mockk() }
         }
-        return get(component)
+        return get(bean)
     }
 
-    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline component: M.() -> Component<T>):
+    private inline fun <M : Module, reified T : Any> Managed<M>.spy(noinline bean: M.() -> Bean<T>):
             ReadOnlyProperty<Any?, T> {
         configure {
-            val c: Component<T> = component()
+            val c: Bean<T> = bean()
             bind(c) to { spyk(proceed()) }
         }
-        return get(component)
+        return get(bean)
     }
 
-    private inline fun <reified T : Any> ComponentDeclaration.components(): List<T> =
-        componentProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
+    private inline fun <reified T : Any> BeanDeclaration.beans(): List<T> =
+        beanProviders.filter { it.type.isSubclassOf(T::class) }.map { it.get() as T }
 
     @Suppress("UNCHECKED_CAST")
-    private inline fun <reified T : Any> Managed<*>.registerComponentProcessor(crossinline block: (T) -> T) {
-        val processor = object : ComponentProcessor {
-            override fun <A : Any, B : Any> process(component: ComponentDefinition<A, B>) =
-                if (component.type.isSubclassOf(T::class)) {
-                    component.copy {
-                        val t: T = component.instance() as T
+    private inline fun <reified T : Any> Managed<*>.registerBeanProcessor(crossinline block: (T) -> T) {
+        val processor = object : BeanProcessor {
+            override fun <A : Any, B : Any> process(bean: BeanDefinition<A, B>) =
+                if (bean.type.isSubclassOf(T::class)) {
+                    bean.copy {
+                        val t: T = bean.instance() as T
                         val a: T = block(t)
                         a as A
                     }
-                } else component
+                } else bean
         }
         addProcessor(processor)
     }

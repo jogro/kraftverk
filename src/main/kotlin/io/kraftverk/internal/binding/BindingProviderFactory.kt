@@ -1,7 +1,7 @@
 package io.kraftverk.internal.binding
 
+import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.BindingDefinition
-import io.kraftverk.common.ComponentDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.logging.createLogger
@@ -9,8 +9,8 @@ import io.kraftverk.internal.misc.Supplier
 import io.kraftverk.internal.misc.interceptAfter
 import io.kraftverk.internal.misc.interceptAround
 import io.kraftverk.internal.provider.Singleton
-import io.kraftverk.provider.ComponentProvider
-import io.kraftverk.provider.ComponentProviderImpl
+import io.kraftverk.provider.BeanProvider
+import io.kraftverk.provider.BeanProviderImpl
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.ValueProviderImpl
@@ -26,9 +26,9 @@ internal sealed class BindingProviderFactory<T : Any, out P : Provider<T>>(var i
     }
 }
 
-internal class ComponentProviderFactory<T : Any, S : Any>(
-    private val definition: ComponentDefinition<T, S>
-) : BindingProviderFactory<T, ComponentProvider<T, S>>(definition.instance) {
+internal class BeanProviderFactory<T : Any, S : Any>(
+    private val definition: BeanDefinition<T, S>
+) : BindingProviderFactory<T, BeanProvider<T, S>>(definition.instance) {
 
     private var onConfigure: (T, LifecycleActions) -> Unit = { _, _ -> }
 
@@ -36,7 +36,7 @@ internal class ComponentProviderFactory<T : Any, S : Any>(
         onConfigure = interceptAfter(onConfigure, block)
     }
 
-    override fun createProvider() = ComponentProviderImpl(
+    override fun createProvider() = BeanProviderImpl(
         definition,
         createSingleton(
             definition,
@@ -50,7 +50,7 @@ internal class ComponentProviderFactory<T : Any, S : Any>(
         val t = block()
         val elapsed = System.currentTimeMillis() - startMs
         logger.info {
-            "Component '${definition.name}' is bound to ${definition.type} (${elapsed}ms)"
+            "Bean '${definition.name}' is bound to ${definition.type} (${elapsed}ms)"
         }
         t
     }

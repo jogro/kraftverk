@@ -5,26 +5,26 @@
 
 package io.kraftverk.internal.container
 
+import io.kraftverk.binding.Bean
 import io.kraftverk.binding.BeanImpl
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
 import io.kraftverk.binding.handler
-import io.kraftverk.common.ComponentDefinition
+import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.ValueDefinition
-import io.kraftverk.internal.binding.ComponentHandler
-import io.kraftverk.internal.binding.ComponentProviderFactory
+import io.kraftverk.internal.binding.BeanHandler
+import io.kraftverk.internal.binding.BeanProviderFactory
 import io.kraftverk.internal.binding.ValueHandler
 import io.kraftverk.internal.binding.ValueProviderFactory
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
 internal fun <T : Any> Container.createBean(
-    definition: ComponentDefinition<T, T>
+    definition: BeanDefinition<T, T>
 ): BeanImpl<T> = definition.let(::process)
-    .let(::ComponentProviderFactory)
-    .let(::ComponentHandler)
+    .let(::BeanProviderFactory)
+    .let(::BeanHandler)
     .let(::BeanImpl)
     .also(this::register)
 
@@ -48,10 +48,10 @@ internal fun Container.start(lazy: Boolean) =
         bindings.initialize(lazy)
     }
 
-private fun <T : Any, S : Any> Container.process(definition: ComponentDefinition<T, S>): ComponentDefinition<T, S> {
+private fun <T : Any, S : Any> Container.process(definition: BeanDefinition<T, S>): BeanDefinition<T, S> {
     var current = definition
     state.mustBe<State.Configurable> {
-        for (processor in componentProcessors) {
+        for (processor in beanProcessors) {
             current = processor.process(current)
         }
     }
@@ -93,5 +93,5 @@ $errorMsg
                 """.trimIndent()
             throw IllegalStateException(exceptionMessage)
         }
-    filterIsInstance<Component<*>>().forEach { component -> component.handler.initialize(lazy) }
+    filterIsInstance<Bean<*>>().forEach { bean -> bean.handler.initialize(lazy) }
 }

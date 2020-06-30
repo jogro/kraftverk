@@ -7,29 +7,29 @@ package io.kraftverk.internal.container
 
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.handler
-import io.kraftverk.declaration.ComponentDeclaration
+import io.kraftverk.declaration.BeanDeclaration
 import io.kraftverk.declaration.ValueDeclaration
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mightBe
 import io.kraftverk.internal.misc.mustBe
-import io.kraftverk.provider.ComponentProvider
+import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.Provider
 import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.instanceId
 
-internal val Container.componentProviders: List<ComponentProvider<*, *>>
+internal val Container.beanProviders: List<BeanProvider<*, *>>
     get() =
-        providers.filterIsInstance<ComponentProvider<*, *>>()
+        providers.filterIsInstance<BeanProvider<*, *>>()
 
 internal val Container.valueProviders: List<ValueProvider<*>>
     get() =
         providers.filterIsInstance<ValueProvider<*>>()
 
-internal fun <T : Any> Container.createComponentInstance(
-    instance: ComponentDeclaration.() -> T
+internal fun <T : Any> Container.createBeanInstance(
+    instance: BeanDeclaration.() -> T
 ): T {
     state.mustBe<State.Running>()
-    return ComponentDeclaration(this).instance()
+    return BeanDeclaration(this).instance()
 }
 
 internal fun <T : Any> Container.createValueInstance(

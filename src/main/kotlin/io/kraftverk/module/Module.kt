@@ -5,10 +5,10 @@
 
 package io.kraftverk.module
 
+import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.Component
 import io.kraftverk.binding.handler
-import io.kraftverk.common.ComponentRef
+import io.kraftverk.common.BeanRef
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.ScopedThreadLocal
@@ -86,15 +86,15 @@ fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.module(
 
 open class ChildModule<PARENT : BasicModule<*>> : BasicModule<PARENT>()
 
-fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>, T : Any, COMPONENT : Component<T>> CHILD.ref(
-    component: PARENT.() -> COMPONENT
-): ComponentRefDelegateProvider<T> =
-    object : ComponentRefDelegateProvider<T> {
+fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>, T : Any, COMPONENT : Bean<T>> CHILD.ref(
+    bean: PARENT.() -> COMPONENT
+): BeanRefDelegateProvider<T> =
+    object : BeanRefDelegateProvider<T> {
         override fun provideDelegate(
             thisRef: BasicModule<*>,
             property: KProperty<*>
-        ): ReadOnlyProperty<BasicModule<*>, ComponentRef<T>> {
-            val ref = ComponentRef { getInstance(component) }
+        ): ReadOnlyProperty<BasicModule<*>, BeanRef<T>> {
+            val ref = BeanRef { getInstance(bean) }
             return Delegate(ref)
         }
     }
