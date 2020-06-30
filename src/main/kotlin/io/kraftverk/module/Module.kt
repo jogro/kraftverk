@@ -46,12 +46,12 @@ open class Module : BasicModule<Module>()
 internal fun <M : Module> createModule(
     container: Container,
     namespace: String,
-    createModule: () -> M
+    instance: () -> M
 ): M {
     val rootModule = RootModule(container)
     return scopedParentModule.use(rootModule) {
         scopedNamespace.use(namespace) {
-            createModule()
+            instance()
         }
     }
 }
@@ -62,10 +62,10 @@ a "THIS" type parameter. We want the CHILD to be exactly BasicModule<PARENT>.
  */
 internal fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.createChildModule(
     namespace: String,
-    moduleFun: () -> CHILD
+    instance: () -> CHILD
 ): CHILD = scopedParentModule.use(this) {
     scopedNamespace.use(namespace) {
-        moduleFun()
+        instance()
     }
 }
 

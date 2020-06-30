@@ -13,64 +13,31 @@ import io.kraftverk.binding.ValueImpl
 import io.kraftverk.binding.handler
 import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.ValueDefinition
-import io.kraftverk.internal.binding.BeanHandler
-import io.kraftverk.internal.binding.BeanProviderFactory
-import io.kraftverk.internal.binding.ValueHandler
-import io.kraftverk.internal.binding.ValueProviderFactory
 import io.kraftverk.internal.container.Container.State
 import io.kraftverk.internal.misc.mustBe
 
 internal fun <T : Any> Container.createBean(
     definition: BeanDefinition<T>
-): BeanImpl<T> = definition.let(::process)
-    .let(::BeanProviderFactory)
-    .let(::BeanHandler)
-    .let(::BeanImpl)
-    .also(this::register)
+): BeanImpl<T> {
+    state.mustBe<State.Configurable> {
+        return beanFactory.createBean(definition).also { bindings.add(it) }
+    }
+}
 
 internal fun <T : Any> Container.createValue(
     definition: ValueDefinition<T>
-): ValueImpl<T> = definition.let(::process)
-    .let(::ValueProviderFactory)
-    .let(::ValueHandler)
-    .let(::ValueImpl)
-    .also(this::register)
-
-private fun Container.register(binding: Binding<*>) =
+): ValueImpl<T> {
     state.mustBe<State.Configurable> {
-        bindings.add(binding)
+        return valueFactory.createValue(definition).also { bindings.add(it) }
     }
+}
 
 internal fun Container.start(lazy: Boolean) =
     state.mustBe<State.Configurable> {
-        bindings.start()
+        bindings.forEach { binding -> binding.handler.start() }
         state = State.Running(bindings.toList())
         bindings.initialize(lazy)
     }
-
-private fun <T : Any> Container.process(definition: BeanDefinition<T>): BeanDefinition<T> {
-    var current = definition
-    state.mustBe<State.Configurable> {
-        for (processor in beanProcessors) {
-            current = processor.process(current)
-        }
-    }
-    return current
-}
-
-private fun <T : Any> Container.process(definition: ValueDefinition<T>): ValueDefinition<T> {
-    var current = definition
-    state.mustBe<State.Configurable> {
-        for (processor in valueProcessors) {
-            current = processor.process(current)
-        }
-    }
-    return current
-}
-
-private fun List<Binding<*>>.start() {
-    forEach { binding -> binding.handler.start() }
-}
 
 private fun List<Binding<*>>.initialize(lazy: Boolean) {
     val valueNotFoundExceptions = mutableListOf<ValueNotFoundException>()

@@ -9,7 +9,7 @@ import io.kraftverk.internal.misc.Consumer
 import io.kraftverk.internal.misc.interceptAfter
 import io.kraftverk.module.Module
 
-class ModuleFactory<M : Module>(
+internal class ModuleFactory<M : Module>(
     private val env: Environment,
     private val namespace: String,
     private val instance: () -> M
