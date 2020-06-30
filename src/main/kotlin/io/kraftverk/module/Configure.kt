@@ -6,7 +6,7 @@
 package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
-import io.kraftverk.binding.handler
+import io.kraftverk.binding.delegate
 import io.kraftverk.declaration.BeanConfigurationDeclaration
 
 /**
@@ -29,7 +29,7 @@ fun <T : Any> BasicModule<*>.configure(
     bean: Bean<T>,
     block: BeanConfigurationDeclaration<T>.(T) -> Unit
 ) {
-    bean.handler.configure { instance, lifecycle ->
+    bean.delegate.configure { instance, lifecycle ->
         val definition = BeanConfigurationDeclaration(
             container,
             instance,

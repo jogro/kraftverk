@@ -9,8 +9,8 @@ import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
 
-internal class BeanHandler<T : Any>(providerFactory: BeanProviderFactory<T>) :
-    BindingHandler<T>() {
+internal class BeanDelegate<T : Any>(providerFactory: BeanProviderFactory<T>) :
+    BindingDelegate<T>() {
 
     @Volatile
     private var state: State<T> = State.Configurable(providerFactory)

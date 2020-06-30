@@ -6,7 +6,7 @@
 package io.kraftverk.managed
 
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.handler
+import io.kraftverk.binding.delegate
 import io.kraftverk.internal.container.beanProviders
 import io.kraftverk.internal.container.stop
 import io.kraftverk.internal.container.valueProviders
@@ -38,7 +38,7 @@ val Managed<*>.valueProviders: List<ValueProvider<*>> get() = module.container.v
  */
 operator fun <T : Any, M : Module> Managed<M>.invoke(binding: M.() -> Binding<T>): T {
     state.mustBe<State.Running<M>> {
-        return module.binding().handler.provider.get()
+        return module.binding().delegate.provider.get()
     }
 }
 

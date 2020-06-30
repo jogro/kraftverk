@@ -5,9 +5,9 @@
 
 package io.kraftverk.binding
 
-import io.kraftverk.internal.binding.BeanHandler
-import io.kraftverk.internal.binding.BindingHandler
-import io.kraftverk.internal.binding.ValueHandler
+import io.kraftverk.internal.binding.BeanDelegate
+import io.kraftverk.internal.binding.BindingDelegate
+import io.kraftverk.internal.binding.ValueDelegate
 
 /**
  * A Bean is a [Bean] that can be declared within a Kraftverk managed module.
@@ -46,22 +46,22 @@ sealed class Binding<out T : Any>
 
 /* Internals */
 
-internal class BeanImpl<T : Any>(val handler: BeanHandler<T>) : Bean<T>()
+internal class BeanImpl<T : Any>(val delegate: BeanDelegate<T>) : Bean<T>()
 
-internal class ValueImpl<T : Any>(val handler: ValueHandler<T>) : Value<T>()
+internal class ValueImpl<T : Any>(val delegate: ValueDelegate<T>) : Value<T>()
 
-internal val <T : Any> Bean<T>.handler: BeanHandler<T>
+internal val <T : Any> Bean<T>.delegate: BeanDelegate<T>
     get() = when (this) {
-        is BeanImpl<T> -> handler
+        is BeanImpl<T> -> delegate
     }
 
-internal val <T : Any> Value<T>.handler: ValueHandler<T>
+internal val <T : Any> Value<T>.delegate: ValueDelegate<T>
     get() = when (this) {
-        is ValueImpl<T> -> handler
+        is ValueImpl<T> -> delegate
     }
 
-internal val <T : Any> Binding<T>.handler: BindingHandler<T>
+internal val <T : Any> Binding<T>.delegate: BindingDelegate<T>
     get() = when (this) {
-        is ValueImpl<T> -> handler
-        is BeanImpl<T> -> handler
+        is ValueImpl<T> -> delegate
+        is BeanImpl<T> -> delegate
     }

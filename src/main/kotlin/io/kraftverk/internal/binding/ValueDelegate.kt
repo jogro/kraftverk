@@ -8,7 +8,7 @@ import io.kraftverk.provider.ValueProvider
 import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
 
-internal class ValueHandler<T : Any>(providerFactory: ValueProviderFactory<T>) : BindingHandler<T>() {
+internal class ValueDelegate<T : Any>(providerFactory: ValueProviderFactory<T>) : BindingDelegate<T>() {
 
     @Volatile
     private var state: State<T> = State.Configurable(providerFactory)

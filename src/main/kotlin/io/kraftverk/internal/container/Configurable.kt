@@ -10,7 +10,7 @@ import io.kraftverk.binding.BeanImpl
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.ValueImpl
-import io.kraftverk.binding.handler
+import io.kraftverk.binding.delegate
 import io.kraftverk.common.BeanDefinition
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.internal.container.Container.State
@@ -34,7 +34,7 @@ internal fun <T : Any> Container.createValue(
 
 internal fun Container.start(lazy: Boolean) =
     state.mustBe<State.Configurable> {
-        bindings.forEach { binding -> binding.handler.start() }
+        bindings.forEach { binding -> binding.delegate.start() }
         state = State.Running(bindings.toList())
         bindings.initialize(lazy)
     }
@@ -43,7 +43,7 @@ private fun List<Binding<*>>.initialize(lazy: Boolean) {
     val valueNotFoundExceptions = mutableListOf<ValueNotFoundException>()
     filterIsInstance<Value<*>>().forEach { value ->
         try {
-            value.handler.initialize(lazy)
+            value.delegate.initialize(lazy)
         } catch (e: ValueNotFoundException) {
             valueNotFoundExceptions += e
         }
@@ -60,5 +60,5 @@ $errorMsg
                 """.trimIndent()
             throw IllegalStateException(exceptionMessage)
         }
-    filterIsInstance<Bean<*>>().forEach { bean -> bean.handler.initialize(lazy) }
+    filterIsInstance<Bean<*>>().forEach { bean -> bean.delegate.initialize(lazy) }
 }

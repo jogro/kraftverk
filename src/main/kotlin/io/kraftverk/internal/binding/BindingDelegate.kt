@@ -7,7 +7,7 @@ package io.kraftverk.internal.binding
 
 import io.kraftverk.provider.Provider
 
-internal abstract class BindingHandler<T : Any> {
+internal abstract class BindingDelegate<T : Any> {
     abstract fun start()
     abstract fun initialize(lazy: Boolean)
     abstract fun stop()

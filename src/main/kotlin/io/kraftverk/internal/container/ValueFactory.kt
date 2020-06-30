@@ -3,7 +3,7 @@ package io.kraftverk.internal.container
 import io.kraftverk.binding.ValueImpl
 import io.kraftverk.common.ValueDefinition
 import io.kraftverk.common.ValueProcessor
-import io.kraftverk.internal.binding.ValueHandler
+import io.kraftverk.internal.binding.ValueDelegate
 import io.kraftverk.internal.binding.ValueProviderFactory
 
 internal class ValueFactory(private val valueProcessors: List<ValueProcessor>) {
@@ -11,7 +11,7 @@ internal class ValueFactory(private val valueProcessors: List<ValueProcessor>) {
     fun <T : Any> createValue(definition: ValueDefinition<T>): ValueImpl<T> =
         definition.let(::process)
             .let(::ValueProviderFactory)
-            .let(::ValueHandler)
+            .let(::ValueDelegate)
             .let(::ValueImpl)
 
     private fun <T : Any> process(definition: ValueDefinition<T>): ValueDefinition<T> {

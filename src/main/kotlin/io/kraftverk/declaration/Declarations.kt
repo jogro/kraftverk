@@ -7,7 +7,7 @@ package io.kraftverk.declaration
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
-import io.kraftverk.binding.handler
+import io.kraftverk.binding.delegate
 import io.kraftverk.common.BeanRef
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
@@ -19,7 +19,7 @@ import io.kraftverk.provider.get
 open class ValueDeclaration internal constructor(internal val container: Container) {
     val env: Environment get() = container.environment
     val valueProviders get() = container.valueProviders
-    operator fun <T : Any> Value<T>.invoke(): T = handler.provider.get()
+    operator fun <T : Any> Value<T>.invoke(): T = delegate.provider.get()
 }
 
 class ValueSupplierDeclaration<T> internal constructor(
@@ -32,7 +32,7 @@ class ValueSupplierDeclaration<T> internal constructor(
 open class BeanDeclaration internal constructor(container: Container) : ValueDeclaration(container) {
     val beanProviders get() = container.beanProviders
 
-    operator fun <T : Any> Bean<T>.invoke(): T = handler.provider.get()
+    operator fun <T : Any> Bean<T>.invoke(): T = delegate.provider.get()
 
     operator fun <T : Any> BeanRef<T>.invoke(): T = instance()
 }

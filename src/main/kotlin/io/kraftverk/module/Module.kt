@@ -7,7 +7,7 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
-import io.kraftverk.binding.handler
+import io.kraftverk.binding.delegate
 import io.kraftverk.common.BeanRef
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.logging.createLogger
@@ -38,7 +38,7 @@ sealed class BasicModule<PARENT : AbstractModule> : AbstractModule() {
     override val namespace: String = scopedNamespace.get()
 
     internal fun <T : Any, BINDING : Binding<T>> getInstance(binding: PARENT.() -> BINDING): T =
-        parent.binding().handler.provider.get()
+        parent.binding().delegate.provider.get()
 }
 
 open class Module : BasicModule<Module>()
