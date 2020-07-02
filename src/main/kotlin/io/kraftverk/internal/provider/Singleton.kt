@@ -17,10 +17,9 @@ internal class Singleton<T : Any>(
     val type: KClass<T>,
     private val lazy: Boolean?,
     private val createInstance: Supplier<T>,
-    private val onConfigure: (T, LifecycleActions) -> Unit
+    private val onConfigure: (T) -> Unit,
+    private val lifecycleActions: LifecycleActions
 ) {
-
-    private val lifecycle = LifecycleActions()
 
     @Volatile
     private var instance: Instance<T>? = null
@@ -48,8 +47,8 @@ internal class Singleton<T : Any>(
                     createInstance(),
                     currentInstanceId.incrementAndGet()
                 )
-                onConfigure(i3.value, lifecycle)
-                lifecycle.onCreate()
+                onConfigure(i3.value)
+                lifecycleActions.onCreate()
                 instance = i3
                 i3.value
             }
@@ -62,7 +61,7 @@ internal class Singleton<T : Any>(
             val i = instance
             if (i != null) {
                 try {
-                    lifecycle.onDestroy()
+                    lifecycleActions.onDestroy()
                 } catch (ex: Exception) {
                     logger.error("Couldn't destroy bean", ex)
                 }

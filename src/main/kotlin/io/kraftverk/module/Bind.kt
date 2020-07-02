@@ -67,8 +67,8 @@ class BeanBinder<T : Any> internal constructor(
     private val bean: Bean<T>
 ) {
     infix fun to(block: BeanSupplierInterceptorDeclaration<T>.() -> T) {
-        bean.delegate.bind { proceed ->
-            BeanSupplierInterceptorDeclaration(container, proceed).block()
+        bean.delegate.bind { lifecycleActions, proceed ->
+            BeanSupplierInterceptorDeclaration(lifecycleActions, container, proceed).block()
         }
     }
 }

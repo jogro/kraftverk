@@ -8,7 +8,9 @@ package io.kraftverk.declaration
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.delegate
-import io.kraftverk.common.BeanRef
+import io.kraftverk.common.BindingRef
+import io.kraftverk.common.Sink
+import io.kraftverk.common.delegate
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
 import io.kraftverk.internal.container.beanProviders
@@ -29,18 +31,26 @@ class ValueSupplierDeclaration<T> internal constructor(
     fun proceed() = supply()
 }
 
-open class BeanDeclaration internal constructor(container: Container) : ValueDeclaration(container) {
+open class BeanDeclaration internal constructor(
+    internal val lifecycleActions: LifecycleActions,
+    container: Container
+) : ValueDeclaration(container) {
     val beanProviders get() = container.beanProviders
 
     operator fun <T : Any> Bean<T>.invoke(): T = delegate.provider.get()
 
-    operator fun <T : Any> BeanRef<T>.invoke(): T = instance()
+    operator fun <T : Any> BindingRef<T>.invoke(): T = instance()
+
+    operator fun <T : Any> Sink<T>.invoke(t: T) {
+        delegate.onConfigure(t, lifecycleActions)
+    }
 }
 
 class BeanSupplierInterceptorDeclaration<T> internal constructor(
+    lifecycleActions: LifecycleActions,
     container: Container,
     private val supply: Supplier<T>
-) : BeanDeclaration(container) {
+) : BeanDeclaration(lifecycleActions, container) {
     fun proceed() = supply()
 }
 
@@ -69,16 +79,16 @@ class LifecycleActions {
     }
 }
 
-class BeanConfigurationDeclaration<T> internal constructor(
+class SinkDeclaration<T> internal constructor(
     container: Container,
     val instance: T,
-    private val lifecycle: LifecycleActions
-) : BeanDeclaration(container) {
+    lifecycleActions: LifecycleActions
+) : BeanDeclaration(lifecycleActions, container) {
 
     fun lifecycle(block: LifecycleActions.() -> Unit) {
-        lifecycle.block()
+        lifecycleActions.block()
     }
 }
 
-open class CustomBeanDeclaration(parent: BeanDeclaration) : BeanDeclaration(parent.container)
+open class CustomBeanDeclaration(parent: BeanDeclaration) : BeanDeclaration(parent.lifecycleActions, parent.container)
 open class CustomValueDeclaration(parent: ValueDeclaration) : ValueDeclaration(parent.container)

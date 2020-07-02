@@ -5,4 +5,4 @@
 
 package io.kraftverk.common
 
-class BeanRef<out T : Any>(internal val instance: () -> T)
+class BindingRef<out T : Any>(internal val instance: () -> T)

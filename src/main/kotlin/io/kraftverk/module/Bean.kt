@@ -9,6 +9,7 @@ import io.kraftverk.binding.Bean
 import io.kraftverk.binding.BeanImpl
 import io.kraftverk.common.BeanDefinition
 import io.kraftverk.declaration.BeanDeclaration
+import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.container.createBean
 import io.kraftverk.internal.container.createBeanInstance
 import kotlin.properties.ReadOnlyProperty
@@ -16,7 +17,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 /**
- * The bean method declares a Bean [io.kraftverk.binding.Bean] within a Kraftverk module.
+ * The bean method declares a [Bean][io.kraftverk.binding.Bean] within a Kraftverk module.
  *
  * Like this:
  *
@@ -84,11 +85,12 @@ private fun <T : Any> BasicModule<*>.createBean(
     lazy: Boolean? = null,
     instance: BeanDeclaration.() -> T
 ): BeanImpl<T> {
+    val lifecycleActions = LifecycleActions()
     val config = BeanDefinition(
         name = name,
         lazy = lazy,
         type = type,
-        instance = { container.createBeanInstance(instance) }
+        instance = { container.createBeanInstance(lifecycleActions, instance) }
     )
-    return container.createBean(config)
+    return container.createBean(config, lifecycleActions)
 }

@@ -29,6 +29,7 @@ import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
 import io.kraftverk.module.configure
+import io.kraftverk.module.sink
 import io.kraftverk.provider.definition
 import io.kraftverk.provider.get
 import io.kraftverk.provider.type
@@ -61,6 +62,8 @@ class BeanTest : StringSpec() {
         val gadget by bean(lazy = this.lazy) {
             gadgetFactory.createGadget()
         }
+
+        val config by sink<StringBuffer>()
 
         init {
             configure(gadget) { w ->

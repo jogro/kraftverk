@@ -5,11 +5,11 @@
 
 package io.kraftverk.module
 
-import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Binding
 import io.kraftverk.binding.delegate
-import io.kraftverk.common.BeanRef
+import io.kraftverk.common.BindingRef
 import io.kraftverk.internal.container.Container
+import io.kraftverk.internal.container.configure
 import io.kraftverk.internal.logging.createLogger
 import io.kraftverk.internal.misc.ScopedThreadLocal
 import io.kraftverk.provider.get
@@ -86,17 +86,23 @@ fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.module(
 
 open class ChildModule<PARENT : BasicModule<*>> : BasicModule<PARENT>()
 
-fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>, T : Any, COMPONENT : Bean<T>> CHILD.ref(
-    bean: PARENT.() -> COMPONENT
-): BeanRefDelegateProvider<T> =
-    object : BeanRefDelegateProvider<T> {
+fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>, T : Any, BINDING : Binding<T>> CHILD.import(
+    binding: PARENT.() -> BINDING
+): BindingRefDelegateProvider<T> =
+    object : BindingRefDelegateProvider<T> {
         override fun provideDelegate(
             thisRef: BasicModule<*>,
             property: KProperty<*>
-        ): ReadOnlyProperty<BasicModule<*>, BeanRef<T>> {
-            val ref = BeanRef { getInstance(bean) }
+        ): ReadOnlyProperty<BasicModule<*>, BindingRef<T>> {
+            val ref = BindingRef { getInstance(binding) }
             return Delegate(ref)
         }
     }
+
+fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>> CHILD.parent(
+    block: PARENT.() -> Unit
+) {
+    container.configure { parent.block() }
+}
 
 internal fun AbstractModule.qualifyName(name: String) = if (namespace.isBlank()) name else "$namespace.$name"

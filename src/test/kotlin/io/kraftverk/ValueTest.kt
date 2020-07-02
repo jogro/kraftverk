@@ -22,9 +22,9 @@ import io.kraftverk.module.ChildModule
 import io.kraftverk.module.Module
 import io.kraftverk.module.bean
 import io.kraftverk.module.bind
+import io.kraftverk.module.import
 import io.kraftverk.module.int
 import io.kraftverk.module.module
-import io.kraftverk.module.ref
 import io.kraftverk.module.string
 import io.kraftverk.module.value
 import io.kraftverk.provider.get
@@ -273,7 +273,7 @@ class ValueTest : StringSpec() {
     class Mod4 : Module()
 
     class Sub1 : ChildModule<Mod3>() {
-        val br1 by ref { b1 }
+        val br1 by import { b1 }
     }
 
     class Sub2 : ChildModule<Mod4>()

@@ -9,7 +9,9 @@ import io.kraftverk.provider.BeanProvider
 import io.kraftverk.provider.destroy
 import io.kraftverk.provider.initialize
 
-internal class BeanDelegate<T : Any>(providerFactory: BeanProviderFactory<T>) :
+internal class BeanDelegate<T : Any>(
+    providerFactory: BeanProviderFactory<T>
+) :
     BindingDelegate<T>() {
 
     @Volatile
@@ -28,7 +30,7 @@ internal class BeanDelegate<T : Any>(providerFactory: BeanProviderFactory<T>) :
         object Destroyed : State<Nothing>()
     }
 
-    fun bind(block: (Supplier<T>) -> T) {
+    fun bind(block: (LifecycleActions, Supplier<T>) -> T) {
         state.mustBe<State.Configurable<T>> {
             providerFactory.bind(block)
         }

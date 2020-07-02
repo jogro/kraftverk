@@ -18,22 +18,26 @@ import io.kraftverk.provider.ValueProviderImpl
 private val logger = createLogger { }
 
 internal sealed class BindingProviderFactory<T : Any, out P : Provider<T>>(var instance: Supplier<T>) {
-
     abstract fun createProvider(): P
-
-    fun bind(block: (Supplier<T>) -> T) {
-        instance = interceptAround(instance, block)
-    }
 }
 
 internal class BeanProviderFactory<T : Any>(
-    private val definition: BeanDefinition<T>
+    private val definition: BeanDefinition<T>,
+    private val lifecycleActions: LifecycleActions
 ) : BindingProviderFactory<T, BeanProvider<T>>(definition.instance) {
 
-    private var onConfigure: (T, LifecycleActions) -> Unit = { _, _ -> }
+    private var onConfigure: (T) -> Unit = { }
+
+    fun bind(block: (LifecycleActions, Supplier<T>) -> T) {
+        instance = interceptAround(instance) { proceed ->
+            block(lifecycleActions, proceed)
+        }
+    }
 
     fun configure(block: (T, LifecycleActions) -> Unit) {
-        onConfigure = interceptAfter(onConfigure, block)
+        onConfigure = interceptAfter(onConfigure) { t ->
+            block(t, lifecycleActions)
+        }
     }
 
     override fun createProvider() = BeanProviderImpl(
@@ -41,7 +45,8 @@ internal class BeanProviderFactory<T : Any>(
         createSingleton(
             definition,
             instance = loggingInterceptor(instance),
-            onConfigure = onConfigure
+            onConfigure = onConfigure,
+            lifecycleActions = lifecycleActions
         )
     )
 
@@ -60,12 +65,17 @@ internal class ValueProviderFactory<T : Any>(
     private val definition: ValueDefinition<T>
 ) : BindingProviderFactory<T, ValueProvider<T>>(definition.instance) {
 
+    fun bind(block: (Supplier<T>) -> T) {
+        instance = interceptAround(instance, block)
+    }
+
     override fun createProvider() = ValueProviderImpl(
         definition,
         createSingleton(
             definition,
             instance = loggingInterceptor(instance),
-            onConfigure = { _, _ -> }
+            onConfigure = { },
+            lifecycleActions = LifecycleActions()
         )
     )
 
@@ -83,11 +93,13 @@ internal class ValueProviderFactory<T : Any>(
 private fun <T : Any> createSingleton(
     definition: BindingDefinition<T>,
     instance: Supplier<T>,
-    onConfigure: (T, LifecycleActions) -> Unit
+    lifecycleActions: LifecycleActions,
+    onConfigure: (T) -> Unit
 
 ): Singleton<T> = Singleton(
     type = definition.type,
     lazy = definition.lazy,
     createInstance = instance,
-    onConfigure = onConfigure
+    onConfigure = onConfigure,
+    lifecycleActions = lifecycleActions
 )

@@ -29,6 +29,7 @@ internal class Container(
             val beanFactory: BeanFactory,
             val valueFactory: ValueFactory
         ) : State() {
+            var onConfigure: () -> Unit = {}
             val bindings = mutableListOf<Binding<*>>()
         }
 

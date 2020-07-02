@@ -12,7 +12,6 @@ import io.kraftverk.internal.misc.mustBe
 import io.kraftverk.managed.Managed.State.Configurable
 import io.kraftverk.managed.Managed.State.Running
 import io.kraftverk.module.Module
-import io.kraftverk.module.createModule
 
 /**
  * The [start] function is by default non-lazy, meaning that:
