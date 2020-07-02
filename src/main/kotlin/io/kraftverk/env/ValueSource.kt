@@ -22,7 +22,7 @@ class ValueSource {
     companion object
 }
 
-const val ACTIVE_PROFILES = "kraftverk.active.profiles"
+const val KRAFTVERK_PROFILES = "kraftverk.active.profiles"
 
 class ValueNameException(msg: String) : Exception(msg)
 
@@ -74,8 +74,8 @@ internal fun ValueSource.clear() {
     map.clear()
 }
 
-internal fun ValueSource.activeProfiles(): List<String> {
-    return map[ACTIVE_PROFILES]
+internal fun ValueSource.profiles(): List<String> {
+    return map[KRAFTVERK_PROFILES]
         ?.toString()
         ?.split(",")
         ?.map { it.trim() }

@@ -9,7 +9,7 @@ import io.kraftverk.binding.Bean
 import io.kraftverk.binding.Value
 import io.kraftverk.binding.delegate
 import io.kraftverk.common.BindingRef
-import io.kraftverk.common.Sink
+import io.kraftverk.common.Pipe
 import io.kraftverk.common.delegate
 import io.kraftverk.env.Environment
 import io.kraftverk.internal.container.Container
@@ -41,7 +41,7 @@ open class BeanDeclaration internal constructor(
 
     operator fun <T : Any> BindingRef<T>.invoke(): T = instance()
 
-    operator fun <T : Any> Sink<T>.invoke(t: T) {
+    operator fun <T : Any> Pipe<T>.invoke(t: T) {
         delegate.onConfigure(t, lifecycleActions)
     }
 }
@@ -79,7 +79,18 @@ class LifecycleActions {
     }
 }
 
-class SinkDeclaration<T> internal constructor(
+class PipeDeclaration<T> internal constructor(
+    container: Container,
+    val instance: T,
+    lifecycleActions: LifecycleActions
+) : BeanDeclaration(lifecycleActions, container) {
+
+    fun lifecycle(block: LifecycleActions.() -> Unit) {
+        lifecycleActions.block()
+    }
+}
+
+class BeanConfigurationDeclaration<T> internal constructor(
     container: Container,
     val instance: T,
     lifecycleActions: LifecycleActions

@@ -7,9 +7,10 @@ package io.kraftverk.module
 
 import io.kraftverk.binding.Bean
 import io.kraftverk.binding.delegate
-import io.kraftverk.common.Sink
+import io.kraftverk.common.Pipe
 import io.kraftverk.common.delegate
-import io.kraftverk.declaration.SinkDeclaration
+import io.kraftverk.declaration.BeanConfigurationDeclaration
+import io.kraftverk.declaration.PipeDeclaration
 
 /**
  * A helper method for configuring a bean after it has been declared, for example:
@@ -29,10 +30,10 @@ import io.kraftverk.declaration.SinkDeclaration
  */
 fun <T : Any> BasicModule<*>.configure(
     bean: Bean<T>,
-    block: SinkDeclaration<T>.(T) -> Unit
+    block: BeanConfigurationDeclaration<T>.(T) -> Unit
 ) {
     bean.delegate.configure { instance, lifecycle ->
-        val definition = SinkDeclaration(
+        val definition = BeanConfigurationDeclaration(
             container,
             instance,
             lifecycle
@@ -42,11 +43,11 @@ fun <T : Any> BasicModule<*>.configure(
 }
 
 fun <T : Any> BasicModule<*>.configure(
-    sink: Sink<T>,
-    block: SinkDeclaration<T>.(T) -> Unit
+    sink: Pipe<T>,
+    block: PipeDeclaration<T>.(T) -> Unit
 ) {
     sink.delegate.configure { instance, lifecycle ->
-        val definition = SinkDeclaration(
+        val definition = PipeDeclaration(
             container,
             instance,
             lifecycle

@@ -3,16 +3,16 @@ package io.kraftverk.common
 import io.kraftverk.declaration.LifecycleActions
 import io.kraftverk.internal.misc.interceptAfter
 
-sealed class Sink<in T : Any>
+sealed class Pipe<in T : Any>
 
-internal val <T : Any> Sink<T>.delegate
+internal val <T : Any> Pipe<T>.delegate
     get() = when (this) {
-        is SinkImpl -> delegate
+        is PipeImpl -> delegate
     }
 
-internal class SinkImpl<T : Any>(val delegate: SinkDelegate<T>) : Sink<T>()
+internal class PipeImpl<T : Any>(val delegate: PipeDelegate<T>) : Pipe<T>()
 
-internal class SinkDelegate<T : Any> {
+internal class PipeDelegate<T : Any> {
 
     var onConfigure: (T, LifecycleActions) -> Unit = { _, _ -> }
 

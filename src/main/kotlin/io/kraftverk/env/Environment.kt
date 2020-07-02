@@ -25,7 +25,7 @@ open class EnvironmentDeclaration {
         PropertiesParser(),
         YamlParser()
     )
-    var propertyFilenamePrefix: String = "application"
+    var propertyFilenamePrefix: String = "kraftverk"
     fun set(name: String, value: String) {
         valueSource[name] = value
     }
@@ -40,7 +40,7 @@ fun environment(
     val startMs = System.currentTimeMillis()
     logger.info { "Creating environment" }
     val systemSource = ValueSource.fromSystem()
-    val actualProfiles = if (profiles.isEmpty()) systemSource.activeProfiles() else profiles.toList()
+    val actualProfiles = if (profiles.isEmpty()) systemSource.profiles() else profiles.toList()
     logger.info { "Using profiles: $actualProfiles" }
     val definition = EnvironmentDeclaration().apply(block)
     val sources = mutableListOf<ValueSource>()
