@@ -14,9 +14,9 @@ internal class PipeImpl<T : Any>(val delegate: PipeDelegate<T>) : Pipe<T>()
 
 internal class PipeDelegate<T : Any> {
 
-    var onConfigure: (T, LifecycleActions) -> Unit = { _, _ -> }
+    var onPipe: (T, LifecycleActions) -> Unit = { _, _ -> }
 
     fun configure(block: (T, LifecycleActions) -> Unit) {
-        onConfigure = interceptAfter(onConfigure, block)
+        onPipe = interceptAfter(onPipe, block)
     }
 }

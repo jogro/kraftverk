@@ -41,8 +41,9 @@ open class BeanDeclaration internal constructor(
 
     operator fun <T : Any> BindingRef<T>.invoke(): T = instance()
 
-    operator fun <T : Any> Pipe<T>.invoke(t: T) {
-        delegate.onConfigure(t, lifecycleActions)
+    operator fun <T : Any> Pipe<T>.invoke(t: T): T {
+        delegate.onPipe(t, lifecycleActions)
+        return t
     }
 }
 
