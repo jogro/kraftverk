@@ -30,7 +30,7 @@ import io.kraftverk.core.module.Module
 import io.kraftverk.core.module.bean
 import io.kraftverk.core.module.bind
 import io.kraftverk.core.module.configure
-import io.kraftverk.core.module.sink
+import io.kraftverk.core.module.pipe
 import io.kraftverk.core.provider.definition
 import io.kraftverk.core.provider.get
 import io.kraftverk.core.provider.type
@@ -64,7 +64,7 @@ class BeanTest : StringSpec() {
             gadgetFactory.createGadget()
         }
 
-        val config by sink<StringBuffer>()
+        val config by pipe<StringBuffer>()
 
         init {
             configure(gadget) { w ->

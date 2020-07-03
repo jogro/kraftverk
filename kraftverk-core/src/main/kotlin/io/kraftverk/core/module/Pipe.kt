@@ -6,10 +6,10 @@ import io.kraftverk.core.common.PipeImpl
 import io.kraftverk.core.declaration.PipeDeclaration
 import kotlin.properties.ReadOnlyProperty
 
-fun <T : Any> BasicModule<*>.sink(block: PipeDeclaration<T>.(T) -> Unit = { }):
+fun <T : Any> BasicModule<*>.pipe(block: PipeDeclaration<T>.(T) -> Unit = { }):
         ReadOnlyProperty<BasicModule<*>, Pipe<T>> {
-    val sink: PipeImpl<T> =
+    val pipe: PipeImpl<T> =
         PipeImpl(PipeDelegate())
-    configure(sink, block)
-    return Delegate(sink)
+    configure(pipe, block)
+    return Delegate(pipe)
 }
