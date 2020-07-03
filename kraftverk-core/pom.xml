@@ -13,6 +13,14 @@
 
     <name>Kraftverk Core</name>
 
+    <distributionManagement>
+        <repository>
+            <id>bintray-jogro-kraftverk</id>
+            <name>jogro-kraftverk</name>
+            <url>https://api.bintray.com/maven/jogro/kraftverk/kraftverk-core/;publish=1</url>
+        </repository>
+    </distributionManagement>
+
     <dependencies>
         <!-- Kotlin -->
         <dependency>
