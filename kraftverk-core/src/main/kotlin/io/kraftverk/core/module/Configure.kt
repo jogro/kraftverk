@@ -43,10 +43,10 @@ fun <T : Any> BasicModule<*>.configure(
 }
 
 fun <T : Any> BasicModule<*>.configure(
-    sink: Pipe<T>,
+    pipe: Pipe<T>,
     block: PipeDeclaration<T>.(T) -> Unit
 ) {
-    sink.delegate.configure { instance, lifecycle ->
+    pipe.delegate.configure { instance, lifecycle ->
         val definition = PipeDeclaration(
             container,
             instance,
