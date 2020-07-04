@@ -80,9 +80,8 @@ class LifecycleActions {
     }
 }
 
-class PipeDeclaration<T> internal constructor(
+class PipeDeclaration internal constructor(
     container: Container,
-    val instance: T,
     lifecycleActions: LifecycleActions
 ) : BeanDeclaration(lifecycleActions, container) {
 
@@ -91,9 +90,8 @@ class PipeDeclaration<T> internal constructor(
     }
 }
 
-class BeanConfigurationDeclaration<T> internal constructor(
+class BeanConfigurationDeclaration internal constructor(
     container: Container,
-    val instance: T,
     lifecycleActions: LifecycleActions
 ) : BeanDeclaration(lifecycleActions, container) {
 

@@ -30,12 +30,11 @@ import io.kraftverk.core.declaration.PipeDeclaration
  */
 fun <T : Any> BasicModule<*>.configure(
     bean: Bean<T>,
-    block: BeanConfigurationDeclaration<T>.(T) -> Unit
+    block: BeanConfigurationDeclaration.(T) -> Unit
 ) {
     bean.delegate.configure { instance, lifecycle ->
         val definition = BeanConfigurationDeclaration(
             container,
-            instance,
             lifecycle
         )
         definition.block(instance)
@@ -44,12 +43,11 @@ fun <T : Any> BasicModule<*>.configure(
 
 fun <T : Any> BasicModule<*>.configure(
     pipe: Pipe<T>,
-    block: PipeDeclaration<T>.(T) -> Unit
+    block: PipeDeclaration.(T) -> Unit
 ) {
     pipe.delegate.configure { instance, lifecycle ->
         val definition = PipeDeclaration(
             container,
-            instance,
             lifecycle
         )
         definition.block(instance)
