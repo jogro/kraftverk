@@ -28,7 +28,7 @@ class ValueSupplierDeclaration<T> internal constructor(
     container: Container,
     private val supply: Supplier<T>
 ) : ValueDeclaration(container) {
-    fun proceed() = supply()
+    fun callOriginal() = supply()
 }
 
 open class BeanDeclaration internal constructor(
@@ -52,7 +52,7 @@ class BeanSupplierInterceptorDeclaration<T> internal constructor(
     container: Container,
     private val supply: Supplier<T>
 ) : BeanDeclaration(lifecycleActions, container) {
-    fun proceed() = supply()
+    fun callOriginal() = supply()
 }
 
 class LifecycleActions {
@@ -64,18 +64,18 @@ class LifecycleActions {
     internal var onDestroy: () -> Unit = { }
 
     fun onCreate(block: Action.() -> Unit) {
-        val proceed = onCreate
-        onCreate = { Action(proceed).block() }
+        val callOriginal = onCreate
+        onCreate = { Action(callOriginal).block() }
     }
 
     fun onDestroy(block: Action.() -> Unit) {
-        val proceed = onDestroy
-        onDestroy = { Action(proceed).block() }
+        val callOriginal = onDestroy
+        onDestroy = { Action(callOriginal).block() }
     }
 
-    class Action(private val proceedFun: () -> Unit) {
-        fun proceed() {
-            proceedFun()
+    class Action(private val callOriginalFun: () -> Unit) {
+        fun callOriginal() {
+            callOriginalFun()
         }
     }
 }

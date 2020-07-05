@@ -67,11 +67,11 @@ class BeanBinder<T : Any> internal constructor(
     private val bean: Bean<T>
 ) {
     infix fun to(block: BeanSupplierInterceptorDeclaration<T>.() -> T) {
-        bean.delegate.bind { lifecycleActions, proceed ->
+        bean.delegate.bind { lifecycleActions, callOriginal ->
             BeanSupplierInterceptorDeclaration(
                 lifecycleActions,
                 container,
-                proceed
+                callOriginal
             ).block()
         }
     }
@@ -85,8 +85,8 @@ class ValueBinder<T : Any> internal constructor(
     private val value: Value<T>
 ) {
     infix fun to(block: ValueSupplierDeclaration<T>.() -> T) {
-        value.delegate.bind { proceed ->
-            ValueSupplierDeclaration(container, proceed).block()
+        value.delegate.bind { callOriginal ->
+            ValueSupplierDeclaration(container, callOriginal).block()
         }
     }
 }

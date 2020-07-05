@@ -29,8 +29,8 @@ internal class BeanProviderFactory<T : Any>(
     private var onConfigure: (T) -> Unit = { }
 
     fun bind(block: (LifecycleActions, Supplier<T>) -> T) {
-        instance = interceptAround(instance) { proceed ->
-            block(lifecycleActions, proceed)
+        instance = interceptAround(instance) { callOriginal ->
+            block(lifecycleActions, callOriginal)
         }
     }
 

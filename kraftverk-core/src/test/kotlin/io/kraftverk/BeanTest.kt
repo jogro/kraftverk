@@ -197,12 +197,12 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "bean on create invokes 'proceed' properly" {
+        "bean on create invokes 'callOriginal' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 configure(gadget) {
                     lifecycle {
-                        onCreate { proceed() }
+                        onCreate { callOriginal() }
                     }
                 }
             }
@@ -211,7 +211,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "bean on create inhibits 'proceed' properly" {
+        "bean on create inhibits 'callOriginal' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 // onCreate(gadget) { }
@@ -227,21 +227,21 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "bean on destroy invokes 'proceed' properly" {
+        "bean on destroy invokes 'callOriginal' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 configure(gadget) {
                     lifecycle {
-                        onDestroy { proceed() }
+                        onDestroy { callOriginal() }
                     }
                 }
                 configure(childGadget) {
                     lifecycle {
-                        onDestroy { proceed() }
+                        onDestroy { callOriginal() }
                     }
                 }
-                // onDestroy(gadget) { proceed() }
-                // onDestroy(childGadget) { proceed() }
+                // onDestroy(gadget) { callOriginal() }
+                // onDestroy(childGadget) { callOriginal() }
             }
             clearMocks(gadget, childGadget)
             app.stop()
@@ -251,7 +251,7 @@ class BeanTest : StringSpec() {
             }
         }
 
-        "bean on destroy inhibits 'proceed' properly" {
+        "bean on destroy inhibits 'callOriginal' properly" {
             val app = Kraftverk.manage { AppModule() }
             app.start {
                 configure(gadget) {
@@ -467,7 +467,7 @@ class BeanTest : StringSpec() {
             ReadOnlyProperty<Any?, T> {
         configure {
             val c: Bean<T> = bean()
-            bind(c) to { spyk(proceed()) }
+            bind(c) to { spyk(callOriginal()) }
         }
         return get(bean)
     }
