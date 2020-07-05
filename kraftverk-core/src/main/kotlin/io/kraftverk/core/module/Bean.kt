@@ -87,11 +87,11 @@ private fun <T : Any> BasicModule<*>.createBean(
     instance: BeanDeclaration.() -> T
 ): BeanImpl<T> {
     val lifecycleActions = LifecycleActions()
-    val config = BeanDefinition(
+    val definition = BeanDefinition(
         name = name,
         lazy = lazy,
         type = type,
         instance = { container.createBeanInstance(lifecycleActions, instance) }
     )
-    return container.createBean(config, lifecycleActions)
+    return container.createBean(definition, lifecycleActions)
 }

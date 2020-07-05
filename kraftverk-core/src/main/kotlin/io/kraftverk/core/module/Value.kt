@@ -45,7 +45,7 @@ internal fun <T : Any> BasicModule<*>.value(
         ): ReadOnlyProperty<BasicModule<*>, Value<T>> {
             val valueName = qualifyName(name ?: property.name).toSpinalCase()
             logger.debug { "Creating value '$valueName'" }
-            val config = ValueDefinition(
+            val definition = ValueDefinition(
                 name = valueName,
                 lazy = null,
                 secret = secret,
@@ -54,7 +54,7 @@ internal fun <T : Any> BasicModule<*>.value(
                     container.createValueInstance(valueName, default, instance)
                 }
             )
-            return container.createValue<T>(config).let(::Delegate)
+            return container.createValue(definition).let(::Delegate)
         }
     }
 
