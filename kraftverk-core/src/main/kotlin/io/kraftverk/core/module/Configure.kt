@@ -33,11 +33,7 @@ fun <T : Any> BasicModule<*>.configure(
     block: BeanConfigurationDeclaration.(T) -> Unit
 ) {
     bean.delegate.configure { instance, lifecycle ->
-        val definition = BeanConfigurationDeclaration(
-            container,
-            lifecycle
-        )
-        definition.block(instance)
+        BeanConfigurationDeclaration(container, lifecycle).block(instance)
     }
 }
 
@@ -46,10 +42,6 @@ fun <T : Any> BasicModule<*>.configure(
     block: PipeDeclaration.(T) -> Unit
 ) {
     pipe.delegate.configure { instance, lifecycle ->
-        val definition = PipeDeclaration(
-            container,
-            lifecycle
-        )
-        definition.block(instance)
+        PipeDeclaration(container, lifecycle).block(instance)
     }
 }
