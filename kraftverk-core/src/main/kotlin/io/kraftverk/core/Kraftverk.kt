@@ -30,11 +30,7 @@ object Kraftverk {
         env: Environment = environment(),
         namespace: String = "",
         module: () -> M
-    ): Managed<M> = manage(
-        env,
-        namespace,
-        module
-    ).start(lazy)
+    ): Managed<M> = manage(env, namespace, module).start(lazy)
 
     /**
      * A factory function that creates a [Managed] instance of the specified [Module].
@@ -47,13 +43,5 @@ object Kraftverk {
         env: Environment = environment(),
         namespace: String = "",
         module: () -> M
-    ): Managed<M> {
-        return Managed(
-            ModuleFactory(
-                env,
-                namespace,
-                module
-            )
-        )
-    }
+    ): Managed<M> = Managed(ModuleFactory(env, namespace, module))
 }
