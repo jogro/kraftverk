@@ -1,6 +1,5 @@
 package io.kraftverk.core.common
 
-import io.kraftverk.core.declaration.LifecycleActions
 import io.kraftverk.core.internal.misc.interceptAfter
 
 sealed class Pipe<in T : Any>
@@ -14,9 +13,9 @@ internal class PipeImpl<T : Any>(val delegate: PipeDelegate<T>) : Pipe<T>()
 
 internal class PipeDelegate<T : Any> {
 
-    var onPipe: (T, LifecycleActions) -> Unit = { _, _ -> }
+    var onPipe: (T) -> Unit = { }
 
-    fun configure(block: (T, LifecycleActions) -> Unit) {
+    fun configure(block: (T) -> Unit) {
         onPipe = interceptAfter(onPipe, block)
     }
 }

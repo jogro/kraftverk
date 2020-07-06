@@ -3,6 +3,7 @@ package io.kraftverk.core.internal.binding
 import io.kraftverk.core.common.BeanDefinition
 import io.kraftverk.core.common.BindingDefinition
 import io.kraftverk.core.common.ValueDefinition
+import io.kraftverk.core.declaration.BeanDeclarationContext
 import io.kraftverk.core.declaration.LifecycleActions
 import io.kraftverk.core.internal.logging.createLogger
 import io.kraftverk.core.internal.misc.Supplier
@@ -23,20 +24,20 @@ internal sealed class BindingProviderFactory<T : Any, out P : Provider<T>>(var i
 
 internal class BeanProviderFactory<T : Any>(
     private val definition: BeanDefinition<T>,
-    private val lifecycleActions: LifecycleActions
+    private val ctx: BeanDeclarationContext
 ) : BindingProviderFactory<T, BeanProvider<T>>(definition.instance) {
 
     private var onConfigure: (T) -> Unit = { }
 
-    fun bind(block: (LifecycleActions, Supplier<T>) -> T) {
+    fun bind(block: (BeanDeclarationContext, Supplier<T>) -> T) {
         instance = interceptAround(instance) { callOriginal ->
-            block(lifecycleActions, callOriginal)
+            block(ctx, callOriginal)
         }
     }
 
-    fun configure(block: (T, LifecycleActions) -> Unit) {
+    fun configure(block: (T, BeanDeclarationContext) -> Unit) {
         onConfigure = interceptAfter(onConfigure) { t ->
-            block(t, lifecycleActions)
+            block(t, ctx)
         }
     }
 
@@ -46,7 +47,7 @@ internal class BeanProviderFactory<T : Any>(
             definition,
             instance = loggingInterceptor(instance),
             onConfigure = onConfigure,
-            lifecycleActions = lifecycleActions
+            lifecycleActions = ctx.lifecycleActions
         )
     )
 

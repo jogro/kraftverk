@@ -13,16 +13,16 @@ import io.kraftverk.core.binding.ValueImpl
 import io.kraftverk.core.binding.delegate
 import io.kraftverk.core.common.BeanDefinition
 import io.kraftverk.core.common.ValueDefinition
-import io.kraftverk.core.declaration.LifecycleActions
+import io.kraftverk.core.declaration.BeanDeclarationContext
 import io.kraftverk.core.internal.container.Container.State
 import io.kraftverk.core.internal.misc.mustBe
 
 internal fun <T : Any> Container.createBean(
     definition: BeanDefinition<T>,
-    lifecycleActions: LifecycleActions
+    ctx: BeanDeclarationContext
 ): BeanImpl<T> {
     state.mustBe<State.Configurable> {
-        return beanFactory.createBean(definition, lifecycleActions).also { bindings.add(it) }
+        return beanFactory.createBean(definition, ctx).also { bindings.add(it) }
     }
 }
 

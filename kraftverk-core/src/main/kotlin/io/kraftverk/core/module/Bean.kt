@@ -9,7 +9,7 @@ import io.kraftverk.core.binding.Bean
 import io.kraftverk.core.binding.BeanImpl
 import io.kraftverk.core.common.BeanDefinition
 import io.kraftverk.core.declaration.BeanDeclaration
-import io.kraftverk.core.declaration.LifecycleActions
+import io.kraftverk.core.declaration.BeanDeclarationContext
 import io.kraftverk.core.internal.container.createBean
 import io.kraftverk.core.internal.container.createBeanInstance
 import kotlin.properties.ReadOnlyProperty
@@ -86,12 +86,12 @@ private fun <T : Any> BasicModule<*>.createBean(
     lazy: Boolean? = null,
     instance: BeanDeclaration.() -> T
 ): BeanImpl<T> {
-    val lifecycleActions = LifecycleActions()
+    val ctx = BeanDeclarationContext()
     val definition = BeanDefinition(
         name = name,
         lazy = lazy,
         type = type,
-        instance = { container.createBeanInstance(lifecycleActions, instance) }
+        instance = { container.createBeanInstance(ctx, instance) }
     )
-    return container.createBean(definition, lifecycleActions)
+    return container.createBean(definition, ctx)
 }

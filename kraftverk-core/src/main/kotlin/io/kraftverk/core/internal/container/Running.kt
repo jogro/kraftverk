@@ -8,7 +8,7 @@ package io.kraftverk.core.internal.container
 import io.kraftverk.core.binding.Binding
 import io.kraftverk.core.binding.delegate
 import io.kraftverk.core.declaration.BeanDeclaration
-import io.kraftverk.core.declaration.LifecycleActions
+import io.kraftverk.core.declaration.BeanDeclarationContext
 import io.kraftverk.core.declaration.ValueDeclaration
 import io.kraftverk.core.internal.container.Container.State
 import io.kraftverk.core.internal.misc.mightBe
@@ -27,11 +27,11 @@ internal val Container.valueProviders: List<ValueProvider<*>>
         providers.filterIsInstance<ValueProvider<*>>()
 
 internal fun <T : Any> Container.createBeanInstance(
-    lifecycleActions: LifecycleActions,
+    ctx: BeanDeclarationContext,
     instance: BeanDeclaration.() -> T
 ): T {
     state.mustBe<State.Running>()
-    return BeanDeclaration(lifecycleActions, this).instance()
+    return BeanDeclaration(ctx, this).instance()
 }
 
 internal fun <T : Any> Container.createValueInstance(

@@ -1,6 +1,6 @@
 package io.kraftverk.core.internal.binding
 
-import io.kraftverk.core.declaration.LifecycleActions
+import io.kraftverk.core.declaration.BeanDeclarationContext
 import io.kraftverk.core.internal.misc.BasicState
 import io.kraftverk.core.internal.misc.Supplier
 import io.kraftverk.core.internal.misc.mightBe
@@ -31,13 +31,13 @@ internal class BeanDelegate<T : Any>(
         object Destroyed : State<Nothing>()
     }
 
-    fun bind(block: (LifecycleActions, Supplier<T>) -> T) {
+    fun bind(block: (BeanDeclarationContext, Supplier<T>) -> T) {
         state.mustBe<State.Configurable<T>> {
             providerFactory.bind(block)
         }
     }
 
-    fun configure(block: (T, LifecycleActions) -> Unit) {
+    fun configure(block: (T, BeanDeclarationContext) -> Unit) {
         state.mustBe<State.Configurable<T>> {
             providerFactory.configure(block)
         }

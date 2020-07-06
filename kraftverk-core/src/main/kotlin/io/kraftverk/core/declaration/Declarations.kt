@@ -32,7 +32,7 @@ class ValueSupplierDeclaration<T> internal constructor(
 }
 
 open class BeanDeclaration internal constructor(
-    internal val lifecycleActions: LifecycleActions,
+    val ctx: BeanDeclarationContext,
     container: Container
 ) : ValueDeclaration(container) {
     val beanProviders get() = container.beanProviders
@@ -42,17 +42,21 @@ open class BeanDeclaration internal constructor(
     operator fun <T : Any> BindingRef<T>.invoke(): T = instance()
 
     operator fun <T : Any> Pipe<T>.invoke(t: T): T {
-        delegate.onPipe(t, lifecycleActions)
+        delegate.onPipe(t)
         return t
     }
 }
 
 class BeanSupplierInterceptorDeclaration<T> internal constructor(
-    lifecycleActions: LifecycleActions,
+    ctx: BeanDeclarationContext,
     container: Container,
     private val supply: Supplier<T>
-) : BeanDeclaration(lifecycleActions, container) {
+) : BeanDeclaration(ctx, container) {
     fun callOriginal() = supply()
+}
+
+class BeanDeclarationContext() {
+    internal val lifecycleActions = LifecycleActions()
 }
 
 class LifecycleActions {
@@ -81,24 +85,25 @@ class LifecycleActions {
 }
 
 class PipeDeclaration internal constructor(
-    container: Container,
-    lifecycleActions: LifecycleActions
-) : BeanDeclaration(lifecycleActions, container) {
+    container: Container
+) : ValueDeclaration(container) {
 
-    fun lifecycle(block: LifecycleActions.() -> Unit) {
-        lifecycleActions.block()
-    }
+    val beanProviders get() = container.beanProviders
+
+    operator fun <T : Any> Bean<T>.invoke(): T = delegate.provider.get()
+
+    operator fun <T : Any> BindingRef<T>.invoke(): T = instance()
 }
 
 class BeanConfigurationDeclaration internal constructor(
     container: Container,
-    lifecycleActions: LifecycleActions
-) : BeanDeclaration(lifecycleActions, container) {
+    ctx: BeanDeclarationContext
+) : BeanDeclaration(ctx, container) {
 
     fun lifecycle(block: LifecycleActions.() -> Unit) {
-        lifecycleActions.block()
+        ctx.lifecycleActions.block()
     }
 }
 
-open class CustomBeanDeclaration(parent: BeanDeclaration) : BeanDeclaration(parent.lifecycleActions, parent.container)
+open class CustomBeanDeclaration(parent: BeanDeclaration) : BeanDeclaration(parent.ctx, parent.container)
 open class CustomValueDeclaration(parent: ValueDeclaration) : ValueDeclaration(parent.container)

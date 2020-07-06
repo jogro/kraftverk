@@ -41,7 +41,7 @@ fun <T : Any> BasicModule<*>.configure(
     pipe: Pipe<T>,
     block: PipeDeclaration.(T) -> Unit
 ) {
-    pipe.delegate.configure { instance, lifecycle ->
-        PipeDeclaration(container, lifecycle).block(instance)
+    pipe.delegate.configure { instance ->
+        PipeDeclaration(container).block(instance)
     }
 }
