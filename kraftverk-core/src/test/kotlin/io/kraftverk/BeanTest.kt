@@ -19,18 +19,7 @@ import io.kraftverk.core.common.BeanDefinition
 import io.kraftverk.core.common.BeanProcessor
 import io.kraftverk.core.declaration.BeanDeclaration
 import io.kraftverk.core.managed.Managed
-import io.kraftverk.core.managed.addProcessor
-import io.kraftverk.core.managed.beanProviders
-import io.kraftverk.core.managed.configure
-import io.kraftverk.core.managed.get
-import io.kraftverk.core.managed.invoke
-import io.kraftverk.core.managed.start
-import io.kraftverk.core.managed.stop
 import io.kraftverk.core.module.Module
-import io.kraftverk.core.module.bean
-import io.kraftverk.core.module.bind
-import io.kraftverk.core.module.configure
-import io.kraftverk.core.module.pipe
 import io.kraftverk.core.provider.definition
 import io.kraftverk.core.provider.get
 import io.kraftverk.core.provider.type
@@ -79,12 +68,6 @@ class BeanTest : StringSpec() {
                     onDestroy { cw.stop() }
                 }
             }
-            /*
-            onCreate(childGadget) { it.start() }
-            onCreate(gadget) { it.start() }
-            onDestroy(gadget) { it.stop() }
-            onDestroy(childGadget) { it.stop() }
-            */
         }
     }
 

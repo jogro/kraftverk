@@ -15,7 +15,7 @@ import io.kraftverk.core.internal.binding.ValueDelegate
  * The primary purpose of a Bean is to serve as a configurable factory that produces injectable singleton
  * instances of type [T].
  *
- * See the [bean][io.kraftverk.core.module.bean] method on how to declare a Bean.
+ * See the [bean][io.kraftverk.core.module.Module.bean] method on how to declare a Bean.
  */
 sealed class Bean<out T : Any> : Binding<T>() {
     companion object

@@ -13,9 +13,29 @@ import io.kraftverk.core.binding.ValueImpl
 import io.kraftverk.core.binding.delegate
 import io.kraftverk.core.common.BeanDefinition
 import io.kraftverk.core.common.ValueDefinition
+import io.kraftverk.core.declaration.BeanDeclaration
 import io.kraftverk.core.declaration.BeanDeclarationContext
+import io.kraftverk.core.declaration.ValueDeclaration
 import io.kraftverk.core.internal.container.Container.State
 import io.kraftverk.core.internal.misc.mustBe
+import io.kraftverk.core.module.Delegate
+import kotlin.reflect.KClass
+
+internal fun <T : Any> Container.createBean(
+    name: String,
+    type: KClass<T>,
+    lazy: Boolean? = null,
+    instance: BeanDeclaration.() -> T
+): BeanImpl<T> {
+    val ctx = BeanDeclarationContext()
+    val definition = BeanDefinition(
+        name = name,
+        lazy = lazy,
+        type = type,
+        instance = { createBeanInstance(ctx, instance) }
+    )
+    return createBean(definition, ctx)
+}
 
 internal fun <T : Any> Container.createBean(
     definition: BeanDefinition<T>,
@@ -24,6 +44,25 @@ internal fun <T : Any> Container.createBean(
     state.mustBe<State.Configurable> {
         return beanFactory.createBean(definition, ctx).also { bindings.add(it) }
     }
+}
+
+internal fun <T : Any> Container.createValue(
+    valueName: String,
+    secret: Boolean,
+    type: KClass<T>,
+    default: T?,
+    instance: ValueDeclaration.(Any) -> T
+): Delegate<ValueImpl<T>> {
+    val definition = ValueDefinition(
+        name = valueName,
+        lazy = null,
+        secret = secret,
+        type = type,
+        instance = {
+            createValueInstance(valueName, default, instance)
+        }
+    )
+    return createValue(definition).let(::Delegate)
 }
 
 internal fun <T : Any> Container.createValue(

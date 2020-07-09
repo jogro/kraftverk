@@ -9,7 +9,6 @@ import io.kraftverk.core.env.Environment
 import io.kraftverk.core.env.environment
 import io.kraftverk.core.managed.Managed
 import io.kraftverk.core.managed.ModuleFactory
-import io.kraftverk.core.managed.start
 import io.kraftverk.core.module.Module
 
 object Kraftverk {
