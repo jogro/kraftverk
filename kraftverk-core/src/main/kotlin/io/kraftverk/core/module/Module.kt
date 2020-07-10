@@ -162,16 +162,10 @@ fun <PARENT : BasicModule<*>, CHILD : BasicModule<PARENT>> PARENT.module(
 
 fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>, T : Any, BINDING : Binding<T>> CHILD.import(
     binding: PARENT.() -> BINDING
-): BindingRefDelegateProvider<T> =
-    object : BindingRefDelegateProvider<T> {
-        override fun provideDelegate(
-            thisRef: BasicModule<*>,
-            property: KProperty<*>
-        ): ReadOnlyProperty<BasicModule<*>, BindingRef<T>> {
-            val ref = BindingRef { instanceFromParent(binding) }
-            return Delegate(ref)
-        }
-    }
+): ReadOnlyProperty<BasicModule<*>, BindingRef<T>> {
+    val ref = BindingRef { instanceFromParent(binding) }
+    return Delegate(ref)
+}
 
 fun <PARENT : BasicModule<*>, CHILD : ChildModule<PARENT>> CHILD.parent(
     block: PARENT.() -> Unit
