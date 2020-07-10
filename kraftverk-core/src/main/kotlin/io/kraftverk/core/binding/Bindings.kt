@@ -15,6 +15,11 @@ import io.kraftverk.core.internal.binding.ValueDelegate
  * The primary purpose of a Bean is to serve as a configurable factory that produces injectable singleton
  * instances of type [T].
  *
+ * A Bean is basically a wrapper around a lambda expression of type () -> T. This lambda is guaranteed to
+ * be run only ONCE, thus supplying a singleton instance. The lambda can only be called upon in the context of a
+ * [BeanDeclaration][io.kraftverk.core.declaration.BeanDeclaration] by invoking the bean as a function
+ * (operator invoke extension).
+ *
  * See the [bean][io.kraftverk.core.module.Module.bean] method on how to declare a Bean.
  */
 sealed class Bean<out T : Any> : Binding<T>() {
@@ -28,7 +33,7 @@ sealed class Bean<out T : Any> : Binding<T>() {
  * [environment][io.kraftverk.core.env.Environment].
  *
  * The following methods can be used to declare a Value.
- *   - [value][io.kraftverk.core.module.value]
+ *   - [value][io.kraftverk.core.module.Module.value]
  *   - [string][io.kraftverk.core.module.string]
  *   - [int][io.kraftverk.core.module.int]
  *   - [long][io.kraftverk.core.module.long],

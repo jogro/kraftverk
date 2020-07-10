@@ -33,7 +33,7 @@ internal class ModuleFactory<M : Module>(
     fun createModule(lazy: Boolean): M {
         val container =
             Container(env, beanProcessors, valueProcessors)
-        val module = io.kraftverk.core.module.createModule(container, namespace, instance)
+        val module = io.kraftverk.core.internal.module.createModule(container, namespace, instance)
         onConfigure(module)
         container.start(lazy)
         return module
