@@ -55,7 +55,7 @@ class BeanSupplierInterceptorDeclaration<T> internal constructor(
     fun callOriginal() = supply()
 }
 
-class BeanDeclarationContext() {
+class BeanDeclarationContext {
     internal val lifecycleActions = LifecycleActions()
 }
 
