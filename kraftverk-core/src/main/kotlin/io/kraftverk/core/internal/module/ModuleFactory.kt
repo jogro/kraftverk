@@ -1,4 +1,4 @@
-package io.kraftverk.core.managed
+package io.kraftverk.core.internal.module
 
 import io.kraftverk.core.common.BeanProcessor
 import io.kraftverk.core.common.ValueProcessor
@@ -7,9 +7,8 @@ import io.kraftverk.core.internal.container.Container
 import io.kraftverk.core.internal.container.start
 import io.kraftverk.core.internal.misc.Consumer
 import io.kraftverk.core.internal.misc.interceptAfter
-import io.kraftverk.core.module.Module
 
-internal class ModuleFactory<M : Module>(
+internal class ModuleFactory<M : ModuleSupport<*>>(
     private val env: Environment,
     private val namespace: String,
     private val instance: () -> M
@@ -33,7 +32,7 @@ internal class ModuleFactory<M : Module>(
     fun createModule(lazy: Boolean): M {
         val container =
             Container(env, beanProcessors, valueProcessors)
-        val module = io.kraftverk.core.internal.module.createModule(container, namespace, instance)
+        val module = createModule(container, namespace, instance)
         onConfigure(module)
         container.start(lazy)
         return module

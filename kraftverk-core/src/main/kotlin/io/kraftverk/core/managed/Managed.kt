@@ -17,6 +17,7 @@ import io.kraftverk.core.internal.logging.createLogger
 import io.kraftverk.core.internal.misc.BasicState
 import io.kraftverk.core.internal.misc.mightBe
 import io.kraftverk.core.internal.misc.mustBe
+import io.kraftverk.core.internal.module.ModuleFactory
 import io.kraftverk.core.module.Module
 import io.kraftverk.core.provider.BeanProvider
 import io.kraftverk.core.provider.ValueProvider
