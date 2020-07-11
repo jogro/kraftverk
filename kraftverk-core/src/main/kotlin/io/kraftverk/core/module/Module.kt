@@ -74,7 +74,7 @@ open class BasicModule<PARENT : AbstractModule> : ModuleSupport<PARENT>() {
      * ```
      * Manage the bean lifecycle:
      * ```kotlin
-     * configure(server) { ds ->
+     * configure(server) {
      *     lifecycle {
      *         onCreate { it.start() }
      *         onDestroy { it.stop() }
