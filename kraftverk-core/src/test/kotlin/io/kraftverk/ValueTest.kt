@@ -166,7 +166,7 @@ class ValueTest : StringSpec() {
         }
 
         "Values should be overridden when using profiles 1" {
-            withSystemProperties("kraftverk.active.profiles" to "prof2, prof1") {
+            withSystemProperties("kraftverk.profiles" to "prof2, prof1") {
                 val env = environment()
                 Kraftverk.start(env = env) {
                     AppModule()

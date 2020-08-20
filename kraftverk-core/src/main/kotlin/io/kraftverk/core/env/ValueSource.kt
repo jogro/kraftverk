@@ -22,7 +22,7 @@ class ValueSource {
     companion object
 }
 
-const val KRAFTVERK_PROFILES = "kraftverk.active.profiles"
+const val KRAFTVERK_PROFILES = "kraftverk.profiles"
 
 class ValueNameException(msg: String) : Exception(msg)
 
