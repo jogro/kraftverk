@@ -59,10 +59,8 @@ fun BasicModule<*>.port(
     block: ValueDeclaration.(Int) -> Int = { it }
 ): ValueDelegateProvider<Int> =
     int(name, default, secret) { value ->
-        block(
-            when (value) {
-                0 -> ServerSocket(0).use { it.localPort }
-                else -> value
-            }
-        )
+        when (block(value)) {
+            0 -> ServerSocket(0).use { it.localPort }
+            else -> value
+        }
     }
