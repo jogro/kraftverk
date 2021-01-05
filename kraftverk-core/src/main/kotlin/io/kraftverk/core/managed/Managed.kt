@@ -15,8 +15,8 @@ import io.kraftverk.core.internal.container.stop
 import io.kraftverk.core.internal.container.valueProviders
 import io.kraftverk.core.internal.logging.createLogger
 import io.kraftverk.core.internal.misc.BasicState
-import io.kraftverk.core.internal.misc.mightBe
-import io.kraftverk.core.internal.misc.mustBe
+import io.kraftverk.core.internal.misc.applyAs
+import io.kraftverk.core.internal.misc.applyWhen
 import io.kraftverk.core.internal.module.ModuleFactory
 import io.kraftverk.core.module.Module
 import io.kraftverk.core.provider.BeanProvider
@@ -80,7 +80,7 @@ class Managed<M : Module> internal constructor(moduleFactory: ModuleFactory<M>) 
     fun start(lazy: Boolean = false, block: M.() -> Unit = {}): Managed<M> {
         logger.info { "Starting managed module" }
         val startMs = System.currentTimeMillis()
-        state.mustBe<State.Configurable<M>> {
+        state.applyAs<State.Configurable<M>> {
             moduleFactory.configure(block)
             val module = moduleFactory.createModule(lazy)
             state = State.Running(module)
@@ -91,21 +91,21 @@ class Managed<M : Module> internal constructor(moduleFactory: ModuleFactory<M>) 
     }
 
     fun configure(block: M.() -> Unit): Managed<M> {
-        state.mustBe<State.Configurable<M>> {
+        state.applyAs<State.Configurable<M>> {
             moduleFactory.configure(block)
         }
         return this
     }
 
     fun addProcessor(processor: BeanProcessor): Managed<M> {
-        state.mustBe<State.Configurable<M>> {
+        state.applyAs<State.Configurable<M>> {
             moduleFactory.addProcessor(processor)
         }
         return this
     }
 
     fun addProcessor(processor: ValueProcessor): Managed<M> {
-        state.mustBe<State.Configurable<M>> {
+        state.applyAs<State.Configurable<M>> {
             moduleFactory.addProcessor(processor)
         }
         return this
@@ -128,7 +128,7 @@ class Managed<M : Module> internal constructor(moduleFactory: ModuleFactory<M>) 
      * ```
      */
     operator fun <T : Any> invoke(binding: M.() -> Binding<T>): T {
-        state.mustBe<State.Running<M>> {
+        state.applyAs<State.Running<M>> {
             return module.binding().delegate.provider.get()
         }
     }
@@ -150,7 +150,7 @@ class Managed<M : Module> internal constructor(moduleFactory: ModuleFactory<M>) 
      * Stops this instance.
      */
     fun stop() {
-        state.mightBe<State.Running<*>> {
+        state.applyWhen<State.Running<*>> {
             logger.info { "Stopping managed module" }
             state = State.Destroying
             module.container.stop()
@@ -161,7 +161,7 @@ class Managed<M : Module> internal constructor(moduleFactory: ModuleFactory<M>) 
 
     internal val module: M
         get() {
-            state.mustBe<State.Running<M>> {
+            state.applyAs<State.Running<M>> {
                 return module
             }
         }

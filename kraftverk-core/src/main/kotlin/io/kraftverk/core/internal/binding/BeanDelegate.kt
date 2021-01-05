@@ -3,8 +3,8 @@ package io.kraftverk.core.internal.binding
 import io.kraftverk.core.declaration.BeanDeclarationContext
 import io.kraftverk.core.internal.misc.BasicState
 import io.kraftverk.core.internal.misc.Supplier
-import io.kraftverk.core.internal.misc.mightBe
-import io.kraftverk.core.internal.misc.mustBe
+import io.kraftverk.core.internal.misc.applyAs
+import io.kraftverk.core.internal.misc.applyWhen
 import io.kraftverk.core.provider.BeanProvider
 import io.kraftverk.core.provider.destroy
 import io.kraftverk.core.provider.initialize
@@ -32,39 +32,39 @@ internal class BeanDelegate<T : Any>(
     }
 
     fun bind(block: (BeanDeclarationContext, Supplier<T>) -> T) {
-        state.mustBe<State.Configurable<T>> {
+        state.applyAs<State.Configurable<T>> {
             providerFactory.bind(block)
         }
     }
 
     fun configure(block: (T, BeanDeclarationContext) -> Unit) {
-        state.mustBe<State.Configurable<T>> {
+        state.applyAs<State.Configurable<T>> {
             providerFactory.configure(block)
         }
     }
 
     override fun start() {
-        state.mustBe<State.Configurable<T>> {
+        state.applyAs<State.Configurable<T>> {
             val provider = providerFactory.createProvider()
             state = State.Running(provider)
         }
     }
 
     override fun initialize(lazy: Boolean) {
-        state.mustBe<State.Running<T>> {
+        state.applyAs<State.Running<T>> {
             provider.initialize(lazy)
         }
     }
 
     override val provider: BeanProvider<T>
         get() {
-            state.mustBe<State.Running<T>> {
+            state.applyAs<State.Running<T>> {
                 return provider
             }
         }
 
     override fun stop() {
-        state.mightBe<State.Running<T>> {
+        state.applyWhen<State.Running<T>> {
             provider.destroy()
             state = State.Destroyed
         }

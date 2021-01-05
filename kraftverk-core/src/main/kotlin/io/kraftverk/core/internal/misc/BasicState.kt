@@ -5,7 +5,7 @@ import kotlin.contracts.contract
 
 internal interface BasicState
 
-internal inline fun <reified T : Any> BasicState.mightBe(block: T.() -> Unit) {
+internal inline fun <reified T : Any> BasicState.applyWhen(block: T.() -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
@@ -14,7 +14,7 @@ internal inline fun <reified T : Any> BasicState.mightBe(block: T.() -> Unit) {
     }
 }
 
-internal inline fun <reified T : Any> BasicState.mustBe(block: T.() -> Unit = { }) {
+internal inline fun <reified T : Any> BasicState.applyAs(block: T.() -> Unit = { }) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

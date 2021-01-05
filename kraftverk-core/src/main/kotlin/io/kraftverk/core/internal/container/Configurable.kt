@@ -17,7 +17,7 @@ import io.kraftverk.core.declaration.BeanDeclaration
 import io.kraftverk.core.declaration.BeanDeclarationContext
 import io.kraftverk.core.declaration.ValueDeclaration
 import io.kraftverk.core.internal.container.Container.State
-import io.kraftverk.core.internal.misc.mustBe
+import io.kraftverk.core.internal.misc.applyAs
 import io.kraftverk.core.module.Delegate
 import kotlin.reflect.KClass
 
@@ -41,7 +41,7 @@ internal fun <T : Any> Container.createBean(
     definition: BeanDefinition<T>,
     ctx: BeanDeclarationContext
 ): BeanImpl<T> {
-    state.mustBe<State.Configurable> {
+    state.applyAs<State.Configurable> {
         return beanFactory.createBean(definition, ctx).also { bindings.add(it) }
     }
 }
@@ -68,13 +68,13 @@ internal fun <T : Any> Container.createValue(
 internal fun <T : Any> Container.createValue(
     definition: ValueDefinition<T>
 ): ValueImpl<T> {
-    state.mustBe<State.Configurable> {
+    state.applyAs<State.Configurable> {
         return valueFactory.createValue(definition).also { bindings.add(it) }
     }
 }
 
 internal fun Container.configure(block: () -> Unit) =
-    state.mustBe<State.Configurable> {
+    state.applyAs<State.Configurable> {
         val previous = onConfigure
         onConfigure = {
             previous()
@@ -83,7 +83,7 @@ internal fun Container.configure(block: () -> Unit) =
     }
 
 internal fun Container.start(lazy: Boolean) =
-    state.mustBe<State.Configurable> {
+    state.applyAs<State.Configurable> {
         onConfigure()
         bindings.forEach { binding -> binding.delegate.start() }
         state = State.Running(bindings.toList())
